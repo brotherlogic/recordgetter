@@ -184,7 +184,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 
 	ctx = s.LogTrace(ctx, "PostStage", time.Now(), pbt.Milestone_MARKER)
 
-	// If the time is between 1800 and 1900 - only reveal HIGH_SCHOOL records
+	// If the time is between 1800 and 1900 - only reveal PRE_FRESHMAN records
 	if t.Hour() >= 18 && t.Hour() <= 19 {
 		pDate := int64(0)
 		for _, rc := range r.GetRecords() {
@@ -264,23 +264,25 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 	ctx = s.LogTrace(ctx, "PostOldestNew2", time.Now(), pbt.Milestone_MARKER)
 
 	if newRec == nil {
-		//Get the youngest record in the to listen to
+		//Get the youngest record in the to listen to that isn't pre-freshman
 		pDate := int64(0)
 		for _, rc := range r.GetRecords() {
 			if rc.GetMetadata().DateAdded > pDate && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
-				// Check on the data
-				dateFine := true
-				for _, score := range s.state.Scores {
-					if score.InstanceId == rc.GetRelease().InstanceId {
-						if t.AddDate(0, 0, -7).Unix() <= score.ScoreDate {
-							dateFine = false
+				if rc.GetMetadata().GetCategory() != pbrc.ReleaseMetadata_PRE_FRESHMAN {
+					// Check on the data
+					dateFine := true
+					for _, score := range s.state.Scores {
+						if score.InstanceId == rc.GetRelease().InstanceId {
+							if t.AddDate(0, 0, -7).Unix() <= score.ScoreDate {
+								dateFine = false
+							}
 						}
 					}
-				}
 
-				if dateFine && !s.needsRip(rc) {
-					pDate = rc.GetMetadata().DateAdded
-					newRec = rc
+					if dateFine && !s.needsRip(rc) {
+						pDate = rc.GetMetadata().DateAdded
+						newRec = rc
+					}
 				}
 			}
 		}
