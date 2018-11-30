@@ -31,7 +31,7 @@ func (tg *testGetter) getRelease(ctx context.Context, instanceID int32) (*pbrc.G
 func TestScoreRecordDiff(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{records: []*pbrc.Record{
-		&pbrc.Record{Release: &pbgd.Release{InstanceId: 12, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_FRESHMAN, DateAdded: 12}},
+		&pbrc.Record{Release: &pbgd.Release{InstanceId: 12, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_SOPHMORE, DateAdded: 12}},
 		&pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_PROFESSOR, DateAdded: 1234}},
 	}}
 
@@ -59,6 +59,22 @@ func TestScoreRecordDiff(t *testing.T) {
 	}
 }
 
+func TestScoreRecordGadPull(t *testing.T) {
+	s := InitTestServer()
+	s.rGetter = &testGetter{records: []*pbrc.Record{
+		&pbrc.Record{Release: &pbgd.Release{InstanceId: 12, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_FRESHMAN, DateAdded: 12}},
+	}}
+
+	resp, err := s.GetRecord(context.Background(), &pb.GetRecordRequest{})
+	if err != nil {
+		t.Fatalf("Error getting record: %v", err)
+	}
+
+	if resp != nil {
+		t.Errorf("Record got returned")
+	}
+}
+
 func TestRecordGetDiskReturn(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{records: []*pbrc.Record{
@@ -79,7 +95,7 @@ func TestRecordGetDiskReturn(t *testing.T) {
 func TestRecordGetDiskSkipOnDate(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{records: []*pbrc.Record{
-		&pbrc.Record{Release: &pbgd.Release{InstanceId: 12, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_FRESHMAN, DateAdded: 12}},
+		&pbrc.Record{Release: &pbgd.Release{InstanceId: 12, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_SOPHMORE, DateAdded: 12}},
 		&pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_PROFESSOR, DateAdded: 1234}},
 	}}
 	s.state.Scores = append(s.state.Scores, &pb.DiskScore{InstanceId: 1234, DiskNumber: 1, ScoreDate: time.Now().Unix(), Score: 5})
@@ -97,7 +113,7 @@ func TestRecordGetDiskSkipOnDate(t *testing.T) {
 func TestRecordGetNextDisk(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{records: []*pbrc.Record{
-		&pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_FRESHMAN, DateAdded: 12}},
+		&pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_SOPHMORE, DateAdded: 12}},
 		&pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_PROFESSOR, DateAdded: 1234}},
 	}}
 
@@ -119,7 +135,7 @@ func TestRecordGetNextDisk(t *testing.T) {
 
 func TestGetDiskOnCurrent(t *testing.T) {
 	s := InitTestServer()
-	s.state.CurrentPick = &pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_FRESHMAN, DateAdded: 12}}
+	s.state.CurrentPick = &pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_SOPHMORE, DateAdded: 12}}
 	s.state.Scores = append(s.state.Scores, &pb.DiskScore{InstanceId: 1234, DiskNumber: 1, ScoreDate: time.Now().AddDate(0, -1, 0).Unix(), Score: 5})
 
 	resp, err := s.GetRecord(context.Background(), &pb.GetRecordRequest{})
@@ -135,7 +151,7 @@ func TestGetDiskOnCurrent(t *testing.T) {
 
 func TestForce(t *testing.T) {
 	s := InitTestServer()
-	s.state.CurrentPick = &pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_FRESHMAN, DateAdded: 12}}
+	s.state.CurrentPick = &pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_SOPHMORE, DateAdded: 12}}
 
 	_, err := s.Force(context.Background(), &pb.Empty{})
 
@@ -153,7 +169,7 @@ func TestRecordGetFailGet(t *testing.T) {
 	s.rGetter = &testGetter{
 		fail: true,
 		records: []*pbrc.Record{
-			&pbrc.Record{Release: &pbgd.Release{InstanceId: 12, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_FRESHMAN, DateAdded: 12}},
+			&pbrc.Record{Release: &pbgd.Release{InstanceId: 12, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_SOPHMORE, DateAdded: 12}},
 		},
 	}
 
@@ -167,10 +183,10 @@ func TestRecordGetRefresh(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{
 		records: []*pbrc.Record{
-			&pbrc.Record{Release: &pbgd.Release{InstanceId: 12, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_FRESHMAN, DateAdded: 12}},
+			&pbrc.Record{Release: &pbgd.Release{InstanceId: 12, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_SOPHMORE, DateAdded: 12}},
 		},
 	}
-	s.state.CurrentPick = &pbrc.Record{Release: &pbgd.Release{InstanceId: 12}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_FRESHMAN, DateAdded: 12}}
+	s.state.CurrentPick = &pbrc.Record{Release: &pbgd.Release{InstanceId: 12}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_SOPHMORE, DateAdded: 12}}
 
 	resp, err := s.GetRecord(context.Background(), &pb.GetRecordRequest{Refresh: true})
 	if err != nil {

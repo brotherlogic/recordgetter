@@ -89,3 +89,9 @@ func TestNotNeedsRip(t *testing.T) {
 		t.Errorf("Should be reported as nedding a riop")
 	}
 }
+
+func TestNumberListens(t *testing.T) {
+	if getNumListens(&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_FRESHMAN}}) != 3 {
+		t.Errorf("Bad number of listens")
+	}
+}

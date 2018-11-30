@@ -39,6 +39,10 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 		return nil, err
 	}
 
+	if rec == nil {
+		return nil, nil
+	}
+
 	disk := int32(1)
 	s.LogTrace(ctx, fmt.Sprintf("Start Score Search (%v)", len(s.state.Scores)), time.Now(), pbt.Milestone_MARKER)
 	if s.state.Scores != nil {
