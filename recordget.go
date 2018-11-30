@@ -381,7 +381,6 @@ func main() {
 	server.GoServer.KSclient = *keystoreclient.GetClient(server.GetIP)
 	server.RegisterServer("recordgetter", false)
 	//server.RegisterServingTask(server.GetRecords)
-	server.Log("Starting!")
 	err := server.Serve()
 	if err != nil {
 		log.Fatalf("Error running getter: %v", err)
