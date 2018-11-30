@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"time"
 
-	pbc "github.com/brotherlogic/cardserver/card"
 	pbcdp "github.com/brotherlogic/cdprocessor/proto"
 	pb "github.com/brotherlogic/discogssyncer/server"
 	pbd "github.com/brotherlogic/godiscogs"
@@ -78,13 +77,13 @@ const (
 )
 
 type getter interface {
-	getRecords(ctx context.Context) (*pbrc.GetRecordsResponse, error)
+	getRecords(ctx context.Context, folderID int32) (*pbrc.GetRecordsResponse, error)
 	getRelease(ctx context.Context, instanceID int32) (*pbrc.GetRecordsResponse, error)
 }
 
 type prodGetter struct{}
 
-func (p *prodGetter) getRecords(ctx context.Context) (*pbrc.GetRecordsResponse, error) {
+func (p *prodGetter) getRecords(ctx context.Context, folderID int32) (*pbrc.GetRecordsResponse, error) {
 	host, port, _ := utils.Resolve("recordcollection")
 	conn, err := grpc.Dial(host+":"+strconv.Itoa(int(port)), grpc.WithInsecure())
 	if err != nil {
@@ -94,7 +93,7 @@ func (p *prodGetter) getRecords(ctx context.Context) (*pbrc.GetRecordsResponse, 
 	client := pbrc.NewRecordCollectionServiceClient(conn)
 
 	//Only get clean records
-	r, err := client.GetRecords(ctx, &pbrc.GetRecordsRequest{Filter: &pbrc.Record{Release: &pbd.Release{FolderId: 812802}}}, grpc.MaxCallRecvMsgSize(1024*1024*1024))
+	r, err := client.GetRecords(ctx, &pbrc.GetRecordsRequest{Filter: &pbrc.Record{Release: &pbd.Release{FolderId: folderID}}}, grpc.MaxCallRecvMsgSize(1024*1024*1024))
 	return r, err
 }
 
@@ -158,7 +157,7 @@ func (p *prodUpdater) update(ctx context.Context, rec *pbrc.Record) error {
 func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Record, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	r, err := s.rGetter.getRecords(ctx)
+	r, err := s.rGetter.getRecords(ctx, 812802)
 	if err != nil {
 		return nil, err
 	}
@@ -289,177 +288,19 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 	}
 	ctx = s.LogTrace(ctx, "Youngest", time.Now(), pbt.Milestone_MARKER)
 
-	return newRec, nil
-}
-
-func (s *Server) getReleaseFromCollection(allowSeven bool) (*pbd.Release, *pb.ReleaseMetadata) {
-	rand.Seed(time.Now().UTC().UnixNano())
-	host, port := s.GetIP("discogssyncer")
-	conn, _ := grpc.Dial(host+":"+strconv.Itoa(port), grpc.WithInsecure())
-	defer conn.Close()
-	client := pb.NewDiscogsServiceClient(conn)
-
-	folderList := &pb.FolderList{}
-	folderList.Folders = append(folderList.Folders, &pbd.Folder{Name: "12s"})
-	folderList.Folders = append(folderList.Folders, &pbd.Folder{Name: "10s"})
-	folderList.Folders = append(folderList.Folders, &pbd.Folder{Name: "April Orchestra"})
-	folderList.Folders = append(folderList.Folders, &pbd.Folder{Name: "Death Waltz"})
-	folderList.Folders = append(folderList.Folders, &pbd.Folder{Name: "IM"})
-	folderList.Folders = append(folderList.Folders, &pbd.Folder{Name: "Music Mosaic"})
-	folderList.Folders = append(folderList.Folders, &pbd.Folder{Name: "MusiquePourLImage"})
-	folderList.Folders = append(folderList.Folders, &pbd.Folder{Name: "NumeroLPs"})
-	folderList.Folders = append(folderList.Folders, &pbd.Folder{Name: "Outside"})
-	folderList.Folders = append(folderList.Folders, &pbd.Folder{Name: "Robbie Basho"})
-	folderList.Folders = append(folderList.Folders, &pbd.Folder{Name: "Timing"})
-	folderList.Folders = append(folderList.Folders, &pbd.Folder{Name: "TVMusic"})
-	folderList.Folders = append(folderList.Folders, &pbd.Folder{Name: "Vinyl Boxsets"})
-	if allowSeven {
-		folderList.Folders = append(folderList.Folders, &pbd.Folder{Name: "7s"})
-	}
-	r, _ := client.GetReleasesInFolder(context.Background(), folderList)
-
-	retRel := r.Records[rand.Intn(len(r.Records))].GetRelease()
-	meta, _ := client.GetMetadata(context.Background(), retRel)
-
-	return retRel, meta
-}
-
-func (s *Server) getReleaseWithID(folderName string, id int) *pbd.Release {
-	rand.Seed(time.Now().UTC().UnixNano())
-	host, port := s.GetIP("discogssyncer")
-	conn, _ := grpc.Dial(host+":"+strconv.Itoa(port), grpc.WithInsecure())
-
-	defer conn.Close()
-	client := pb.NewDiscogsServiceClient(conn)
-	folderList := &pb.FolderList{}
-	folder := &pbd.Folder{Name: folderName}
-	folderList.Folders = append(folderList.Folders, folder)
-	r, _ := client.GetReleasesInFolder(context.Background(), folderList)
-
-	for _, release := range r.Records {
-		if int(release.GetRelease().Id) == id {
-			return release.GetRelease()
-		}
-	}
-	return nil
-}
-
-func (s *Server) deleteCard(hash string) {
-	host, port := s.GetIP("cardserver")
-	conn, err := grpc.Dial(host+":"+strconv.Itoa(port), grpc.WithInsecure())
-	if err != nil {
-		panic(err)
-	}
-	defer conn.Close()
-	client := pbc.NewCardServiceClient(conn)
-	client.DeleteCards(context.Background(), &pbc.DeleteRequest{Hash: hash})
-}
-
-func (s *Server) scoreCard(releaseID int, rating int) bool {
-	host, port := s.GetIP("discogssyncer")
-	conn, err := grpc.Dial(host+":"+strconv.Itoa(port), grpc.WithInsecure())
-	if err != nil {
-		panic(err)
-	}
-	allowSeven := true
-	defer conn.Close()
-	client := pb.NewDiscogsServiceClient(conn)
-	release := s.getReleaseWithID("ListeningPile", releaseID)
-	if release == nil {
-		release = s.getReleaseWithID("7s", releaseID)
-		allowSeven = false
-	}
-	if release != nil {
-		release.Rating = int32(rating)
-		// Update the rating and move to the listening box
-		if rating > 0 {
-			client.UpdateRating(context.Background(), release)
-		}
-		client.MoveToFolder(context.Background(), &pb.ReleaseMove{Release: release, NewFolderId: 673768})
-	}
-	return allowSeven
-}
-
-func (s *Server) hasCurrentCard() bool {
-	//Get the latest card from the cardserver
-	cServer, cPort := s.GetIP("cardserver")
-	if cPort > 0 {
-		conn, _ := grpc.Dial(cServer+":"+strconv.Itoa(cPort), grpc.WithInsecure())
-		defer conn.Close()
-		client := pbc.NewCardServiceClient(conn)
-
-		cardList, err := client.GetCards(context.Background(), &pbc.Empty{})
-
+	if newRec == nil {
+		recs, err := s.rGetter.getRecords(ctx, 242017)
 		if err == nil {
-			for _, card := range cardList.Cards {
-				if card.Hash == "discogs" {
-					return true
+			for _, r := range recs.GetRecords() {
+				if r.GetRelease().Rating == 0 {
+					newRec = r
+					break
 				}
 			}
 		}
 	}
-	return false
-}
 
-func (s *Server) addCards(cardList *pbc.CardList) {
-	cServer, cPort := s.GetIP("cardserver")
-	conn, _ := grpc.Dial(cServer+":"+strconv.Itoa(cPort), grpc.WithInsecure())
-	defer conn.Close()
-	client := pbc.NewCardServiceClient(conn)
-	client.AddCards(context.Background(), cardList)
-}
-
-func (s Server) processCard() (bool, error) {
-	//Get the latest card from the cardserver
-	cServer, cPort := s.GetIP("cardserver")
-	conn, _ := grpc.Dial(cServer+":"+strconv.Itoa(cPort), grpc.WithInsecure())
-	defer conn.Close()
-	client := pbc.NewCardServiceClient(conn)
-
-	allowSeven := true
-
-	cardList, err := client.GetCards(context.Background(), &pbc.Empty{})
-	if err != nil {
-		return false, err
-	}
-
-	for _, card := range cardList.Cards {
-		if card.Hash == "discogs-process" {
-			releaseID, _ := strconv.Atoi(card.Text)
-			if card.ActionMetadata != nil {
-				rating, _ := strconv.Atoi(card.ActionMetadata[0])
-				if s.delivering {
-					allowSeven = s.scoreCard(releaseID, rating)
-				}
-			} else {
-				if s.delivering {
-					allowSeven = s.scoreCard(releaseID, -1)
-				}
-			}
-			if s.delivering {
-				s.deleteCard(card.Hash)
-			}
-		}
-	}
-
-	return allowSeven, nil
-}
-
-func getCard(rel *pbd.Release) pbc.Card {
-	var imageURL string
-	var backupURL string
-	for _, image := range rel.Images {
-		if image.Type == "primary" {
-			imageURL = image.Uri
-		}
-		backupURL = image.Uri
-	}
-	if imageURL == "" {
-		imageURL = backupURL
-	}
-
-	card := pbc.Card{Text: pbd.GetReleaseArtist(rel) + " - " + rel.Title, Hash: "discogs", Image: imageURL, Priority: 100}
-	return card
+	return newRec, nil
 }
 
 //Init a record getter

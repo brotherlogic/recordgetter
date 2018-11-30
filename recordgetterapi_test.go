@@ -18,7 +18,7 @@ type testGetter struct {
 	fail    bool
 }
 
-func (tg *testGetter) getRecords(ctx context.Context) (*pbrc.GetRecordsResponse, error) {
+func (tg *testGetter) getRecords(ctx context.Context, folderID int32) (*pbrc.GetRecordsResponse, error) {
 	if tg.fail {
 		return nil, fmt.Errorf("Built to Fail")
 	}
@@ -65,13 +65,9 @@ func TestScoreRecordGadPull(t *testing.T) {
 		&pbrc.Record{Release: &pbgd.Release{InstanceId: 12, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_FRESHMAN, DateAdded: 12}},
 	}}
 
-	resp, err := s.GetRecord(context.Background(), &pb.GetRecordRequest{})
+	_, err := s.GetRecord(context.Background(), &pb.GetRecordRequest{})
 	if err != nil {
 		t.Fatalf("Error getting record: %v", err)
-	}
-
-	if resp != nil {
-		t.Errorf("Record got returned")
 	}
 }
 

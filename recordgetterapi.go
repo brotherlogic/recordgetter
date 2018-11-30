@@ -39,13 +39,9 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 		return nil, err
 	}
 
-	if rec == nil {
-		return nil, nil
-	}
-
 	disk := int32(1)
 	s.LogTrace(ctx, fmt.Sprintf("Start Score Search (%v)", len(s.state.Scores)), time.Now(), pbt.Milestone_MARKER)
-	if s.state.Scores != nil {
+	if rec != nil && s.state.Scores != nil {
 		for _, score := range s.state.Scores {
 			if score.InstanceId == rec.GetRelease().InstanceId {
 				if score.DiskNumber >= disk {
