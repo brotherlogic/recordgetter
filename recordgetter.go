@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -68,6 +67,7 @@ type Server struct {
 	updater    updater
 	rGetter    getter
 	cdproc     cdproc
+	rd         *rand.Rand
 }
 
 const (
@@ -164,10 +164,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 	}
 
 	ctx = s.LogTrace(ctx, "getReleaseFromPile", time.Now(), pbt.Milestone_MARKER)
-
-	if len(r.GetRecords()) == 0 {
-		return nil, fmt.Errorf("No records found")
-	}
 
 	var newRec *pbrc.Record
 	newRec = nil
@@ -290,9 +286,12 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 	ctx = s.LogTrace(ctx, "Youngest", time.Now(), pbt.Milestone_MARKER)
 
 	if newRec == nil {
-		recs, err := s.rGetter.getRecords(ctx, 242017)
+		rs, err := s.rGetter.getRecords(ctx, 242017)
 		if err == nil {
-			for _, r := range recs.GetRecords() {
+			recs := rs.GetRecords()
+
+			for _, i := range s.rd.Perm(len(recs)) {
+				r := recs[i]
 				if r.GetRelease().Rating == 0 && r.GetMetadata().SetRating == 0 {
 					newRec = r
 					break
@@ -306,7 +305,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 
 //Init a record getter
 func Init() *Server {
-	s := &Server{GoServer: &goserver.GoServer{}, serving: true, delivering: true, state: &pbrg.State{}}
+	s := &Server{GoServer: &goserver.GoServer{}, serving: true, delivering: true, state: &pbrg.State{}, rd: rand.New(rand.NewSource(time.Now().Unix()))}
 	s.updater = &prodUpdater{}
 	s.rGetter = &prodGetter{}
 	s.cdproc = &cdprocProd{}
