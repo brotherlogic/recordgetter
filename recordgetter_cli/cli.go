@@ -70,7 +70,9 @@ func score(ctx context.Context, value int32) {
 	}
 	r.GetRecord().GetMetadata().SetRating = value
 	_, err = client.Listened(ctx, r.GetRecord())
-	fmt.Printf("%v", err)
+	if err != nil {
+		fmt.Printf("%v", err)
+	}
 }
 
 func run() (int, error) {

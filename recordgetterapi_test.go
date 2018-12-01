@@ -28,6 +28,26 @@ func (tg *testGetter) getRelease(ctx context.Context, instanceID int32) (*pbrc.G
 	return &pbrc.GetRecordsResponse{Records: tg.records}, nil
 }
 
+func TestScoreFailGet(t *testing.T) {
+	s := InitTestServer()
+	s.rGetter = &testGetter{records: []*pbrc.Record{
+		&pbrc.Record{Release: &pbgd.Release{InstanceId: 12, FormatQuantity: 1}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_SOPHMORE, DateAdded: 12}},
+		&pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, FormatQuantity: 1}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_PROFESSOR, DateAdded: 1234}},
+	}}
+
+	resp, err := s.GetRecord(context.Background(), &pb.GetRecordRequest{})
+	if err != nil {
+		t.Fatalf("Error getting record: %v", err)
+	}
+
+	resp.GetRecord().GetRelease().Rating = 4
+	s.updater = &testUpdater{fail: true}
+	_, err = s.Listened(context.Background(), resp.GetRecord())
+	if err == nil {
+		t.Errorf("Bad score did not fail")
+	}
+}
+
 func TestScoreRecordDiff(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{records: []*pbrc.Record{
