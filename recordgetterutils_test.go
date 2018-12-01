@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/brotherlogic/keystore/client"
@@ -29,9 +30,13 @@ func (t *testRipper) isRipped(ID int32) bool {
 
 type testUpdater struct {
 	lastScore int32
+	fail      bool
 }
 
 func (t *testUpdater) update(ctx context.Context, rec *pbrc.Record) error {
+	if t.fail {
+		return fmt.Errorf("Build to fail")
+	}
 	t.lastScore = rec.Release.Rating
 	return nil
 }

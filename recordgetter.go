@@ -9,18 +9,19 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/brotherlogic/goserver"
+	"github.com/brotherlogic/goserver/utils"
+	"github.com/brotherlogic/keystore/client"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+
 	pbcdp "github.com/brotherlogic/cdprocessor/proto"
 	pb "github.com/brotherlogic/discogssyncer/server"
 	pbd "github.com/brotherlogic/godiscogs"
-	"github.com/brotherlogic/goserver"
 	pbg "github.com/brotherlogic/goserver/proto"
-	"github.com/brotherlogic/goserver/utils"
-	"github.com/brotherlogic/keystore/client"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pbrg "github.com/brotherlogic/recordgetter/proto"
 	pbt "github.com/brotherlogic/tracer/proto"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 )
 
 type cdproc interface {

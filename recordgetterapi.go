@@ -66,7 +66,10 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 	score := s.getScore(in)
 	if score >= 0 {
 		in.Release.Rating = score
-		s.updater.update(ctx, in)
+		err := s.updater.update(ctx, in)
+		if err != nil {
+			return &pb.Empty{}, err
+		}
 	}
 	s.state.CurrentPick = nil
 	s.saveState(ctx)

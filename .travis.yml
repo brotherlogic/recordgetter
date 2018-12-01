@@ -18,4 +18,4 @@ before_install:
   
 script:
 - fgt golint $(find . | grep .go$ | grep -v server.pb.go)
-- $HOME/gopath/bin/goveralls -service=travis-ci -ignore=recordget.go -package github.com/brotherlogic/recordgetter
+- $HOME/gopath/bin/goveralls -service=travis-ci -ignore=recordgetter.go -package github.com/brotherlogic/recordgetter
