@@ -292,7 +292,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 		recs, err := s.rGetter.getRecords(ctx, 242017)
 		if err == nil {
 			for _, r := range recs.GetRecords() {
-				if r.GetRelease().Rating == 0 {
+				if r.GetRelease().Rating == 0 && r.GetMetadata().SetRating == 0 {
 					newRec = r
 					break
 				}
