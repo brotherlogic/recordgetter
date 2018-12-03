@@ -39,6 +39,11 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 		return nil, err
 	}
 
+	if rec.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_FRESHMAN && time.Now().Hour() != 18 {
+		s.RaiseIssue(ctx, "Bad Get", fmt.Sprintf("Managed to get a pre-freshman record out of hours (%v)", time.Now()), false)
+		return nil, fmt.Errorf("Bad pull")
+	}
+
 	disk := int32(1)
 	s.LogTrace(ctx, fmt.Sprintf("Start Score Search (%v)", len(s.state.Scores)), time.Now(), pbt.Milestone_MARKER)
 	if rec != nil && s.state.Scores != nil {
