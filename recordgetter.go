@@ -68,6 +68,7 @@ type Server struct {
 	rGetter    getter
 	cdproc     cdproc
 	rd         *rand.Rand
+	requests   int64
 }
 
 const (
@@ -343,6 +344,7 @@ func (s Server) GetState() []*pbg.State {
 	}
 	return []*pbg.State{
 		&pbg.State{Key: "Current", Text: text},
+		&pbg.State{Key: "requests", Value: s.requests},
 	}
 }
 

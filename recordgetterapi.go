@@ -13,6 +13,7 @@ import (
 
 //GetRecord gets a record
 func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.GetRecordResponse, error) {
+	s.requests++
 	ctx = s.LogTrace(ctx, "GetRecord", time.Now(), pbt.Milestone_START_FUNCTION)
 	if s.state.CurrentPick != nil {
 		if in.GetRefresh() {
