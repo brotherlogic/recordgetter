@@ -59,6 +59,13 @@ func TestPickAtRandom(t *testing.T) {
 	}
 }
 
+func TestGetFromDigital(t *testing.T) {
+	s := InitTestServer()
+	s.rGetter = &testGetter{records: []*pbrc.Record{
+		&pbrc.Record{Release: &pbgd.Release{InstanceId: 12, FormatQuantity: 1}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_SOPHMORE, DateAdded: 12}},
+	}}
+}
+
 func TestScoreFailGet(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{records: []*pbrc.Record{
@@ -117,7 +124,7 @@ func TestScoreRecordGadPull(t *testing.T) {
 	}}
 
 	_, err := s.GetRecord(context.Background(), &pb.GetRecordRequest{})
-	if err != nil {
+	if err == nil {
 		t.Fatalf("Error getting record: %v", err)
 	}
 }

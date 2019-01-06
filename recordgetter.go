@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -337,14 +338,23 @@ func (s *Server) Mote(ctx context.Context, master bool) error {
 }
 
 // GetState gets the state of the server
-func (s Server) GetState() []*pbg.State {
+func (s *Server) GetState() []*pbg.State {
 	text := "No record chosen"
 	if s.state.CurrentPick != nil {
 		text = s.state.CurrentPick.GetRelease().Title
 	}
+
+	output := ""
+	for _, v := range s.state.Scores {
+		if v.InstanceId == 298139838 {
+			output += fmt.Sprintf("%v - %v,", v.DiskNumber, v.Score)
+		}
+	}
+
 	return []*pbg.State{
 		&pbg.State{Key: "Current", Text: text},
 		&pbg.State{Key: "requests", Value: s.requests},
+		&pbg.State{Key: "tracking", Text: output},
 	}
 }
 
