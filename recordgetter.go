@@ -6,17 +6,14 @@ import (
 	"io/ioutil"
 	"log"
 	"math/rand"
-	"strconv"
 	"time"
 
 	"github.com/brotherlogic/goserver"
-	"github.com/brotherlogic/goserver/utils"
 	"github.com/brotherlogic/keystore/client"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
 	pbcdp "github.com/brotherlogic/cdprocessor/proto"
-	pb "github.com/brotherlogic/discogssyncer/server"
 	pbd "github.com/brotherlogic/godiscogs"
 	pbg "github.com/brotherlogic/goserver/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
@@ -27,15 +24,12 @@ import (
 type cdproc interface {
 	isRipped(ID int32) bool
 }
-type cdprocProd struct{}
+type cdprocProd struct {
+	dial func(server string) (*grpc.ClientConn, error)
+}
 
 func (p *cdprocProd) isRipped(ID int32) bool {
-	ip, port, err := utils.Resolve("cdprocessor")
-	if err != nil {
-		return false
-	}
-
-	conn, err := grpc.Dial(ip+":"+strconv.Itoa(int(port)), grpc.WithInsecure())
+	conn, err := p.dial("cdprocessor")
 	if err != nil {
 		return false
 	}
@@ -84,11 +78,12 @@ type getter interface {
 	getRelease(ctx context.Context, instanceID int32) (*pbrc.GetRecordsResponse, error)
 }
 
-type prodGetter struct{}
+type prodGetter struct {
+	dial func(server string) (*grpc.ClientConn, error)
+}
 
 func (p *prodGetter) getRecords(ctx context.Context, folderID int32) (*pbrc.GetRecordsResponse, error) {
-	host, port, _ := utils.Resolve("recordcollection")
-	conn, err := grpc.Dial(host+":"+strconv.Itoa(int(port)), grpc.WithInsecure())
+	conn, err := p.dial("recordcollection")
 	if err != nil {
 		return nil, err
 	}
@@ -101,8 +96,7 @@ func (p *prodGetter) getRecords(ctx context.Context, folderID int32) (*pbrc.GetR
 }
 
 func (p *prodGetter) getRelease(ctx context.Context, instance int32) (*pbrc.GetRecordsResponse, error) {
-	host, port, _ := utils.Resolve("recordcollection")
-	conn, err := grpc.Dial(host+":"+strconv.Itoa(int(port)), grpc.WithInsecure())
+	conn, err := p.dial("recordcollection")
 	if err != nil {
 		return nil, err
 	}
@@ -112,38 +106,16 @@ func (p *prodGetter) getRelease(ctx context.Context, instance int32) (*pbrc.GetR
 	return client.GetRecords(ctx, &pbrc.GetRecordsRequest{Filter: &pbrc.Record{Release: &pbd.Release{InstanceId: instance}}})
 }
 
-func (s *Server) saveRelease(ctx context.Context, in *pbd.Release) (*pb.Empty, error) {
-	host, port := s.GetIP("discogssyncer")
-	conn, err := grpc.Dial(host+":"+strconv.Itoa(port), grpc.WithInsecure())
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close()
-	client := pb.NewDiscogsServiceClient(conn)
-
-	return client.UpdateRating(ctx, in)
-}
-
-func (s *Server) moveReleaseToListeningBox(ctx context.Context, in *pbd.Release) (*pb.Empty, error) {
-	host, port := s.GetIP("discogssyncer")
-	conn, err := grpc.Dial(host+":"+strconv.Itoa(port), grpc.WithInsecure())
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close()
-	client := pb.NewDiscogsServiceClient(conn)
-	return client.MoveToFolder(ctx, &pb.ReleaseMove{Release: in, NewFolderId: 673768})
-}
-
 type updater interface {
 	update(ctx context.Context, rec *pbrc.Record) error
 }
 
-type prodUpdater struct{}
+type prodUpdater struct {
+	dial func(server string) (*grpc.ClientConn, error)
+}
 
 func (p *prodUpdater) update(ctx context.Context, rec *pbrc.Record) error {
-	host, port, _ := utils.Resolve("recordcollection")
-	conn, err := grpc.Dial(host+":"+strconv.Itoa(int(port)), grpc.WithInsecure())
+	conn, err := p.dial("recordcollection")
 	if err != nil {
 		return err
 	}
@@ -308,9 +280,9 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 //Init a record getter
 func Init() *Server {
 	s := &Server{GoServer: &goserver.GoServer{}, serving: true, delivering: true, state: &pbrg.State{}, rd: rand.New(rand.NewSource(time.Now().Unix()))}
-	s.updater = &prodUpdater{}
-	s.rGetter = &prodGetter{}
-	s.cdproc = &cdprocProd{}
+	s.updater = &prodUpdater{s.DialMaster}
+	s.rGetter = &prodGetter{s.DialMaster}
+	s.cdproc = &cdprocProd{s.DialMaster}
 	s.Register = s
 	s.PrepServer()
 	return s
@@ -391,7 +363,9 @@ func main() {
 	}
 
 	server.GoServer.KSclient = *keystoreclient.GetClient(server.GetIP)
+	server.RPCTracing = true
 	server.RegisterServer("recordgetter", false)
+
 	//server.RegisterServingTask(server.GetRecords)
 	err := server.Serve()
 	if err != nil {
