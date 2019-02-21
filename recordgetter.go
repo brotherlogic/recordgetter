@@ -18,7 +18,6 @@ import (
 	pbg "github.com/brotherlogic/goserver/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pbrg "github.com/brotherlogic/recordgetter/proto"
-	pbt "github.com/brotherlogic/tracer/proto"
 )
 
 type cdproc interface {
@@ -137,8 +136,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 		return nil, err
 	}
 
-	ctx = s.LogTrace(ctx, "getReleaseFromPile", time.Now(), pbt.Milestone_MARKER)
-
 	var newRec *pbrc.Record
 	newRec = nil
 
@@ -151,8 +148,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 			}
 		}
 	}
-
-	ctx = s.LogTrace(ctx, "PostStage", time.Now(), pbt.Milestone_MARKER)
 
 	// If the time is between 1800 and 1900 - only reveal PRE_FRESHMAN records
 	if t.Hour() >= 18 && t.Hour() < 19 {
@@ -204,8 +199,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 		}
 	}
 
-	ctx = s.LogTrace(ctx, "PostOldestNew", time.Now(), pbt.Milestone_MARKER)
-
 	//Look for the oldest new rec
 	if newRec == nil {
 		pDate := int64(0)
@@ -231,8 +224,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 		}
 	}
 
-	ctx = s.LogTrace(ctx, "PostOldestNew2", time.Now(), pbt.Milestone_MARKER)
-
 	if newRec == nil {
 		//Get the youngest record in the to listen to that isn't pre-freshman
 		pDate := int64(0)
@@ -257,7 +248,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 			}
 		}
 	}
-	ctx = s.LogTrace(ctx, "Youngest", time.Now(), pbt.Milestone_MARKER)
 
 	if newRec == nil {
 		rs, err := s.rGetter.getRecords(ctx, 242017)
