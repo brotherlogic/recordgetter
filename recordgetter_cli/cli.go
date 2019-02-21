@@ -6,16 +6,13 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/brotherlogic/goserver/utils"
 	"google.golang.org/grpc"
 
 	pb "github.com/brotherlogic/discogssyncer/server"
 	pbd "github.com/brotherlogic/godiscogs"
-	pbgs "github.com/brotherlogic/goserver/proto"
 	pbrg "github.com/brotherlogic/recordgetter/proto"
-	pbt "github.com/brotherlogic/tracer/proto"
 
 	//Needed to pull in gzip encoding init
 	_ "google.golang.org/grpc/encoding/gzip"
@@ -92,12 +89,11 @@ func run() (int, error) {
 }
 
 func main() {
-	ctx, cancel := utils.BuildContext("RecordGet-Score", "recordgetter", pbgs.ContextType_MEDIUM)
+	ctx, cancel := utils.BuildContext("RecordGet-Score", "recordgetter")
 	defer cancel()
 	val, err := strconv.Atoi(os.Args[1])
 	if err != nil {
 		log.Fatalf("Error parsing num: %v", err)
 	}
 	score(ctx, int32(val))
-	utils.SendTrace(ctx, "recordgetter-cli", time.Now(), pbt.Milestone_END, "recordgetter")
 }

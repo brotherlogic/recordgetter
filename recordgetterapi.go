@@ -8,13 +8,11 @@ import (
 
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordgetter/proto"
-	pbt "github.com/brotherlogic/tracer/proto"
 )
 
 //GetRecord gets a record
 func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.GetRecordResponse, error) {
 	s.requests++
-	ctx = s.LogTrace(ctx, "GetRecord", time.Now(), pbt.Milestone_START_FUNCTION)
 	if s.state.CurrentPick != nil {
 		if in.GetRefresh() {
 			rec, err := s.rGetter.getRelease(ctx, s.state.CurrentPick.Release.InstanceId)
@@ -31,7 +29,6 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 			}
 		}
 
-		s.LogTrace(ctx, "GetRecord", time.Now(), pbt.Milestone_END_FUNCTION)
 		return &pb.GetRecordResponse{Record: s.state.CurrentPick, NumListens: getNumListens(s.state.CurrentPick), Disk: disk}, nil
 	}
 
@@ -46,7 +43,6 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 	}
 
 	disk := int32(1)
-	s.LogTrace(ctx, fmt.Sprintf("Start Score Search (%v)", len(s.state.Scores)), time.Now(), pbt.Milestone_MARKER)
 	if rec != nil && s.state.Scores != nil {
 		for _, score := range s.state.Scores {
 			if score.InstanceId == rec.GetRelease().InstanceId {
@@ -57,18 +53,14 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 		}
 	}
 
-	s.LogTrace(ctx, "End Score Search", time.Now(), pbt.Milestone_MARKER)
-
 	s.state.CurrentPick = rec
 	s.saveState(ctx)
 
-	s.LogTrace(ctx, "GetRecord", time.Now(), pbt.Milestone_END_FUNCTION)
 	return &pb.GetRecordResponse{Record: rec, NumListens: getNumListens(rec), Disk: disk}, nil
 }
 
 //Listened marks a record as Listened
 func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, error) {
-	ctx = s.LogTrace(ctx, "Listened", time.Now(), pbt.Milestone_START_FUNCTION)
 	score := s.getScore(in)
 	if score >= 0 {
 		in.Release.Rating = score
@@ -79,7 +71,6 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 	}
 	s.state.CurrentPick = nil
 	s.saveState(ctx)
-	s.LogTrace(ctx, "Listened", time.Now(), pbt.Milestone_END_FUNCTION)
 	return &pb.Empty{}, nil
 }
 
