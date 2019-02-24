@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"time"
 
 	pbrc "github.com/brotherlogic/recordcollection/proto"
@@ -9,10 +10,8 @@ import (
 
 func (s *Server) needsRip(r *pbrc.Record) bool {
 	for _, f := range r.GetRelease().Formats {
-		if f.Name == "CD" {
-			if !s.cdproc.isRipped(r.GetRelease().Id) {
-				return true
-			}
+		if strings.Contains(f.Name, "CD") {
+			return len(r.GetMetadata().CdPath) == 0
 		}
 	}
 

@@ -13,44 +13,11 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
-	pbcdp "github.com/brotherlogic/cdprocessor/proto"
 	pbd "github.com/brotherlogic/godiscogs"
 	pbg "github.com/brotherlogic/goserver/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pbrg "github.com/brotherlogic/recordgetter/proto"
 )
-
-type cdproc interface {
-	isRipped(ID int32) bool
-}
-type cdprocProd struct {
-	dial func(server string) (*grpc.ClientConn, error)
-}
-
-func (p *cdprocProd) isRipped(ID int32) bool {
-	conn, err := p.dial("cdprocessor")
-	if err != nil {
-		return false
-	}
-	defer conn.Close()
-
-	client := pbcdp.NewCDProcessorClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
-
-	res, err := client.GetRipped(ctx, &pbcdp.GetRippedRequest{})
-	if err != nil {
-		return false
-	}
-
-	for _, r := range res.GetRipped() {
-		if r.Id == ID {
-			return true
-		}
-	}
-
-	return false
-}
 
 //Server main server type
 type Server struct {
@@ -60,7 +27,6 @@ type Server struct {
 	state      *pbrg.State
 	updater    updater
 	rGetter    getter
-	cdproc     cdproc
 	rd         *rand.Rand
 	requests   int64
 }
@@ -269,10 +235,14 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 
 //Init a record getter
 func Init() *Server {
-	s := &Server{GoServer: &goserver.GoServer{}, serving: true, delivering: true, state: &pbrg.State{}, rd: rand.New(rand.NewSource(time.Now().Unix()))}
+	s := &Server{
+		GoServer: &goserver.GoServer{},
+		serving:  true, delivering: true,
+		state: &pbrg.State{},
+		rd:    rand.New(rand.NewSource(time.Now().Unix())),
+	}
 	s.updater = &prodUpdater{s.DialMaster}
 	s.rGetter = &prodGetter{s.DialMaster}
-	s.cdproc = &cdprocProd{s.DialMaster}
 	s.Register = s
 	s.PrepServer()
 	return s

@@ -16,16 +16,7 @@ func InitTestServer() *Server {
 	s := Init()
 	s.SkipLog = true
 	s.GoServer.KSclient = *keystoreclient.GetTestClient(".test")
-	s.cdproc = &testRipper{}
 	return s
-}
-
-type testRipper struct {
-	ripped bool
-}
-
-func (t *testRipper) isRipped(ID int32) bool {
-	return t.ripped
 }
 
 type testUpdater struct {
@@ -78,7 +69,7 @@ func TestPartialScore(t *testing.T) {
 
 func TestNeedsRip(t *testing.T) {
 	s := InitTestServer()
-	nr := s.needsRip(&pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, Formats: []*pbgd.Format{&pbgd.Format{Name: "CD"}}}})
+	nr := s.needsRip(&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{}, Release: &pbgd.Release{InstanceId: 1234, Formats: []*pbgd.Format{&pbgd.Format{Name: "CD"}}}})
 
 	if !nr {
 		t.Errorf("Should be reported as nedding a riop")
@@ -87,8 +78,7 @@ func TestNeedsRip(t *testing.T) {
 
 func TestNotNeedsRip(t *testing.T) {
 	s := InitTestServer()
-	s.cdproc = &testRipper{ripped: true}
-	nr := s.needsRip(&pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, Formats: []*pbgd.Format{&pbgd.Format{Name: "CD"}}}})
+	nr := s.needsRip(&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{CdPath: "blah"}, Release: &pbgd.Release{InstanceId: 1234, Formats: []*pbgd.Format{&pbgd.Format{Name: "CD"}}}})
 
 	if nr {
 		t.Errorf("Should be reported as nedding a riop")
