@@ -37,7 +37,7 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 		return nil, err
 	}
 
-	if rec.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_FRESHMAN && time.Now().Hour() != 18 {
+	if rec.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_FRESHMAN && time.Now().Hour() != 19 {
 		s.RaiseIssue(ctx, "Bad Get", fmt.Sprintf("Managed to get a pre-freshman record out of hours (%v)", time.Now()), false)
 		return nil, fmt.Errorf("Bad pull")
 	}
