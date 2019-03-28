@@ -215,16 +215,20 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 		}
 	}
 
-	if newRec == nil {
-		rs, err := s.rGetter.getRecords(ctx, 242017)
-		if err == nil {
-			recs := rs.GetRecords()
+	folders := []int32{242017, 466902}
 
-			for _, i := range s.rd.Perm(len(recs)) {
-				r := recs[i]
-				if r.GetRelease().Rating == 0 && r.GetMetadata().SetRating == 0 && r.GetMetadata().LastListenTime == 0 && !s.needsRip(r) {
-					newRec = r
-					break
+	for _, folder := range folders {
+		if newRec == nil {
+			rs, err := s.rGetter.getRecords(ctx, folder)
+			if err == nil {
+				recs := rs.GetRecords()
+
+				for _, i := range s.rd.Perm(len(recs)) {
+					r := recs[i]
+					if r.GetRelease().Rating == 0 && r.GetMetadata().SetRating == 0 && r.GetMetadata().LastListenTime == 0 && !s.needsRip(r) {
+						newRec = r
+						break
+					}
 				}
 			}
 		}
