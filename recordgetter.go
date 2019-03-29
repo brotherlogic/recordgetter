@@ -94,6 +94,17 @@ func (p *prodUpdater) update(ctx context.Context, rec *pbrc.Record) error {
 	return nil
 }
 
+func (s *Server) dateFine(rc *pbrc.Record, t time.Time) bool {
+	for _, score := range s.state.Scores {
+		if score.InstanceId == rc.GetRelease().InstanceId {
+			if t.AddDate(0, 0, -7).Unix() <= score.ScoreDate {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Record, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
@@ -121,17 +132,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 		for _, rc := range r.GetRecords() {
 			if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_FRESHMAN {
 				if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
-					// Check on the data
-					dateFine := true
-					for _, score := range s.state.Scores {
-						if score.InstanceId == rc.GetRelease().InstanceId {
-							if t.AddDate(0, 0, -7).Unix() <= score.ScoreDate {
-								dateFine = false
-							}
-						}
-					}
-
-					if dateFine && !s.needsRip(rc) {
+					if s.dateFine(rc, t) && !s.needsRip(rc) {
 						pDate = rc.GetMetadata().DateAdded
 						newRec = rc
 					}
@@ -146,17 +147,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 		for _, rc := range r.GetRecords() {
 			if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_UNLISTENED {
 				if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
-					// Check on the data
-					dateFine := true
-					for _, score := range s.state.Scores {
-						if score.InstanceId == rc.GetRelease().InstanceId {
-							if t.AddDate(0, 0, -7).Unix() <= score.ScoreDate {
-								dateFine = false
-							}
-						}
-					}
-
-					if dateFine && !s.needsRip(rc) {
+					if s.dateFine(rc, t) && !s.needsRip(rc) {
 						pDate = rc.GetMetadata().DateAdded
 						newRec = rc
 					}
@@ -171,17 +162,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 		for _, rc := range r.GetRecords() {
 			if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL {
 				if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
-					// Check on the data
-					dateFine := true
-					for _, score := range s.state.Scores {
-						if score.InstanceId == rc.GetRelease().InstanceId {
-							if t.AddDate(0, 0, -7).Unix() <= score.ScoreDate {
-								dateFine = false
-							}
-						}
-					}
-
-					if dateFine && !s.needsRip(rc) {
+					if s.dateFine(rc, t) && !s.needsRip(rc) {
 						pDate = rc.GetMetadata().DateAdded
 						newRec = rc
 					}
@@ -196,17 +177,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 		for _, rc := range r.GetRecords() {
 			if rc.GetMetadata().DateAdded > pDate && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
 				if rc.GetMetadata().GetCategory() != pbrc.ReleaseMetadata_PRE_FRESHMAN {
-					// Check on the data
-					dateFine := true
-					for _, score := range s.state.Scores {
-						if score.InstanceId == rc.GetRelease().InstanceId {
-							if t.AddDate(0, 0, -7).Unix() <= score.ScoreDate {
-								dateFine = false
-							}
-						}
-					}
-
-					if dateFine && !s.needsRip(rc) {
+					if s.dateFine(rc, t) && !s.needsRip(rc) {
 						pDate = rc.GetMetadata().DateAdded
 						newRec = rc
 					}
@@ -225,7 +196,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 
 				for _, i := range s.rd.Perm(len(recs)) {
 					r := recs[i]
-					if r.GetRelease().Rating == 0 && r.GetMetadata().SetRating == 0 && r.GetMetadata().LastListenTime == 0 && !s.needsRip(r) {
+					if r.GetRelease().Rating == 0 && r.GetMetadata().SetRating == 0 && r.GetMetadata().LastListenTime == 0 && !s.needsRip(r) && s.dateFine(r, t) {
 						newRec = r
 						break
 					}
