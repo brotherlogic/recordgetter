@@ -186,7 +186,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 		}
 	}
 
-	folders := []int32{242017, 466902}
+	folders := []int32{242017, 466902, 1345495}
 
 	for _, folder := range folders {
 		if newRec == nil {
