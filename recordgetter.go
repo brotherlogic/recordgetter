@@ -126,8 +126,8 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 		}
 	}
 
-	// If the time is between 1900 and 2000 - only reveal PRE_FRESHMAN records
-	if t.Hour() >= 19 && t.Hour() < 20 {
+	// If the time is between 1700 and 1800 - only reveal PRE_FRESHMAN records
+	if t.Hour() >= 17 && t.Hour() < 18 {
 		pDate := int64(0)
 		for _, rc := range r.GetRecords() {
 			if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_FRESHMAN {
