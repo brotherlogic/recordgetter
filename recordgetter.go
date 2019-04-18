@@ -264,7 +264,7 @@ func (s *Server) GetState() []*pbg.State {
 	}
 
 	val := int64(0)
-	if s.state != nil {
+	if s.state != nil && s.state.CurrentPick != nil {
 		val = int64(s.state.CurrentPick.GetRelease().Id)
 	}
 
