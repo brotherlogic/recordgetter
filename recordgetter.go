@@ -252,8 +252,10 @@ func (s *Server) Mote(ctx context.Context, master bool) error {
 // GetState gets the state of the server
 func (s *Server) GetState() []*pbg.State {
 	text := "No record chosen"
+	state := ""
 	if s.state.CurrentPick != nil {
 		text = s.state.CurrentPick.GetRelease().Title
+		state = fmt.Sprintf("%v", s.state.CurrentPick.GetMetadata().Category)
 	}
 
 	output := ""
@@ -269,7 +271,8 @@ func (s *Server) GetState() []*pbg.State {
 	}
 
 	return []*pbg.State{
-		&pbg.State{Key: "Current", Text: text},
+		&pbg.State{Key: "current", Text: text},
+		&pbg.State{Key: "current_state", Text: state},
 		&pbg.State{Key: "current_id", Value: val},
 		&pbg.State{Key: "requests", Value: s.requests},
 		&pbg.State{Key: "tracking", Text: output},
