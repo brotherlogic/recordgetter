@@ -123,6 +123,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 				newRec = rc
 				break
 			}
+			s.Log(fmt.Sprintf("Rejecting %v - needs rip", rc.GetRelease().Title))
 		}
 	}
 
@@ -151,6 +152,8 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 						pDate = rc.GetMetadata().DateAdded
 						newRec = rc
 					}
+
+					s.Log(fmt.Sprintf("Rejecting %v needs rip %v or dateFine %v", rc.GetRelease().Title, s.dateFine(rc, t), s.needsRip(rc)))
 				}
 			}
 		}
@@ -166,6 +169,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 						pDate = rc.GetMetadata().DateAdded
 						newRec = rc
 					}
+					s.Log(fmt.Sprintf("Rejecting %v needs rip %v or dateFine %v", rc.GetRelease().Title, s.dateFine(rc, t), s.needsRip(rc)))
 				}
 			}
 		}
@@ -181,6 +185,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 						pDate = rc.GetMetadata().DateAdded
 						newRec = rc
 					}
+					s.Log(fmt.Sprintf("Rejecting %v needs rip %v or dateFine %v", rc.GetRelease().Title, s.dateFine(rc, t), s.needsRip(rc)))
 				}
 			}
 		}
