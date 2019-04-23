@@ -168,7 +168,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 				recs := rs.GetRecords()
 
 				for _, r := range recs {
-					if r.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL {
+					if r.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL && r.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
 						newRec = r
 						break
 					}
