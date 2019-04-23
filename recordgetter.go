@@ -166,11 +166,12 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 			rs, err := s.rGetter.getRecords(ctx, folder)
 			if err == nil {
 				recs := rs.GetRecords()
-
 				for _, r := range recs {
 					if r.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL && r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() {
-						newRec = r
-						break
+						if s.dateFine(r, t) && !s.needsRip(r) {
+							newRec = r
+							break
+						}
 					}
 				}
 			}
