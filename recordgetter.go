@@ -159,6 +159,24 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 		}
 	}
 
+	// Look for pre high school records
+	folders := []int32{673768}
+	for _, folder := range folders {
+		if newRec == nil {
+			rs, err := s.rGetter.getRecords(ctx, folder)
+			if err == nil {
+				recs := rs.GetRecords()
+
+				for _, r := range recs {
+					if r.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL {
+						newRec = r
+						break
+					}
+				}
+			}
+		}
+	}
+
 	//Look for the oldest new rec
 	if newRec == nil {
 		pDate := int64(0)
@@ -191,7 +209,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 		}
 	}
 
-	folders := []int32{242017, 466902, 1345495}
+	folders = []int32{242017, 466902, 1345495}
 
 	for _, folder := range folders {
 		if newRec == nil {
