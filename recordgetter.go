@@ -284,7 +284,7 @@ func (s *Server) GetState() []*pbg.State {
 
 	output := ""
 	for _, v := range s.state.Scores {
-		if v.InstanceId == 298139838 {
+		if v.InstanceId == 365163179 {
 			output += fmt.Sprintf("%v - %v,", v.DiskNumber, v.Score)
 		}
 	}
@@ -300,6 +300,7 @@ func (s *Server) GetState() []*pbg.State {
 		&pbg.State{Key: "current_id", Value: val},
 		&pbg.State{Key: "requests", Value: s.requests},
 		&pbg.State{Key: "tracking", Text: output},
+		&pbg.State{Key: "scores", Value: int64(len(s.state.Scores))},
 	}
 }
 
