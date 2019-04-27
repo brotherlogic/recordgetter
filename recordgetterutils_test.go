@@ -76,6 +76,15 @@ func TestNeedsRip(t *testing.T) {
 	}
 }
 
+func TestNeedsRipDigital(t *testing.T) {
+	s := InitTestServer()
+	nr := s.needsRip(&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{GoalFolder: 268147}, Release: &pbgd.Release{InstanceId: 1234, Formats: []*pbgd.Format{&pbgd.Format{Name: "CD"}}}})
+
+	if nr {
+		t.Errorf("Digital records don't need rip")
+	}
+}
+
 func TestNotNeedsRip(t *testing.T) {
 	s := InitTestServer()
 	nr := s.needsRip(&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{CdPath: "blah"}, Release: &pbgd.Release{InstanceId: 1234, Formats: []*pbgd.Format{&pbgd.Format{Name: "CD"}}}})
