@@ -9,6 +9,11 @@ import (
 )
 
 func (s *Server) needsRip(r *pbrc.Record) bool {
+	// Digital records don't need to be ripped
+	if r.GetMetadata().GetGoalFolder() == 268147 || r.GetMetadata().GetGoalFolder() == 1433217 {
+		return false
+	}
+
 	for _, f := range r.GetRelease().Formats {
 		if strings.Contains(f.Name, "CD") {
 			return len(r.GetMetadata().CdPath) == 0
