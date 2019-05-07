@@ -84,6 +84,7 @@ func (p *prodUpdater) update(ctx context.Context, rec *pbrc.Record) error {
 	if err != nil {
 		return err
 	}
+
 	defer conn.Close()
 	client := pbrc.NewRecordCollectionServiceClient(conn)
 	_, err = client.UpdateRecord(ctx, &pbrc.UpdateRecordRequest{Update: rec})
@@ -120,12 +121,12 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 	for _, rc := range r.GetRecords() {
 		if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_STAGED_TO_SELL && rc.GetMetadata().SetRating == 0 && rc.GetRelease().Rating == 0 {
 			if !s.needsRip(rc) {
-				newRec = rc
-				break
+				return rc, nil
 			}
-			s.Log(fmt.Sprintf("Rejecting %v - needs rip", rc.GetRelease().Title))
 		}
 	}
+
+	s.Log(fmt.Sprintf("No records staged to sell"))
 
 	// If the time is between 1800 and 1900 - only reveal PRE_FRESHMAN records
 	if t.Hour() >= 18 && t.Hour() < 19 {
@@ -140,75 +141,89 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 				}
 			}
 		}
+
+		if newRec != nil {
+			return newRec, nil
+		}
 	}
 
-	//Look for the oldest new rec
-	if newRec == nil {
-		pDate := int64(0)
-		for _, rc := range r.GetRecords() {
-			if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_UNLISTENED {
-				if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
-					if s.dateFine(rc, t) && !s.needsRip(rc) {
-						pDate = rc.GetMetadata().DateAdded
-						newRec = rc
-					}
+	s.Log(fmt.Sprintf("No Pre Freshman records"))
 
-					s.Log(fmt.Sprintf("Rejecting %v needs rip %v or dateFine %v", rc.GetRelease().Title, s.dateFine(rc, t), s.needsRip(rc)))
+	//Look for the oldest new rec
+	pDate := int64(0)
+	for _, rc := range r.GetRecords() {
+		if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_UNLISTENED {
+			if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
+				if s.dateFine(rc, t) && !s.needsRip(rc) {
+					pDate = rc.GetMetadata().DateAdded
+					newRec = rc
 				}
+
 			}
 		}
 	}
+
+	if newRec != nil {
+		return newRec, nil
+	}
+
+	s.Log(fmt.Sprintf("No unlistened record"))
 
 	// Look for pre high school records
 	folders := []int32{673768}
 	for _, folder := range folders {
-		if newRec == nil {
-			rs, err := s.rGetter.getRecords(ctx, folder)
-			if err == nil {
-				recs := rs.GetRecords()
-				for _, r := range recs {
-					if r.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL && r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() {
-						if s.dateFine(r, t) && !s.needsRip(r) {
-							newRec = r
-							break
-						}
+		rs, err := s.rGetter.getRecords(ctx, folder)
+		if err == nil {
+			recs := rs.GetRecords()
+			for _, r := range recs {
+				if r.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL && r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() {
+					if s.dateFine(r, t) && !s.needsRip(r) {
+						return r, nil
 					}
 				}
 			}
 		}
 	}
+
+	s.Log(fmt.Sprintf("No Pre High School Records"))
 
 	//Look for the oldest new rec
-	if newRec == nil {
-		pDate := int64(0)
-		for _, rc := range r.GetRecords() {
-			if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL {
-				if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
-					if s.dateFine(rc, t) && !s.needsRip(rc) {
-						pDate = rc.GetMetadata().DateAdded
-						newRec = rc
-					}
-					s.Log(fmt.Sprintf("Rejecting %v needs rip %v or dateFine %v", rc.GetRelease().Title, s.dateFine(rc, t), s.needsRip(rc)))
+	pDate = int64(0)
+	for _, rc := range r.GetRecords() {
+		if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL {
+			if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
+				if s.dateFine(rc, t) && !s.needsRip(rc) {
+					pDate = rc.GetMetadata().DateAdded
+					newRec = rc
 				}
 			}
 		}
 	}
 
-	if newRec == nil {
-		//Get the youngest record in the to listen to that isn't pre-freshman
-		pDate := int64(0)
-		for _, rc := range r.GetRecords() {
-			if rc.GetMetadata().DateAdded > pDate && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
-				if rc.GetMetadata().GetCategory() != pbrc.ReleaseMetadata_PRE_FRESHMAN {
-					if s.dateFine(rc, t) && !s.needsRip(rc) {
-						pDate = rc.GetMetadata().DateAdded
-						newRec = rc
-					}
-					s.Log(fmt.Sprintf("Rejecting %v needs rip %v or dateFine %v", rc.GetRelease().Title, s.dateFine(rc, t), s.needsRip(rc)))
+	if newRec != nil {
+		return newRec, nil
+	}
+
+	s.Log(fmt.Sprintf("No Pre High School again"))
+
+	//Get the youngest record in the to listen to that isn't pre-freshman
+	pDate = int64(0)
+	for _, rc := range r.GetRecords() {
+		if rc.GetMetadata().DateAdded > pDate && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
+			if rc.GetMetadata().GetCategory() != pbrc.ReleaseMetadata_PRE_FRESHMAN {
+				if s.dateFine(rc, t) && !s.needsRip(rc) {
+					pDate = rc.GetMetadata().DateAdded
+					newRec = rc
 				}
 			}
 		}
 	}
+
+	if newRec != nil {
+		return newRec, nil
+	}
+
+	s.Log(fmt.Sprintf("No unrated records"))
 
 	folders = []int32{242017, 466902, 1345495}
 
@@ -221,13 +236,14 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 				for _, i := range s.rd.Perm(len(recs)) {
 					r := recs[i]
 					if r.GetRelease().Rating == 0 && r.GetMetadata().SetRating == 0 && r.GetMetadata().LastListenTime == 0 && !s.needsRip(r) && s.dateFine(r, t) {
-						newRec = r
-						break
+						return r, nil
 					}
 				}
 			}
 		}
 	}
+
+	s.Log(fmt.Sprintf("Cannot locate a record to listen to"))
 
 	return newRec, nil
 }
