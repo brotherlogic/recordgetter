@@ -290,14 +290,17 @@ func (s *Server) GetState() []*pbg.State {
 	}
 
 	val := int64(0)
+	val2 := int64(0)
 	if s.state != nil && s.state.CurrentPick != nil {
 		val = int64(s.state.CurrentPick.GetRelease().Id)
+		val2 = int64(s.state.CurrentPick.GetRelease().InstanceId)
 	}
 
 	return []*pbg.State{
 		&pbg.State{Key: "current", Text: text},
 		&pbg.State{Key: "current_state", Text: state},
 		&pbg.State{Key: "current_id", Value: val},
+		&pbg.State{Key: "current_iid", Value: val2},
 		&pbg.State{Key: "requests", Value: s.requests},
 		&pbg.State{Key: "tracking", Text: output},
 		&pbg.State{Key: "scores", Value: int64(len(s.state.Scores))},
