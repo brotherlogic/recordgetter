@@ -225,7 +225,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 
 	s.Log(fmt.Sprintf("No unrated records"))
 
-	folders = []int32{242017, 466902, 1345495}
+	folders = []int32{242017, 466902, 1345495, 1409151}
 
 	for _, folder := range folders {
 		if newRec == nil {
@@ -245,7 +245,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 
 	s.Log(fmt.Sprintf("Cannot locate a record to listen to"))
 
-	return newRec, nil
+	return nil, fmt.Errorf("Unable to locate record to listen to")
 }
 
 //Init a record getter
