@@ -58,7 +58,7 @@ func (s *Server) getScore(rc *pbrc.Record) int32 {
 	//Add the score
 	s.state.Scores = append(s.state.Scores, &pb.DiskScore{InstanceId: rc.GetRelease().InstanceId, DiskNumber: maxDisk, ScoreDate: time.Now().Unix(), Score: rc.GetRelease().Rating})
 
-	if count == rc.Release.FormatQuantity {
+	if count >= rc.Release.FormatQuantity {
 		s.clearScores(rc.Release.InstanceId)
 		//Trick Rounding
 		return int32((float64(sum) / float64(count)) + 0.5)
