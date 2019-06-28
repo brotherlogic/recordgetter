@@ -235,7 +235,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 
 				for _, i := range s.rd.Perm(len(recs)) {
 					r := recs[i]
-					if r.GetRelease().Rating == 0 && r.GetMetadata().SetRating == 0 && r.GetMetadata().LastListenTime == 0 && !s.needsRip(r) && s.dateFine(r, t) {
+					if r.GetRelease().Rating == 0 && r.GetMetadata().SetRating == 0 && !s.needsRip(r) && s.dateFine(r, t) {
 						return r, nil
 					}
 				}
