@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"golang.org/x/net/context"
@@ -35,11 +34,6 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 	rec, err := s.getReleaseFromPile(ctx, time.Now())
 	if err != nil {
 		return nil, err
-	}
-
-	if rec.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_FRESHMAN && time.Now().Hour() != 18 {
-		s.RaiseIssue(ctx, "Bad Get", fmt.Sprintf("Managed to get a pre-freshman record out of hours (%v)", time.Now()), false)
-		return nil, fmt.Errorf("Bad pull")
 	}
 
 	disk := int32(1)

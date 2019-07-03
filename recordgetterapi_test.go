@@ -124,7 +124,7 @@ func TestScoreRecordGadPull(t *testing.T) {
 	}}
 
 	_, err := s.GetRecord(context.Background(), &pb.GetRecordRequest{})
-	if err == nil {
+	if err != nil {
 		t.Fatalf("Error getting record: %v", err)
 	}
 }
