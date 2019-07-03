@@ -129,28 +129,26 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 	s.Log(fmt.Sprintf("No records staged to sell"))
 
 	// If the time is between 1800 and 1900 - only reveal PRE_FRESHMAN records
-	if t.Hour() >= 18 && t.Hour() < 19 {
-		pDate := int64(0)
-		for _, rc := range r.GetRecords() {
-			if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_FRESHMAN {
-				if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
-					if s.dateFine(rc, t) && !s.needsRip(rc) {
-						pDate = rc.GetMetadata().DateAdded
-						newRec = rc
-					}
+	pDate := int64(0)
+	for _, rc := range r.GetRecords() {
+		if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_FRESHMAN {
+			if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
+				if s.dateFine(rc, t) && !s.needsRip(rc) {
+					pDate = rc.GetMetadata().DateAdded
+					newRec = rc
 				}
 			}
 		}
+	}
 
-		if newRec != nil {
-			return newRec, nil
-		}
+	if newRec != nil {
+		return newRec, nil
 	}
 
 	s.Log(fmt.Sprintf("No Pre Freshman records"))
 
 	//Look for the oldest new rec
-	pDate := int64(0)
+	pDate = int64(0)
 	for _, rc := range r.GetRecords() {
 		if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_UNLISTENED {
 			if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
