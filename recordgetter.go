@@ -29,6 +29,7 @@ type Server struct {
 	rGetter    getter
 	rd         *rand.Rand
 	requests   int64
+	lastPre    time.Time
 }
 
 const (
@@ -128,21 +129,23 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 
 	s.Log(fmt.Sprintf("No records staged to sell"))
 
-	// If the time is between 1800 and 1900 - only reveal PRE_FRESHMAN records
 	pDate := int64(0)
-	for _, rc := range r.GetRecords() {
-		if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_FRESHMAN {
-			if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
-				if s.dateFine(rc, t) && !s.needsRip(rc) {
-					pDate = rc.GetMetadata().DateAdded
-					newRec = rc
+	if time.Now().Sub(s.lastPre) > time.Hour*3 {
+		for _, rc := range r.GetRecords() {
+			if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_FRESHMAN {
+				if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
+					if s.dateFine(rc, t) && !s.needsRip(rc) {
+						pDate = rc.GetMetadata().DateAdded
+						newRec = rc
+					}
 				}
 			}
 		}
-	}
 
-	if newRec != nil {
-		return newRec, nil
+		if newRec != nil {
+			s.lastPre = time.Now()
+			return newRec, nil
+		}
 	}
 
 	s.Log(fmt.Sprintf("No Pre Freshman records"))
