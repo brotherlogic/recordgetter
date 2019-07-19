@@ -121,6 +121,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 	//Look for a record staged to sell
 	for _, rc := range r.GetRecords() {
 		if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_STAGED_TO_SELL && rc.GetMetadata().SetRating == 0 && rc.GetRelease().Rating == 0 {
+			s.Log(fmt.Sprintf("Checking %v -> %v and %v", s.dateFile(rc, t), s.needsRip(rc)))
 			if s.dateFine(rc, t) && !s.needsRip(rc) {
 				return rc, nil
 			}
