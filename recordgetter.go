@@ -298,12 +298,14 @@ func (s *Server) GetState() []*pbg.State {
 	match := ""
 	goal := ""
 	price := ""
+	formats := ""
 	if s.state.CurrentPick != nil {
 		text = s.state.CurrentPick.GetRelease().Title
 		state = fmt.Sprintf("%v", s.state.CurrentPick.GetMetadata().Category)
 		match = fmt.Sprintf("%v", s.state.CurrentPick.GetMetadata().Match)
 		goal = fmt.Sprintf("%v", s.state.CurrentPick.GetMetadata().GoalFolder)
 		price = fmt.Sprintf("%v", s.state.CurrentPick.GetMetadata().CurrentSalePrice)
+		formats = fmt.Sprintf("%v", s.state.CurrentPick.GetRelease().Formats)
 	}
 
 	output := ""
@@ -315,13 +317,21 @@ func (s *Server) GetState() []*pbg.State {
 
 	val := int64(0)
 	val2 := int64(0)
+	disk := int32(1)
 	if s.state != nil && s.state.CurrentPick != nil {
 		val = int64(s.state.CurrentPick.GetRelease().Id)
 		val2 = int64(s.state.CurrentPick.GetRelease().InstanceId)
+		for _, score := range s.state.Scores {
+			if score.InstanceId == s.state.CurrentPick.GetRelease().InstanceId && score.DiskNumber > disk {
+				disk = score.DiskNumber + 1
+			}
+		}
 	}
 
 	return []*pbg.State{
 		&pbg.State{Key: "current", Text: text},
+		&pbg.State{Key: "format", Text: formats},
+		&pbg.State{Key: "disk", Value: int64(disk)},
 		&pbg.State{Key: "current_state", Text: state},
 		&pbg.State{Key: "match", Text: match},
 		&pbg.State{Key: "goal", Text: goal},
