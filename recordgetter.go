@@ -310,7 +310,7 @@ func (s *Server) GetState() []*pbg.State {
 
 	output := ""
 	for _, v := range s.state.Scores {
-		if v.InstanceId == 267975885 {
+		if v.InstanceId == 19867987 {
 			output += fmt.Sprintf("%v - %v,", v.DiskNumber, v.Score)
 		}
 	}
