@@ -308,13 +308,6 @@ func (s *Server) GetState() []*pbg.State {
 		formats = fmt.Sprintf("%v", s.state.CurrentPick.GetRelease().Formats)
 	}
 
-	output := ""
-	for _, v := range s.state.Scores {
-		if v.InstanceId == 19867987 {
-			output += fmt.Sprintf("%v - %v,", v.DiskNumber, v.Score)
-		}
-	}
-
 	val := int64(0)
 	val2 := int64(0)
 	disk := int32(1)
@@ -324,6 +317,15 @@ func (s *Server) GetState() []*pbg.State {
 		for _, score := range s.state.Scores {
 			if score.InstanceId == s.state.CurrentPick.GetRelease().InstanceId && score.DiskNumber > disk {
 				disk = score.DiskNumber + 1
+			}
+		}
+	}
+
+	output := ""
+	for _, v := range s.state.Scores {
+		if s.state != nil && s.state.CurrentPick != nil {
+			if v.InstanceId == s.state.CurrentPick.GetRelease().InstanceId {
+				output += fmt.Sprintf("%v - %v,", v.DiskNumber, v.Score)
 			}
 		}
 	}
