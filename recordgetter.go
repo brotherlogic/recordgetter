@@ -57,7 +57,7 @@ func (p *prodGetter) getRecords(ctx context.Context, folderID int32) (*pbrc.GetR
 	client := pbrc.NewRecordCollectionServiceClient(conn)
 
 	//Only get clean records
-	r, err := client.GetRecords(ctx, &pbrc.GetRecordsRequest{Filter: &pbrc.Record{Release: &pbd.Release{FolderId: folderID}}}, grpc.MaxCallRecvMsgSize(1024*1024*1024))
+	r, err := client.GetRecords(ctx, &pbrc.GetRecordsRequest{Caller: "recordgetter", Filter: &pbrc.Record{Release: &pbd.Release{FolderId: folderID}}}, grpc.MaxCallRecvMsgSize(1024*1024*1024))
 	return r, err
 }
 
@@ -69,7 +69,7 @@ func (p *prodGetter) getRelease(ctx context.Context, instance int32) (*pbrc.GetR
 	defer conn.Close()
 	client := pbrc.NewRecordCollectionServiceClient(conn)
 
-	return client.GetRecords(ctx, &pbrc.GetRecordsRequest{Filter: &pbrc.Record{Release: &pbd.Release{InstanceId: instance}}})
+	return client.GetRecords(ctx, &pbrc.GetRecordsRequest{Caller: "recordgetter", Filter: &pbrc.Record{Release: &pbd.Release{InstanceId: instance}}})
 }
 
 type updater interface {
