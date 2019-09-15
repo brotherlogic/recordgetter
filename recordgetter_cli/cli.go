@@ -10,8 +10,6 @@ import (
 	"github.com/brotherlogic/goserver/utils"
 	"google.golang.org/grpc"
 
-	pb "github.com/brotherlogic/discogssyncer/server"
-	pbd "github.com/brotherlogic/godiscogs"
 	pbrg "github.com/brotherlogic/recordgetter/proto"
 
 	//Needed to pull in gzip encoding init
@@ -70,22 +68,6 @@ func score(ctx context.Context, value int32) {
 	if err != nil {
 		fmt.Printf("%v", err)
 	}
-}
-
-func run() (int, error) {
-	host, port := findServer("discogssyncer")
-	conn, _ := grpc.Dial(host+":"+strconv.Itoa(port), grpc.WithInsecure())
-	defer conn.Close()
-	client := pb.NewDiscogsServiceClient(conn)
-	folderList := &pb.FolderList{}
-	folder := &pbd.Folder{Name: "ListeningPile"}
-	folderList.Folders = append(folderList.Folders, folder)
-	r, err := client.GetReleasesInFolder(context.Background(), folderList)
-	if err != nil {
-		return 0, err
-	}
-
-	return len(r.GetRecords()), nil
 }
 
 func main() {
