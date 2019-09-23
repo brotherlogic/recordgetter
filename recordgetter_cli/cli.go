@@ -17,7 +17,7 @@ import (
 )
 
 func findServer(name string) (string, int) {
-	ip, port, _ := utils.Resolve(name)
+	ip, port, _ := utils.Resolve(name, "recordgetter-cli")
 	return ip, int(port)
 }
 
