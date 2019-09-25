@@ -1,12 +1,35 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordgetter/proto"
+	"golang.org/x/net/context"
 )
+
+func (s *Server) getStagedToSell(ctx context.Context, t time.Time) (*pbrc.Record, error) {
+	recs, err := s.rGetter.getRecordsInCategory(ctx, pbrc.ReleaseMetadata_STAGED_TO_SELL)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, id := range recs {
+		rc, err := s.rGetter.getRelease(ctx, id)
+		if err == nil {
+			if rc.GetMetadata().SetRating == 0 && rc.GetRelease().Rating == 0 {
+				s.Log(fmt.Sprintf("Checking %v -> %v and %v", rc.GetRelease().Id, s.dateFine(rc, t), s.needsRip(rc)))
+				if s.dateFine(rc, t) && !s.needsRip(rc) {
+					return rc, nil
+				}
+			}
+		}
+	}
+
+	return nil, nil
+}
 
 func (s *Server) needsRip(r *pbrc.Record) bool {
 	// Digital records don't need to be ripped

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/brotherlogic/keystore/client"
 	"golang.org/x/net/context"
@@ -97,5 +98,15 @@ func TestNotNeedsRip(t *testing.T) {
 func TestNumberListens(t *testing.T) {
 	if getNumListens(&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_FRESHMAN}}) != 3 {
 		t.Errorf("Bad number of listens")
+	}
+}
+
+func TestGetStagedToSellFailOnCategoryGet(t *testing.T) {
+	s := InitTestServer()
+	s.rGetter = &testGetter{failGetInCategory: true}
+
+	rec, err := s.getStagedToSell(context.Background(), time.Now())
+	if err == nil {
+		t.Errorf("Did not fail: %v", rec)
 	}
 }
