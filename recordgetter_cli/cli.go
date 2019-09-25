@@ -73,9 +73,13 @@ func score(ctx context.Context, value int32) {
 func main() {
 	ctx, cancel := utils.BuildContext("RecordGet-Score", "recordgetter")
 	defer cancel()
-	val, err := strconv.Atoi(os.Args[1])
-	if err != nil {
-		log.Fatalf("Error parsing num: %v", err)
+	if len(os.Args) > 1 {
+		val, err := strconv.Atoi(os.Args[1])
+		if err != nil {
+			log.Fatalf("Error parsing num: %v", err)
+		}
+		score(ctx, int32(val))
+	} else {
+		get(ctx)
 	}
-	score(ctx, int32(val))
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"testing"
 	"time"
 
@@ -14,9 +13,10 @@ import (
 )
 
 type testGetter struct {
-	records []*pbrc.Record
-	fail    bool
-	nopile  bool
+	records           []*pbrc.Record
+	fail              bool
+	nopile            bool
+	failGetInCategory bool
 }
 
 func (tg *testGetter) getRecords(ctx context.Context, folderID int32) (*pbrc.GetRecordsResponse, error) {
@@ -28,35 +28,15 @@ func (tg *testGetter) getRecords(ctx context.Context, folderID int32) (*pbrc.Get
 	}
 	return &pbrc.GetRecordsResponse{Records: tg.records}, nil
 }
-func (tg *testGetter) getRelease(ctx context.Context, instanceID int32) (*pbrc.GetRecordsResponse, error) {
-	return &pbrc.GetRecordsResponse{Records: tg.records}, nil
+func (tg *testGetter) getRelease(ctx context.Context, instanceID int32) (*pbrc.Record, error) {
+	return tg.records[0], nil
 }
 
-func TestPickAtRandom(t *testing.T) {
-	counts := make(map[int32]int)
-	s := InitTestServer()
-
-	for i := 0; i < 100; i++ {
-		s.rGetter = &testGetter{
-			nopile: true,
-			records: []*pbrc.Record{
-				&pbrc.Record{Release: &pbgd.Release{InstanceId: 12, FormatQuantity: 1}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_SOPHMORE, DateAdded: 12}},
-				&pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, FormatQuantity: 1}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_PROFESSOR, DateAdded: 1234}},
-				&pbrc.Record{Release: &pbgd.Release{InstanceId: 1236, FormatQuantity: 1}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_PROFESSOR, DateAdded: 1235}},
-			},
-		}
-
-		resp, err := s.GetRecord(context.Background(), &pb.GetRecordRequest{})
-		if err != nil {
-			t.Fatalf("Error in getting record: %v", err)
-		}
-		counts[resp.GetRecord().GetRelease().InstanceId]++
-		s.Force(context.Background(), &pb.Empty{})
+func (tg *testGetter) getRecordsInCategory(ctx context.Context, category pbrc.ReleaseMetadata_Category) ([]int32, error) {
+	if tg.failGetInCategory {
+		return []int32{}, fmt.Errorf("Built to fail")
 	}
-
-	if counts[12] == 0 || counts[1234] == 0 || counts[1236] == 0 {
-		t.Errorf("Selection is not random: %v", counts)
-	}
+	return []int32{1}, nil
 }
 
 func TestGetFromDigital(t *testing.T) {
@@ -111,7 +91,6 @@ func TestScoreRecordDiff(t *testing.T) {
 		t.Fatalf("Error getting record: %v", err)
 	}
 
-	log.Printf("Returned: %v", resp2)
 	if resp2.GetRecord().GetRelease().InstanceId == val {
 		t.Errorf("Same record back %v vs %v", resp, resp2)
 	}

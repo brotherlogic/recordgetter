@@ -41,7 +41,8 @@ const (
 
 type getter interface {
 	getRecords(ctx context.Context, folderID int32) (*pbrc.GetRecordsResponse, error)
-	getRelease(ctx context.Context, instanceID int32) (*pbrc.GetRecordsResponse, error)
+	getRelease(ctx context.Context, instanceID int32) (*pbrc.Record, error)
+	getRecordsInCategory(ctx context.Context, category pbrc.ReleaseMetadata_Category) ([]int32, error)
 }
 
 type prodGetter struct {
@@ -61,7 +62,7 @@ func (p *prodGetter) getRecords(ctx context.Context, folderID int32) (*pbrc.GetR
 	return r, err
 }
 
-func (p *prodGetter) getRelease(ctx context.Context, instance int32) (*pbrc.GetRecordsResponse, error) {
+func (p *prodGetter) getRecordsInCategory(ctx context.Context, category pbrc.ReleaseMetadata_Category) ([]int32, error) {
 	conn, err := p.dial("recordcollection")
 	if err != nil {
 		return nil, err
@@ -69,7 +70,26 @@ func (p *prodGetter) getRelease(ctx context.Context, instance int32) (*pbrc.GetR
 	defer conn.Close()
 	client := pbrc.NewRecordCollectionServiceClient(conn)
 
-	return client.GetRecords(ctx, &pbrc.GetRecordsRequest{Caller: "recordgetter", Filter: &pbrc.Record{Release: &pbd.Release{InstanceId: instance}}})
+	r, err := client.QueryRecords(ctx, &pbrc.QueryRecordsRequest{Query: &pbrc.QueryRecordsRequest_Category{category}})
+	if err == nil {
+		return r.GetInstanceIds(), err
+	}
+	return []int32{}, err
+}
+
+func (p *prodGetter) getRelease(ctx context.Context, instance int32) (*pbrc.Record, error) {
+	conn, err := p.dial("recordcollection")
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	client := pbrc.NewRecordCollectionServiceClient(conn)
+	r, err := client.GetRecord(ctx, &pbrc.GetRecordRequest{InstanceId: instance})
+	if err != nil {
+		return nil, err
+	}
+	return r.GetRecord(), err
 }
 
 type updater interface {
@@ -119,13 +139,9 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 	newRec = nil
 
 	//Look for a record staged to sell
-	for _, rc := range r.GetRecords() {
-		if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_STAGED_TO_SELL && rc.GetMetadata().SetRating == 0 && rc.GetRelease().Rating == 0 {
-			s.Log(fmt.Sprintf("Checking %v -> %v and %v", rc.GetRelease().Id, s.dateFine(rc, t), s.needsRip(rc)))
-			if s.dateFine(rc, t) && !s.needsRip(rc) {
-				return rc, nil
-			}
-		}
+	rec, err := s.getStagedToSell(ctx, t)
+	if err != nil || rec != nil {
+		return rec, err
 	}
 
 	s.Log(fmt.Sprintf("No records staged to sell"))

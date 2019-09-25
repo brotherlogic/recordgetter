@@ -16,8 +16,8 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 	if s.state.CurrentPick != nil {
 		if in.GetRefresh() {
 			rec, err := s.rGetter.getRelease(ctx, s.state.CurrentPick.Release.InstanceId)
-			if err == nil && len(rec.GetRecords()) == 1 {
-				s.state.CurrentPick = rec.GetRecords()[0]
+			if err == nil {
+				s.state.CurrentPick = rec
 			}
 		}
 		disk := int32(1)
