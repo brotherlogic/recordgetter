@@ -10,6 +10,38 @@ import (
 	"golang.org/x/net/context"
 )
 
+func (s *Server) getPreFreshman(ctx context.Context, t time.Time) (*pbrc.Record, error) {
+	pDate := int64(0)
+	var newRec *pbrc.Record
+	newRec = nil
+
+	if t.Sub(s.lastPre) > time.Hour*3 {
+		recs, err := s.rGetter.getRecordsInCategory(ctx, pbrc.ReleaseMetadata_PRE_FRESHMAN)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, id := range recs {
+			rc, err := s.rGetter.getRelease(ctx, id)
+			if err == nil {
+				if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
+					if s.dateFine(rc, t) && !s.needsRip(rc) {
+						pDate = rc.GetMetadata().DateAdded
+						newRec = rc
+					}
+				}
+			}
+		}
+
+		if newRec != nil {
+			s.lastPre = time.Now()
+			return newRec, nil
+		}
+	}
+
+	return nil, nil
+}
+
 func (s *Server) getStagedToSell(ctx context.Context, t time.Time) (*pbrc.Record, error) {
 	recs, err := s.rGetter.getRecordsInCategory(ctx, pbrc.ReleaseMetadata_STAGED_TO_SELL)
 	if err != nil {

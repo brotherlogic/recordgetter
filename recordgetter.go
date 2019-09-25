@@ -143,32 +143,16 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 	if err != nil || rec != nil {
 		return rec, err
 	}
-
 	s.Log(fmt.Sprintf("No records staged to sell"))
 
-	pDate := int64(0)
-	if time.Now().Sub(s.lastPre) > time.Hour*3 {
-		for _, rc := range r.GetRecords() {
-			if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_FRESHMAN {
-				if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
-					if s.dateFine(rc, t) && !s.needsRip(rc) {
-						pDate = rc.GetMetadata().DateAdded
-						newRec = rc
-					}
-				}
-			}
-		}
-
-		if newRec != nil {
-			s.lastPre = time.Now()
-			return newRec, nil
-		}
+	rec, err = s.getPreFreshman(ctx, t)
+	if err != nil || rec != nil {
+		return rec, err
 	}
-
 	s.Log(fmt.Sprintf("No Pre Freshman records"))
 
 	//Look for the oldest new rec
-	pDate = int64(0)
+	pDate := int64(0)
 	for _, rc := range r.GetRecords() {
 		if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_UNLISTENED {
 			if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
