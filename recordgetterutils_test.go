@@ -110,3 +110,27 @@ func TestGetStagedToSellFailOnCategoryGet(t *testing.T) {
 		t.Errorf("Did not fail: %v", rec)
 	}
 }
+
+func TestGetPreFreshamanFailOnCategoryGet(t *testing.T) {
+	s := InitTestServer()
+	s.rGetter = &testGetter{failGetInCategory: true}
+
+	rec, err := s.getPreFreshman(context.Background(), time.Now())
+	if err == nil {
+		t.Errorf("Did not fail: %v", rec)
+	}
+}
+
+func TestGetPreFreshamanOnCategoryGet(t *testing.T) {
+	s := InitTestServer()
+	s.rGetter = &testGetter{records: []*pbrc.Record{&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{CdPath: "blah"}, Release: &pbgd.Release{InstanceId: 1}}}}
+
+	rec, err := s.getPreFreshman(context.Background(), time.Now())
+	if err != nil {
+		t.Errorf("Did not fail: %v", err)
+	}
+
+	if rec == nil {
+		t.Errorf("No record returned")
+	}
+}
