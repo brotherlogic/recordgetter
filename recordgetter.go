@@ -151,24 +151,10 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 	}
 	s.Log(fmt.Sprintf("No Pre Freshman records"))
 
-	//Look for the oldest new rec
-	pDate := int64(0)
-	for _, rc := range r.GetRecords() {
-		if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_UNLISTENED {
-			if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
-				if s.dateFine(rc, t) && !s.needsRip(rc) {
-					pDate = rc.GetMetadata().DateAdded
-					newRec = rc
-				}
-
-			}
-		}
+	rec, err = s.getUnlistened(ctx, t)
+	if err != nil || rec != nil {
+		return rec, err
 	}
-
-	if newRec != nil {
-		return newRec, nil
-	}
-
 	s.Log(fmt.Sprintf("No unlistened record"))
 
 	// Look for pre high school records
@@ -190,7 +176,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 	s.Log(fmt.Sprintf("No Pre High School Records"))
 
 	//Look for the oldest new rec
-	pDate = int64(0)
+	pDate := int64(0)
 	for _, rc := range r.GetRecords() {
 		if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL {
 			if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
