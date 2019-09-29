@@ -16,6 +16,7 @@ message DiskScore {
 message State {
   recordcollection.Record current_pick = 1;
   repeated DiskScore scores = 2;
+  repeated int32 active_folders = 3;
 }
 
 message GetRecordRequest {
