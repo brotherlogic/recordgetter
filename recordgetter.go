@@ -321,6 +321,7 @@ func (s *Server) GetState() []*pbg.State {
 	}
 
 	return []*pbg.State{
+		&pbg.State{Key: "folders", Text: fmt.Sprintf("%v", s.state.ActiveFolders)},
 		&pbg.State{Key: "current", Text: text},
 		&pbg.State{Key: "format", Text: formats},
 		&pbg.State{Key: "disk", Value: int64(disk)},
@@ -347,6 +348,10 @@ func (s *Server) readState(ctx context.Context) error {
 
 	if data != nil {
 		s.state = data.(*pbrg.State)
+	}
+
+	if len(s.state.ActiveFolders) == 0 {
+		s.state.ActiveFolders = []int32{242017}
 	}
 
 	return nil
