@@ -15,6 +15,7 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 	newRec = nil
 
 	recs, err := s.rGetter.getRecordsInCategory(ctx, c)
+
 	if err != nil {
 		return nil, err
 	}
@@ -33,6 +34,26 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 
 	if newRec != nil {
 		return newRec, nil
+	}
+
+	return nil, nil
+}
+
+func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folder int32, cat pbrc.ReleaseMetadata_Category) (*pbrc.Record, error) {
+	recs, err := s.rGetter.getRecordsInFolder(ctx, folder)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, id := range recs {
+		r, err := s.rGetter.getRelease(ctx, id)
+		if err == nil {
+			if r.GetMetadata().GetCategory() == cat && r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() {
+				if s.dateFine(r, t) && !s.needsRip(r) {
+					return r, nil
+				}
+			}
+		}
 	}
 
 	return nil, nil

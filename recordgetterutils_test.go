@@ -114,6 +114,7 @@ func TestGetPreFreshamanOnCategoryGet(t *testing.T) {
 		t.Errorf("No record returned")
 	}
 }
+
 func TestFailFailOnCategoryGet(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{failGetInCategory: true}
@@ -121,5 +122,30 @@ func TestFailFailOnCategoryGet(t *testing.T) {
 	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN)
 	if err == nil {
 		t.Errorf("Did not fail: %v", rec)
+	}
+}
+
+func TestGetInFolderFailOnCategoryGet(t *testing.T) {
+	s := InitTestServer()
+	s.rGetter = &testGetter{failGetInFolder: true}
+
+	rec, err := s.getInFolderWithCategory(context.Background(), time.Now(), int32(12), pbrc.ReleaseMetadata_PRE_FRESHMAN)
+
+	if err == nil {
+		t.Errorf("Did not fail: %v", rec)
+	}
+}
+
+func TestGetInFolder(t *testing.T) {
+	s := InitTestServer()
+	s.rGetter = &testGetter{records: []*pbrc.Record{&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{CdPath: "blah", Category: pbrc.ReleaseMetadata_PRE_FRESHMAN}, Release: &pbgd.Release{InstanceId: 1}}}}
+
+	rec, err := s.getInFolderWithCategory(context.Background(), time.Now(), int32(12), pbrc.ReleaseMetadata_PRE_FRESHMAN)
+	if err != nil {
+		t.Errorf("Did not fail: %v", err)
+	}
+
+	if rec == nil {
+		t.Errorf("No record returned")
 	}
 }
