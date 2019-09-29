@@ -17,6 +17,7 @@ type testGetter struct {
 	fail              bool
 	nopile            bool
 	failGetInCategory bool
+	failGetInFolder   bool
 }
 
 func (tg *testGetter) getRecords(ctx context.Context, folderID int32) (*pbrc.GetRecordsResponse, error) {
@@ -34,6 +35,13 @@ func (tg *testGetter) getRelease(ctx context.Context, instanceID int32) (*pbrc.R
 
 func (tg *testGetter) getRecordsInCategory(ctx context.Context, category pbrc.ReleaseMetadata_Category) ([]int32, error) {
 	if tg.failGetInCategory {
+		return []int32{}, fmt.Errorf("Built to fail")
+	}
+	return []int32{1}, nil
+}
+
+func (tg *testGetter) getRecordsInFolder(ctx context.Context, folder int32) ([]int32, error) {
+	if tg.failGetInFolder {
 		return []int32{}, fmt.Errorf("Built to fail")
 	}
 	return []int32{1}, nil

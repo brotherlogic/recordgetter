@@ -43,6 +43,7 @@ type getter interface {
 	getRecords(ctx context.Context, folderID int32) (*pbrc.GetRecordsResponse, error)
 	getRelease(ctx context.Context, instanceID int32) (*pbrc.Record, error)
 	getRecordsInCategory(ctx context.Context, category pbrc.ReleaseMetadata_Category) ([]int32, error)
+	getRecordsInFolder(ctx context.Context, folder int32) ([]int32, error)
 }
 
 type prodGetter struct {
@@ -71,6 +72,21 @@ func (p *prodGetter) getRecordsInCategory(ctx context.Context, category pbrc.Rel
 	client := pbrc.NewRecordCollectionServiceClient(conn)
 
 	r, err := client.QueryRecords(ctx, &pbrc.QueryRecordsRequest{Query: &pbrc.QueryRecordsRequest_Category{category}})
+	if err == nil {
+		return r.GetInstanceIds(), err
+	}
+	return []int32{}, err
+}
+
+func (p *prodGetter) getRecordsInFolder(ctx context.Context, folder int32) ([]int32, error) {
+	conn, err := p.dial("recordcollection")
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+	client := pbrc.NewRecordCollectionServiceClient(conn)
+
+	r, err := client.QueryRecords(ctx, &pbrc.QueryRecordsRequest{Query: &pbrc.QueryRecordsRequest_FolderId{folder}})
 	if err == nil {
 		return r.GetInstanceIds(), err
 	}
@@ -161,21 +177,10 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 	s.Log(fmt.Sprintf("No unlistened record"))
 
 	// Look for pre high school records
-	folders := []int32{673768}
-	for _, folder := range folders {
-		rs, err := s.rGetter.getRecords(ctx, folder)
-		if err == nil {
-			recs := rs.GetRecords()
-			for _, r := range recs {
-				if r.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL && r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() {
-					if s.dateFine(r, t) && !s.needsRip(r) {
-						return r, nil
-					}
-				}
-			}
-		}
+	rec, err = s.getInFolderWithCategory(ctx, t, int32(673768), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL)
+	if err != nil || rec != nil {
+		return rec, err
 	}
-
 	s.Log(fmt.Sprintf("No Pre High School Records"))
 
 	//Look for the oldest new rec
@@ -216,7 +221,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 
 	s.Log(fmt.Sprintf("No unrated records"))
 
-	folders = []int32{242017, 466902, 1345495, 1409151}
+	folders := []int32{242017, 466902, 1345495, 1409151}
 
 	for _, folder := range folders {
 		if newRec == nil {
