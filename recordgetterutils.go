@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -27,6 +28,7 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 				if s.dateFine(rc, t) && !s.needsRip(rc) {
 					pDate = rc.GetMetadata().DateAdded
 					newRec = rc
+					s.Log(fmt.Sprintf("CHOSEN %v", rc))
 				}
 			}
 		}

@@ -159,7 +159,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 	if err != nil || rec != nil {
 		return rec, err
 	}
-	s.Log(fmt.Sprintf("No records staged to sell"))
 
 	if t.Sub(s.lastPre) > time.Hour*3 {
 		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN)
@@ -167,21 +166,18 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 			s.lastPre = time.Now()
 			return rec, err
 		}
-		s.Log(fmt.Sprintf("No Pre Freshman records"))
 	}
 
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED)
 	if err != nil || rec != nil {
 		return rec, err
 	}
-	s.Log(fmt.Sprintf("No unlistened record"))
 
 	// Look for pre high school records
 	rec, err = s.getInFolderWithCategory(ctx, t, int32(673768), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL)
 	if err != nil || rec != nil {
 		return rec, err
 	}
-	s.Log(fmt.Sprintf("No Pre High School Records"))
 
 	//Look for the oldest new rec
 	pDate := int64(0)
