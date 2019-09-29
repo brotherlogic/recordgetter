@@ -139,19 +139,22 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 	newRec = nil
 
 	//Look for a record staged to sell
-	rec, err := s.getStagedToSell(ctx, t)
+	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL)
 	if err != nil || rec != nil {
 		return rec, err
 	}
 	s.Log(fmt.Sprintf("No records staged to sell"))
 
-	rec, err = s.getPreFreshman(ctx, t)
-	if err != nil || rec != nil {
-		return rec, err
+	if t.Sub(s.lastPre) > time.Hour*3 {
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN)
+		if err != nil || rec != nil {
+			s.lastPre = time.Now()
+			return rec, err
+		}
+		s.Log(fmt.Sprintf("No Pre Freshman records"))
 	}
-	s.Log(fmt.Sprintf("No Pre Freshman records"))
 
-	rec, err = s.getUnlistened(ctx, t)
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED)
 	if err != nil || rec != nil {
 		return rec, err
 	}
