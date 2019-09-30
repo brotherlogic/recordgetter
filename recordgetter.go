@@ -196,8 +196,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 		return newRec, nil
 	}
 
-	s.Log(fmt.Sprintf("No Pre High School again"))
-
 	//Get the youngest record in the to listen to that isn't pre-freshman
 	pDate = int64(0)
 	for _, rc := range r.GetRecords() {
