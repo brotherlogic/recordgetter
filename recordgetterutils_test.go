@@ -17,6 +17,7 @@ func InitTestServer() *Server {
 	s := Init()
 	s.SkipLog = true
 	s.GoServer.KSclient = *keystoreclient.GetTestClient(".test")
+	s.rGetter = &testGetter{}
 	return s
 }
 
@@ -125,6 +126,15 @@ func TestFailFailOnCategoryGet(t *testing.T) {
 	}
 }
 
+func TestCategoryEmpty(t *testing.T) {
+	s := InitTestServer()
+
+	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN)
+	if err != nil || rec != nil {
+		t.Errorf("Did not fail: %v -> %v", rec, err)
+	}
+}
+
 func TestGetInFolderFailOnCategoryGet(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{failGetInFolder: true}
@@ -136,7 +146,17 @@ func TestGetInFolderFailOnCategoryGet(t *testing.T) {
 	}
 }
 
-func TestGetInFolder(t *testing.T) {
+func TestGetInFolderWithCategoryEmpty(t *testing.T) {
+	s := InitTestServer()
+
+	rec, err := s.getInFolderWithCategory(context.Background(), time.Now(), int32(12), pbrc.ReleaseMetadata_PRE_FRESHMAN)
+
+	if err != nil || rec != nil {
+		t.Errorf("Did not fail: %v -> %v", rec, err)
+	}
+}
+
+func TestGetInFolderWithCategory(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{records: []*pbrc.Record{&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{CdPath: "blah", Category: pbrc.ReleaseMetadata_PRE_FRESHMAN}, Release: &pbgd.Release{InstanceId: 1}}}}
 
@@ -148,4 +168,42 @@ func TestGetInFolder(t *testing.T) {
 	if rec == nil {
 		t.Errorf("No record returned")
 	}
+}
+
+func TestGetInFolder(t *testing.T) {
+	s := InitTestServer()
+	s.rGetter = &testGetter{records: []*pbrc.Record{&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{CdPath: "blah", Category: pbrc.ReleaseMetadata_PRE_FRESHMAN}, Release: &pbgd.Release{InstanceId: 1}}}}
+
+	rec, err := s.getInFolders(context.Background(), time.Now(), []int32{12})
+	if err != nil {
+		t.Errorf("Did not fail: %v", err)
+	}
+
+	if rec == nil {
+		t.Errorf("No record returned")
+	}
+}
+
+func TestGetInFolderEmpty(t *testing.T) {
+	s := InitTestServer()
+
+	rec, err := s.getInFolders(context.Background(), time.Now(), []int32{12})
+	if err != nil {
+		t.Errorf("Did not fail: %v", err)
+	}
+
+	if rec != nil {
+		t.Errorf("Record returned: %v", rec)
+	}
+}
+
+func TestGetInFolderFail(t *testing.T) {
+	s := InitTestServer()
+	s.rGetter = &testGetter{failGetInFolder: true}
+
+	rec, err := s.getInFolders(context.Background(), time.Now(), []int32{12})
+	if err == nil {
+		t.Errorf("Did not fail: %v", rec)
+	}
+
 }

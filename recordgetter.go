@@ -146,14 +146,6 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time) bool {
 func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Record, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	r, err := s.rGetter.getRecords(ctx, 812802)
-	if err != nil {
-		return nil, err
-	}
-
-	var newRec *pbrc.Record
-	newRec = nil
-
 	//Look for a record staged to sell
 	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL)
 	if err != nil || rec != nil {
@@ -179,62 +171,10 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 		return rec, err
 	}
 
-	//Look for the oldest new rec
-	pDate := int64(0)
-	for _, rc := range r.GetRecords() {
-		if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL {
-			if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
-				if s.dateFine(rc, t) && !s.needsRip(rc) {
-					pDate = rc.GetMetadata().DateAdded
-					newRec = rc
-				}
-			}
-		}
+	rec, err = s.getInFolders(ctx, t, s.state.ActiveFolders)
+	if err != nil || rec != nil {
+		return rec, err
 	}
-
-	if newRec != nil {
-		return newRec, nil
-	}
-
-	//Get the youngest record in the to listen to that isn't pre-freshman
-	pDate = int64(0)
-	for _, rc := range r.GetRecords() {
-		if rc.GetMetadata().DateAdded > pDate && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() {
-			if rc.GetMetadata().GetCategory() != pbrc.ReleaseMetadata_PRE_FRESHMAN {
-				if s.dateFine(rc, t) && !s.needsRip(rc) {
-					pDate = rc.GetMetadata().DateAdded
-					newRec = rc
-				}
-			}
-		}
-	}
-
-	if newRec != nil {
-		return newRec, nil
-	}
-
-	s.Log(fmt.Sprintf("No unrated records"))
-
-	folders := []int32{242017, 466902, 1345495, 1409151}
-
-	for _, folder := range folders {
-		if newRec == nil {
-			rs, err := s.rGetter.getRecords(ctx, folder)
-			if err == nil {
-				recs := rs.GetRecords()
-
-				for _, i := range s.rd.Perm(len(recs)) {
-					r := recs[i]
-					if r.GetRelease().Rating == 0 && r.GetMetadata().SetRating == 0 && !s.needsRip(r) && s.dateFine(r, t) {
-						return r, nil
-					}
-				}
-			}
-		}
-	}
-
-	s.Log(fmt.Sprintf("Cannot locate a record to listen to"))
-
 	return nil, fmt.Errorf("Unable to locate record to listen to")
 }
 
