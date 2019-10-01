@@ -30,7 +30,10 @@ func (tg *testGetter) getRecords(ctx context.Context, folderID int32) (*pbrc.Get
 	return &pbrc.GetRecordsResponse{Records: tg.records}, nil
 }
 func (tg *testGetter) getRelease(ctx context.Context, instanceID int32) (*pbrc.Record, error) {
-	return tg.records[0], nil
+	if len(tg.records) > 0 {
+		return tg.records[0], nil
+	}
+	return nil, nil
 }
 
 func (tg *testGetter) getRecordsInCategory(ctx context.Context, category pbrc.ReleaseMetadata_Category) ([]int32, error) {
@@ -71,36 +74,6 @@ func TestScoreFailGet(t *testing.T) {
 	_, err = s.Listened(context.Background(), resp.GetRecord())
 	if err == nil {
 		t.Errorf("Bad score did not fail")
-	}
-}
-
-func TestScoreRecordDiff(t *testing.T) {
-	s := InitTestServer()
-	s.rGetter = &testGetter{records: []*pbrc.Record{
-		&pbrc.Record{Release: &pbgd.Release{InstanceId: 12, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_SOPHMORE, DateAdded: 12}},
-		&pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_PROFESSOR, DateAdded: 1234}},
-	}}
-
-	resp, err := s.GetRecord(context.Background(), &pb.GetRecordRequest{})
-	if err != nil {
-		t.Fatalf("Error getting record: %v", err)
-	}
-
-	val := resp.GetRecord().GetRelease().InstanceId
-
-	resp.GetRecord().GetRelease().Rating = 4
-	_, err = s.Listened(context.Background(), resp.GetRecord())
-	if err != nil {
-		t.Fatalf("Error marking listened!: %v", err)
-	}
-
-	resp2, err := s.GetRecord(context.Background(), &pb.GetRecordRequest{})
-	if err != nil {
-		t.Fatalf("Error getting record: %v", err)
-	}
-
-	if resp2.GetRecord().GetRelease().InstanceId == val {
-		t.Errorf("Same record back %v vs %v", resp, resp2)
 	}
 }
 
@@ -205,21 +178,6 @@ func TestForce(t *testing.T) {
 	}
 }
 
-func TestRecordGetFailGet(t *testing.T) {
-	s := InitTestServer()
-	s.rGetter = &testGetter{
-		fail: true,
-		records: []*pbrc.Record{
-			&pbrc.Record{Release: &pbgd.Release{InstanceId: 12, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_SOPHMORE, DateAdded: 12}},
-		},
-	}
-
-	resp, err := s.GetRecord(context.Background(), &pb.GetRecordRequest{})
-	if err == nil {
-		t.Fatalf("No error on get: %v", resp)
-	}
-}
-
 func TestRecordGetRefresh(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{
@@ -236,5 +194,13 @@ func TestRecordGetRefresh(t *testing.T) {
 
 	if resp.GetRecord().GetRelease().FormatQuantity != 2 {
 		t.Errorf("Record has not been refreshed: %v", resp)
+	}
+}
+
+func TestGetRecord(t *testing.T) {
+	s := InitTestServer()
+	resp, err := s.GetRecord(context.Background(), &pb.GetRecordRequest{})
+	if err == nil {
+		t.Errorf("Empty get did not fail: %v", resp)
 	}
 }

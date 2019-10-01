@@ -23,7 +23,7 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 
 	for _, id := range recs {
 		rc, err := s.rGetter.getRelease(ctx, id)
-		if err == nil {
+		if err == nil && rc != nil {
 			if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() && rc.GetMetadata().SetRating == 0 {
 				if s.dateFine(rc, t) && !s.needsRip(rc) {
 					pDate = rc.GetMetadata().DateAdded
@@ -51,6 +51,30 @@ func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folde
 		r, err := s.rGetter.getRelease(ctx, id)
 		if err == nil {
 			if r.GetMetadata().GetCategory() == cat && r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() && r.GetMetadata().SetRating == 0 {
+				if s.dateFine(r, t) && !s.needsRip(r) {
+					return r, nil
+				}
+			}
+		}
+	}
+
+	return nil, nil
+}
+
+func (s *Server) getInFolders(ctx context.Context, t time.Time, folders []int32) (*pbrc.Record, error) {
+	allrecs := make([]int32, 0)
+	for _, folder := range folders {
+		recs, err := s.rGetter.getRecordsInFolder(ctx, folder)
+		if err != nil {
+			return nil, err
+		}
+		allrecs = append(allrecs, recs...)
+	}
+
+	for _, id := range allrecs {
+		r, err := s.rGetter.getRelease(ctx, id)
+		if err == nil && r != nil {
+			if r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() && r.GetMetadata().SetRating == 0 {
 				if s.dateFine(r, t) && !s.needsRip(r) {
 					return r, nil
 				}
