@@ -10,6 +10,7 @@ import (
 
 	"github.com/brotherlogic/goserver"
 	"github.com/brotherlogic/keystore/client"
+	"github.com/golang/protobuf/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
@@ -307,6 +308,8 @@ func (s *Server) GetState() []*pbg.State {
 func (s *Server) readState(ctx context.Context) error {
 	state := &pbrg.State{}
 	data, _, err := s.KSclient.Read(ctx, KEY, state)
+
+	s.Log(fmt.Sprintf("Read state: %v -> %v", proto.Size(data), err))
 
 	if err != nil {
 		return err
