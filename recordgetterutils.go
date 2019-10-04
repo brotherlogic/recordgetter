@@ -150,3 +150,32 @@ func getNumListens(rc *pbrc.Record) int32 {
 	}
 	return 1
 }
+
+func (s *Server) readLocations(ctx context.Context) error {
+	locations, err := s.org.getLocations(ctx)
+	if err != nil {
+		return err
+	}
+
+	starting := len(s.state.ActiveFolders)
+	for _, location := range locations {
+		for _, folder := range location.FolderIds {
+			found := false
+			for _, fid := range s.state.ActiveFolders {
+				if fid == folder {
+					found = true
+				}
+			}
+
+			if !found {
+				s.state.ActiveFolders = append(s.state.ActiveFolders, folder)
+			}
+		}
+	}
+
+	if len(s.state.ActiveFolders) != starting {
+		s.saveState(ctx)
+	}
+
+	return nil
+}

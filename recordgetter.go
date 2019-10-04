@@ -17,6 +17,7 @@ import (
 	pbg "github.com/brotherlogic/goserver/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pbrg "github.com/brotherlogic/recordgetter/proto"
+	pbro "github.com/brotherlogic/recordsorganiser/proto"
 )
 
 //Server main server type
@@ -30,6 +31,7 @@ type Server struct {
 	rd         *rand.Rand
 	requests   int64
 	lastPre    time.Time
+	org        org
 }
 
 const (
@@ -38,6 +40,29 @@ const (
 	//KEY under which we store the collection
 	KEY = "/github.com/brotherlogic/recordgetter/state"
 )
+
+type org interface {
+	getLocations(ctx context.Context) ([]*pbro.Location, error)
+}
+
+type prodOrg struct {
+	dial func(server string) (*grpc.ClientConn, error)
+}
+
+func (p *prodOrg) getLocations(ctx context.Context) ([]*pbro.Location, error) {
+	conn, err := p.dial("recordsorganiser")
+	if err != nil {
+		return []*pbro.Location{}, err
+	}
+	defer conn.Close()
+	client := pbro.NewOrganiserServiceClient(conn)
+	locations, err := client.GetOrganisation(ctx, &pbro.GetOrganisationRequest{})
+	if err != nil {
+		return []*pbro.Location{}, err
+	}
+
+	return locations.Locations, err
+}
 
 type getter interface {
 	getRecords(ctx context.Context, folderID int32) (*pbrc.GetRecordsResponse, error)
@@ -188,6 +213,7 @@ func Init() *Server {
 	}
 	s.updater = &prodUpdater{s.DialMaster}
 	s.rGetter = &prodGetter{s.DialMaster}
+	s.org = &prodOrg{s.DialMaster}
 	s.Register = s
 	s.PrepServer()
 	return s
