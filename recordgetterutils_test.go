@@ -11,6 +11,7 @@ import (
 	pbgd "github.com/brotherlogic/godiscogs"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordgetter/proto"
+	pbro "github.com/brotherlogic/recordsorganiser/proto"
 )
 
 func InitTestServer() *Server {
@@ -18,7 +19,20 @@ func InitTestServer() *Server {
 	s.SkipLog = true
 	s.GoServer.KSclient = *keystoreclient.GetTestClient(".test")
 	s.rGetter = &testGetter{}
+	s.org = &testOrg{}
 	return s
+}
+
+type testOrg struct {
+	locations []*pbro.Location
+	fail      bool
+}
+
+func (p *testOrg) getLocations(ctx context.Context) ([]*pbro.Location, error) {
+	if p.fail {
+		return []*pbro.Location{}, fmt.Errorf("Built to fail")
+	}
+	return p.locations, nil
 }
 
 type testUpdater struct {
@@ -206,4 +220,30 @@ func TestGetInFolderFail(t *testing.T) {
 		t.Errorf("Did not fail: %v", rec)
 	}
 
+}
+
+func TestAddFolders(t *testing.T) {
+	s := InitTestServer()
+	s.state.ActiveFolders = []int32{12}
+	s.org = &testOrg{locations: []*pbro.Location{&pbro.Location{Name: "blah1", FolderIds: []int32{12, 13}}}}
+
+	err := s.readLocations(context.Background())
+	if err != nil {
+		t.Errorf("Failure in reading: %v", err)
+	}
+
+	if len(s.state.ActiveFolders) != 2 {
+		t.Errorf("Missing active folder")
+	}
+}
+
+func TestAddFoldersFail(t *testing.T) {
+	s := InitTestServer()
+	s.org = &testOrg{fail: true}
+
+	err := s.readLocations(context.Background())
+
+	if err == nil {
+		t.Errorf("Location read did not fail")
+	}
 }
