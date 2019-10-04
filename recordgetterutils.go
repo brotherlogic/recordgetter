@@ -155,7 +155,6 @@ func (s *Server) readLocations(ctx context.Context) error {
 		return err
 	}
 
-	starting := len(s.state.ActiveFolders)
 	for _, location := range locations {
 		for _, folder := range location.FolderIds {
 			found := false
@@ -169,10 +168,6 @@ func (s *Server) readLocations(ctx context.Context) error {
 				s.state.ActiveFolders = append(s.state.ActiveFolders, folder)
 			}
 		}
-	}
-
-	if len(s.state.ActiveFolders) != starting {
-		s.saveState(ctx)
 	}
 
 	return nil
