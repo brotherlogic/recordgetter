@@ -240,7 +240,7 @@ func (s *Server) Mote(ctx context.Context, master bool) error {
 
 	err := s.readLocations(ctx)
 
-	if err != nil && master {
+	if err == nil && master {
 		return s.readState(ctx)
 	}
 
