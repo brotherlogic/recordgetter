@@ -153,6 +153,7 @@ func getNumListens(rc *pbrc.Record) int32 {
 
 func (s *Server) readLocations(ctx context.Context) error {
 	locations, err := s.org.getLocations(ctx)
+	s.Log(fmt.Sprintf("Read %v -> %v", len(locations), err))
 	if err != nil {
 		return err
 	}
