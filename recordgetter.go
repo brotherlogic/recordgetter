@@ -238,11 +238,13 @@ func (s *Server) Shutdown(ctx context.Context) error {
 func (s *Server) Mote(ctx context.Context, master bool) error {
 	s.delivering = master
 
-	if master {
+	err := s.readLocations(ctx)
+
+	if err != nil && master {
 		return s.readState(ctx)
 	}
 
-	return nil
+	return err
 }
 
 // GetState gets the state of the server
