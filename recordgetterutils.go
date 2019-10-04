@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math/rand"
 	"strings"
 	"time"
 
@@ -68,6 +69,10 @@ func (s *Server) getInFolders(ctx context.Context, t time.Time, folders []int32)
 		}
 		allrecs = append(allrecs, recs...)
 	}
+
+	// Shuffle allrecs to prevent bias
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(allrecs), func(i, j int) { allrecs[i], allrecs[j] = allrecs[j], allrecs[i] })
 
 	for _, id := range allrecs {
 		r, err := s.rGetter.getRelease(ctx, id)
