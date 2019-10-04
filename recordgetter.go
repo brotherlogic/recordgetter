@@ -327,7 +327,8 @@ func (s *Server) readState(ctx context.Context) error {
 }
 
 func (s *Server) saveState(ctx context.Context) {
-	s.KSclient.Save(ctx, KEY, s.state)
+	err := s.KSclient.Save(ctx, KEY, s.state)
+	s.Log(fmt.Sprintf("Save %v -> %v", proto.Size(s.state), err))
 }
 
 func main() {
