@@ -159,6 +159,7 @@ func (s *Server) readLocations(ctx context.Context) error {
 
 	starting := len(s.state.ActiveFolders)
 	for _, location := range locations {
+		s.Log(fmt.Sprintf("Checking %v -> %v", location.Name, location.FolderIds))
 		for _, folder := range location.FolderIds {
 			found := false
 			for _, fid := range s.state.ActiveFolders {
