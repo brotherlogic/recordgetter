@@ -239,13 +239,11 @@ func (s *Server) Shutdown(ctx context.Context) error {
 func (s *Server) Mote(ctx context.Context, master bool) error {
 	s.delivering = master
 
-	err := s.readLocations(ctx)
-
-	if err == nil && master {
+	if master {
 		return s.readState(ctx)
 	}
 
-	return err
+	return nil
 }
 
 // GetState gets the state of the server
@@ -323,7 +321,7 @@ func (s *Server) readState(ctx context.Context) error {
 		s.state.ActiveFolders = []int32{242017}
 	}
 
-	return nil
+	return s.readLocations(ctx)
 }
 
 func (s *Server) saveState(ctx context.Context) {
