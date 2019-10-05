@@ -225,7 +225,7 @@ func TestGetInFolderFail(t *testing.T) {
 func TestAddFolders(t *testing.T) {
 	s := InitTestServer()
 	s.state.ActiveFolders = []int32{12}
-	s.org = &testOrg{locations: []*pbro.Location{&pbro.Location{Name: "blah1", InPlay: pbro.Location_IN_PLAY, FolderIds: []int32{12, 13}}}}
+	s.org = &testOrg{locations: []*pbro.Location{&pbro.Location{Name: "blah1", InPlay: pbro.Location_IN_PLAY, FolderIds: []int32{12, 13}}, &pbro.Location{Name: "blah2", InPlay: pbro.Location_NOT_IN_PLAY, FolderIds: []int32{14, 15}}}}
 
 	err := s.readLocations(context.Background())
 	if err != nil {
