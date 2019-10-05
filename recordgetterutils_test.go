@@ -247,3 +247,23 @@ func TestAddFoldersFail(t *testing.T) {
 		t.Errorf("Location read did not fail")
 	}
 }
+
+func TestSetTime(t *testing.T) {
+	s := InitTestServer()
+
+	s.setTime(&pbrc.Record{Release: &pbgd.Release{FolderId: 267116}})
+
+	if time.Now().Sub(time.Unix(s.state.LastSeven, 0)) > time.Minute {
+		t.Errorf("Time not set: %v", s.state.LastSeven)
+	}
+}
+
+func TestRemoveSeven(t *testing.T) {
+	s := InitTestServer()
+
+	res := s.removeSeven([]int32{267116, 12})
+
+	if len(res) != 1 {
+		t.Errorf("Bad remove: %v", res)
+	}
+}
