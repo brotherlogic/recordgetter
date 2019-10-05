@@ -62,6 +62,22 @@ func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folde
 	return nil, nil
 }
 
+func (s *Server) removeSeven(allrecs []int32) []int32 {
+	new := []int32{}
+	for _, val := range allrecs {
+		if time.Now().Sub(time.Unix(s.state.LastSeven, 0)) < time.Hour*2 || val != 267116 {
+			new = append(new, val)
+		}
+	}
+	return new
+}
+
+func (s *Server) setTime(r *pbrc.Record) {
+	if r.GetRelease().FolderId == 267116 {
+		s.state.LastSeven = time.Now().Unix()
+	}
+}
+
 func (s *Server) getInFolders(ctx context.Context, t time.Time, folders []int32) (*pbrc.Record, error) {
 	allrecs := make([]int32, 0)
 	for _, folder := range folders {
@@ -72,6 +88,8 @@ func (s *Server) getInFolders(ctx context.Context, t time.Time, folders []int32)
 		allrecs = append(allrecs, recs...)
 	}
 
+	allrecs = s.removeSeven(allrecs)
+
 	// Shuffle allrecs to prevent bias
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(allrecs), func(i, j int) { allrecs[i], allrecs[j] = allrecs[j], allrecs[i] })
@@ -81,6 +99,7 @@ func (s *Server) getInFolders(ctx context.Context, t time.Time, folders []int32)
 		if err == nil && r != nil {
 			if r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() && r.GetMetadata().SetRating == 0 {
 				if s.dateFine(r, t) && !s.needsRip(r) {
+					s.setTime(r)
 					return r, nil
 				}
 			}
