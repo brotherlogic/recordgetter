@@ -5,9 +5,11 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/net/context"
+
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordgetter/proto"
-	"golang.org/x/net/context"
+	pbro "github.com/brotherlogic/recordsorganiser/proto"
 )
 
 func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.ReleaseMetadata_Category) (*pbrc.Record, error) {
@@ -160,16 +162,10 @@ func (s *Server) readLocations(ctx context.Context) error {
 		return err
 	}
 
+	s.state.ActiveFolders = []int32{}
 	for _, location := range locations {
-		for _, folder := range location.FolderIds {
-			found := false
-			for _, fid := range s.state.ActiveFolders {
-				if fid == folder {
-					found = true
-				}
-			}
-
-			if !found {
+		if location.InPlay == pbro.Location_IN_PLAY {
+			for _, folder := range location.FolderIds {
 				s.state.ActiveFolders = append(s.state.ActiveFolders, folder)
 			}
 		}
