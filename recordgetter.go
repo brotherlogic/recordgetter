@@ -178,7 +178,13 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 		return rec, err
 	}
 
-	if t.Sub(s.lastPre) > time.Hour*3 {
+	pfTime := time.Hour * 3
+	things, err := s.rGetter.getRecordsInCategory(ctx, pbrc.ReleaseMetadata_PRE_FRESHMAN)
+	if err == nil && len(things) > 5 {
+		pfTime = time.Minute * 30
+	}
+
+	if t.Sub(s.lastPre) > pfTime {
 		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN)
 		if err != nil || rec != nil {
 			s.lastPre = time.Now()
@@ -286,6 +292,7 @@ func (s *Server) GetState() []*pbg.State {
 	}
 
 	return []*pbg.State{
+		&pbg.State{Key: "last_pre", TimeValue: s.lastPre.Unix()},
 		&pbg.State{Key: "folders", Text: fmt.Sprintf("%v", s.state.ActiveFolders)},
 		&pbg.State{Key: "current", Text: text},
 		&pbg.State{Key: "format", Text: formats},
