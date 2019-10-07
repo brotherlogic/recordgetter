@@ -183,7 +183,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 		pfTime = time.Minute * 30
 	}
 
-	s.Log(fmt.Sprintf("Adjusted time to %v", pfTime))
+	s.Log(fmt.Sprintf("Adjusted time to %v: %v", pfTime, t.Sub(s.lastPre)))
 
 	if t.Sub(s.lastPre) > pfTime {
 		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN)
