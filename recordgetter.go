@@ -10,7 +10,6 @@ import (
 
 	"github.com/brotherlogic/goserver"
 	"github.com/brotherlogic/keystore/client"
-	"github.com/golang/protobuf/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
@@ -184,6 +183,8 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 		pfTime = time.Minute * 30
 	}
 
+	s.Log(fmt.Sprintf("Adjusted time to %v", pfTime))
+
 	if t.Sub(s.lastPre) > pfTime {
 		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN)
 		if err != nil || rec != nil {
@@ -314,8 +315,6 @@ func (s *Server) readState(ctx context.Context) error {
 	state := &pbrg.State{}
 	data, _, err := s.KSclient.Read(ctx, KEY, state)
 
-	s.Log(fmt.Sprintf("Read state: %v -> %v", proto.Size(data), err))
-
 	if err != nil {
 		return err
 	}
@@ -332,8 +331,7 @@ func (s *Server) readState(ctx context.Context) error {
 }
 
 func (s *Server) saveState(ctx context.Context) {
-	err := s.KSclient.Save(ctx, KEY, s.state)
-	s.Log(fmt.Sprintf("Save %v -> %v", proto.Size(s.state), err))
+	s.KSclient.Save(ctx, KEY, s.state)
 }
 
 func main() {

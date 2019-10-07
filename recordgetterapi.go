@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"golang.org/x/net/context"
@@ -57,7 +56,6 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 //Listened marks a record as Listened
 func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, error) {
 	score := s.getScore(in)
-	s.Log(fmt.Sprintf("Scoring %v as %v", in.GetRelease().Id, score))
 	if score >= 0 {
 		in.Release.Rating = score
 		err := s.updater.update(ctx, in)
