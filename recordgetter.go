@@ -13,7 +13,6 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
-	pbd "github.com/brotherlogic/godiscogs"
 	pbg "github.com/brotherlogic/goserver/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pbrg "github.com/brotherlogic/recordgetter/proto"
@@ -65,7 +64,6 @@ func (p *prodOrg) getLocations(ctx context.Context) ([]*pbro.Location, error) {
 }
 
 type getter interface {
-	getRecords(ctx context.Context, folderID int32) (*pbrc.GetRecordsResponse, error)
 	getRelease(ctx context.Context, instanceID int32) (*pbrc.Record, error)
 	getRecordsInCategory(ctx context.Context, category pbrc.ReleaseMetadata_Category) ([]int32, error)
 	getRecordsInFolder(ctx context.Context, folder int32) ([]int32, error)
@@ -73,19 +71,6 @@ type getter interface {
 
 type prodGetter struct {
 	dial func(server string) (*grpc.ClientConn, error)
-}
-
-func (p *prodGetter) getRecords(ctx context.Context, folderID int32) (*pbrc.GetRecordsResponse, error) {
-	conn, err := p.dial("recordcollection")
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close()
-	client := pbrc.NewRecordCollectionServiceClient(conn)
-
-	//Only get clean records
-	r, err := client.GetRecords(ctx, &pbrc.GetRecordsRequest{Caller: "recordgetter", Filter: &pbrc.Record{Release: &pbd.Release{FolderId: folderID}}}, grpc.MaxCallRecvMsgSize(1024*1024*1024))
-	return r, err
 }
 
 func (p *prodGetter) getRecordsInCategory(ctx context.Context, category pbrc.ReleaseMetadata_Category) ([]int32, error) {
@@ -177,6 +162,11 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 		return rec, err
 	}
 
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED)
+	if err != nil || rec != nil {
+		return rec, err
+	}
+
 	pfTime := time.Hour * 3
 	things, err := s.rGetter.getRecordsInCategory(ctx, pbrc.ReleaseMetadata_PRE_FRESHMAN)
 	if err == nil && len(things) > 5 {
@@ -191,11 +181,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 			s.lastPre = time.Now()
 			return rec, err
 		}
-	}
-
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED)
-	if err != nil || rec != nil {
-		return rec, err
 	}
 
 	// Look for pre high school records
