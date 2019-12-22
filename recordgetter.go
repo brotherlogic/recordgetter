@@ -333,7 +333,7 @@ func main() {
 
 	server.GoServer.KSclient = *keystoreclient.GetClient(server.DialMaster)
 	server.RPCTracing = true
-	server.RegisterServer("recordgetter", false)
+	server.RegisterServerV2("recordgetter", false, false)
 
 	//server.RegisterServingTask(server.GetRecords)
 	err := server.Serve()
