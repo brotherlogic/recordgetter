@@ -14,7 +14,12 @@ import (
 
 	//Needed to pull in gzip encoding init
 	_ "google.golang.org/grpc/encoding/gzip"
+	"google.golang.org/grpc/resolver"
 )
+
+func init() {
+	resolver.Register(&utils.DiscoveryClientResolverBuilder{})
+}
 
 func findServer(name string) (string, int) {
 	ip, port, _ := utils.Resolve(name, "recordgetter-cli")
@@ -45,13 +50,20 @@ func listened(score int32) {
 }
 
 func get(ctx context.Context) {
-	host, port := findServer("recordgetter")
-	conn, _ := grpc.Dial(host+":"+strconv.Itoa(port), grpc.WithInsecure())
+	conn, err := grpc.Dial("discovery:///recordgetter", grpc.WithInsecure(), grpc.WithBalancerName("my_pick_first"))
+	if err != nil {
+		log.Fatalf("Can't dial getter: %v", err)
+	}
 	defer conn.Close()
 	client := pbrg.NewRecordGetterClient(conn)
 
-	r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Refresh: true})
-	fmt.Printf("%v and %v", r, err)
+	for i := 0; i < 3; i++ {
+		r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Refresh: true})
+		if err != nil {
+			fmt.Printf("%v and %v", r, err)
+			return
+		}
+	}
 }
 
 func score(ctx context.Context, value int32) {
