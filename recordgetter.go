@@ -333,10 +333,13 @@ func main() {
 
 	server.GoServer.KSclient = *keystoreclient.GetClient(server.DialMaster)
 	server.RPCTracing = true
-	server.RegisterServerV2("recordgetter", false, false)
+	err := server.RegisterServerV2("recordgetter", false, false)
+	if err != nil {
+		return
+	}
 
 	//server.RegisterServingTask(server.GetRecords)
-	err := server.Serve()
+	err = server.Serve()
 	if err != nil {
 		log.Fatalf("Error running getter: %v", err)
 	}
