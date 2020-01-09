@@ -156,6 +156,16 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time) bool {
 func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Record, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
+	// Prioritise PRE_FRESHMAN if there's a lot of them.
+	things, err := s.rGetter.getRecordsInCategory(ctx, pbrc.ReleaseMetadata_PRE_FRESHMAN)
+	if len(things) > 10 {
+		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN)
+		if err != nil || rec != nil {
+			s.lastPre = time.Now()
+			return rec, err
+		}
+	}
+
 	//Look for a record staged to sell
 	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL)
 	if err != nil || rec != nil {
@@ -168,7 +178,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 	}
 
 	pfTime := time.Hour * 3
-	things, err := s.rGetter.getRecordsInCategory(ctx, pbrc.ReleaseMetadata_PRE_FRESHMAN)
 	if err == nil && len(things) > 5 {
 		pfTime = time.Minute * 30
 	}
