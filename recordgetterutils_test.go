@@ -20,6 +20,7 @@ func InitTestServer() *Server {
 	s.GoServer.KSclient = *keystoreclient.GetTestClient(".test")
 	s.rGetter = &testGetter{}
 	s.org = &testOrg{}
+	s.state.ActiveFolders = []int32{123}
 	return s
 }
 
