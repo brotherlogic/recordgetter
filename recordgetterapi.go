@@ -48,9 +48,8 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 	}
 
 	s.state.CurrentPick = rec
-	s.saveState(ctx)
 
-	return &pb.GetRecordResponse{Record: rec, NumListens: getNumListens(rec), Disk: disk}, nil
+	return &pb.GetRecordResponse{Record: rec, NumListens: getNumListens(rec), Disk: disk}, s.saveState(ctx)
 }
 
 //Listened marks a record as Listened
@@ -64,8 +63,7 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 		}
 	}
 	s.state.CurrentPick = nil
-	s.saveState(ctx)
-	return &pb.Empty{}, nil
+	return &pb.Empty{}, s.saveState(ctx)
 }
 
 //Force forces a repick

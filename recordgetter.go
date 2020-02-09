@@ -324,8 +324,12 @@ func (s *Server) readState(ctx context.Context) error {
 	return s.readLocations(ctx)
 }
 
-func (s *Server) saveState(ctx context.Context) {
-	s.KSclient.Save(ctx, KEY, s.state)
+func (s *Server) saveState(ctx context.Context) error {
+	if len(s.state.GetActiveFolders()) == 0 {
+		return fmt.Errorf("Invalid state for saving: %v", s.state)
+	}
+
+	return s.KSclient.Save(ctx, KEY, s.state)
 }
 
 func main() {
