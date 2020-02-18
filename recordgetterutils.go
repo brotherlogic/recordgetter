@@ -12,6 +12,27 @@ import (
 	pbro "github.com/brotherlogic/recordsorganiser/proto"
 )
 
+func (s *Server) countSeven(t time.Time) bool {
+	if t.YearDay() == int(s.state.GetSevenDay()) {
+		s.state.SevenCount++
+		return s.state.SevenCount < 5
+	}
+
+	s.state.SevenDay = int32(t.YearDay())
+	s.state.SevenCount = 1
+	return true
+}
+
+func (s *Server) validate(rec *pbrc.Record) bool {
+	for _, format := range rec.GetRelease().GetFormats() {
+		if strings.Contains(format.GetName(), "7") {
+			return s.countSeven(time.Now())
+		}
+	}
+
+	return true
+}
+
 func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.ReleaseMetadata_Category) (*pbrc.Record, error) {
 	pDate := int64(0)
 	var newRec *pbrc.Record

@@ -168,7 +168,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 
 	//Look for a record staged to sell
 	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL)
-	if err != nil || rec != nil {
+	if (err != nil || rec != nil) && s.validate(rec) {
 		return rec, err
 	}
 
@@ -287,6 +287,7 @@ func (s *Server) GetState() []*pbg.State {
 	}
 
 	return []*pbg.State{
+		&pbg.State{Key: "seven_count", Value: int64(s.state.GetSevenCount())},
 		&pbg.State{Key: "last_pre", TimeValue: s.lastPre.Unix()},
 		&pbg.State{Key: "folders", Text: fmt.Sprintf("%v", s.state.ActiveFolders)},
 		&pbg.State{Key: "current", Text: text},
