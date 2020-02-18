@@ -272,7 +272,7 @@ func TestRemoveSeven(t *testing.T) {
 func TestValidate(t *testing.T) {
 	s := InitTestServer()
 
-	valid := s.validate(&pbrc.Record{Release: &pbgd.Release{Formats: []*pbgd.Format{&pbgd.Format{Name: "7\""}}}})
+	valid := s.validate(&pbrc.Record{Release: &pbgd.Release{Formats: []*pbgd.Format{&pbgd.Format{Descriptions: []string{"7\""}}}}})
 	if !valid {
 		t.Errorf("Baseline should be valid")
 	}

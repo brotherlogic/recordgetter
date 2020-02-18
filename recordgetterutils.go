@@ -25,8 +25,10 @@ func (s *Server) countSeven(t time.Time) bool {
 
 func (s *Server) validate(rec *pbrc.Record) bool {
 	for _, format := range rec.GetRelease().GetFormats() {
-		if strings.Contains(format.GetName(), "7") {
-			return s.countSeven(time.Now())
+		for _, form := range format.GetDescriptions() {
+			if strings.Contains(form, "7") {
+				return s.countSeven(time.Now())
+			}
 		}
 	}
 
