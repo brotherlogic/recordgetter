@@ -268,3 +268,25 @@ func TestRemoveSeven(t *testing.T) {
 		t.Errorf("Bad remove: %v", res)
 	}
 }
+
+func TestValidate(t *testing.T) {
+	s := InitTestServer()
+
+	valid := s.validate(&pbrc.Record{Release: &pbgd.Release{Formats: []*pbgd.Format{&pbgd.Format{Name: "7\""}}}})
+	if !valid {
+		t.Errorf("Baseline should be valid")
+	}
+}
+
+func TestInvalid(t *testing.T) {
+	s := InitTestServer()
+	ti := time.Now()
+
+	for i := 0; i < 5; i++ {
+		s.countSeven(ti)
+	}
+
+	if s.countSeven(ti) {
+		t.Errorf("This should have failed")
+	}
+}
