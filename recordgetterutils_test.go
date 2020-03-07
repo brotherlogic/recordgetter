@@ -282,7 +282,7 @@ func TestInvalid(t *testing.T) {
 	s := InitTestServer()
 	ti := time.Now()
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 10; i++ {
 		s.countSeven(ti)
 	}
 
