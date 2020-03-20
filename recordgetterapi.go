@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"golang.org/x/net/context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordgetter/proto"
@@ -58,7 +60,7 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 	if score >= 0 {
 		in.Release.Rating = score
 		err := s.updater.update(ctx, in)
-		if err != nil {
+		if err != nil && status.Convert(err).Code() != codes.OutOfRange {
 			return &pb.Empty{}, err
 		}
 	}
