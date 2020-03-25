@@ -255,6 +255,7 @@ func (s *Server) GetState() []*pbg.State {
 	goal := ""
 	price := ""
 	formats := ""
+	keep := ""
 	if s.state.CurrentPick != nil {
 		text = s.state.CurrentPick.GetRelease().Title
 		state = fmt.Sprintf("%v", s.state.CurrentPick.GetMetadata().Category)
@@ -262,6 +263,7 @@ func (s *Server) GetState() []*pbg.State {
 		goal = fmt.Sprintf("%v", s.state.CurrentPick.GetMetadata().GoalFolder)
 		price = fmt.Sprintf("%v", s.state.CurrentPick.GetMetadata().CurrentSalePrice)
 		formats = fmt.Sprintf("%v", s.state.CurrentPick.GetRelease().Formats)
+		keep = fmt.Sprintf("%v", s.state.CurrentPick.GetMetadata().Keep)
 	}
 
 	val := int64(0)
@@ -296,6 +298,7 @@ func (s *Server) GetState() []*pbg.State {
 		&pbg.State{Key: "current_state", Text: state},
 		&pbg.State{Key: "match", Text: match},
 		&pbg.State{Key: "goal", Text: goal},
+		&pbg.State{Key: "keep", Text: keep},
 		&pbg.State{Key: "price", Text: price},
 		&pbg.State{Key: "current_id", Value: val},
 		&pbg.State{Key: "current_iid", Value: val2},
