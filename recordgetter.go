@@ -134,7 +134,7 @@ func (p *prodUpdater) update(ctx context.Context, rec *pbrc.Record) error {
 
 	defer conn.Close()
 	client := pbrc.NewRecordCollectionServiceClient(conn)
-	_, err = client.UpdateRecord(ctx, &pbrc.UpdateRecordRequest{Update: rec})
+	_, err = client.UpdateRecord(ctx, &pbrc.UpdateRecordRequest{Update: rec, Reason: "RecordScore from Getter"})
 	if err != nil {
 		return err
 	}
