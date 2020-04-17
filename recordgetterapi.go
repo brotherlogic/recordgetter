@@ -58,8 +58,7 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, error) {
 	score := s.getScore(in)
 	if score >= 0 {
-		in.Release.Rating = score
-		err := s.updater.update(ctx, in)
+		err := s.updater.update(ctx, in.GetRelease().GetInstanceId(), score)
 		if err != nil && status.Convert(err).Code() != codes.OutOfRange {
 			return &pb.Empty{}, err
 		}

@@ -41,11 +41,11 @@ type testUpdater struct {
 	fail      bool
 }
 
-func (t *testUpdater) update(ctx context.Context, rec *pbrc.Record) error {
+func (t *testUpdater) update(ctx context.Context, id, score int32) error {
 	if t.fail {
 		return fmt.Errorf("Build to fail")
 	}
-	t.lastScore = rec.Release.Rating
+	t.lastScore = score
 	return nil
 }
 

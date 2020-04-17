@@ -13,6 +13,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
+	pbgd "github.com/brotherlogic/godiscogs"
 	pbg "github.com/brotherlogic/goserver/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pbrg "github.com/brotherlogic/recordgetter/proto"
@@ -119,14 +120,14 @@ func (p *prodGetter) getRelease(ctx context.Context, instance int32) (*pbrc.Reco
 }
 
 type updater interface {
-	update(ctx context.Context, rec *pbrc.Record) error
+	update(ctx context.Context, id, rating int32) error
 }
 
 type prodUpdater struct {
 	dial func(server string) (*grpc.ClientConn, error)
 }
 
-func (p *prodUpdater) update(ctx context.Context, rec *pbrc.Record) error {
+func (p *prodUpdater) update(ctx context.Context, id, rating int32) error {
 	conn, err := p.dial("recordcollection")
 	if err != nil {
 		return err
@@ -134,7 +135,7 @@ func (p *prodUpdater) update(ctx context.Context, rec *pbrc.Record) error {
 
 	defer conn.Close()
 	client := pbrc.NewRecordCollectionServiceClient(conn)
-	_, err = client.UpdateRecord(ctx, &pbrc.UpdateRecordRequest{Update: rec, Reason: "RecordScore from Getter"})
+	_, err = client.UpdateRecord(ctx, &pbrc.UpdateRecordRequest{Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: id}, Metadata: &pbrc.ReleaseMetadata{SetRating: rating}}, Reason: "RecordScore from Getter"})
 	if err != nil {
 		return err
 	}
