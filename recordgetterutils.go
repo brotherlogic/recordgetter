@@ -165,7 +165,7 @@ func (s *Server) getScore(rc *pbrc.Record) int32 {
 	sum := int32(0)
 	count := int32(0)
 
-	sum += rc.Release.Rating
+	sum += rc.GetMetadata().SetRating()
 	count++
 	maxDisk := int32(1)
 
