@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
 	"time"
@@ -182,6 +183,7 @@ func (s *Server) getScore(rc *pbrc.Record) int32 {
 	//Add the score
 	s.state.Scores = append(s.state.Scores, &pb.DiskScore{InstanceId: rc.GetRelease().InstanceId, DiskNumber: maxDisk, ScoreDate: time.Now().Unix(), Score: rc.GetRelease().Rating})
 
+	s.Log(fmt.Sprintf("FOUND SCORE %v and %v", sum, count))
 	if count >= rc.Release.FormatQuantity {
 		s.clearScores(rc.Release.InstanceId)
 		//Trick Rounding
