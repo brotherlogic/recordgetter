@@ -56,7 +56,7 @@ func TestFullScore(t *testing.T) {
 	s.state.Scores = append(s.state.Scores, &pb.DiskScore{InstanceId: 1234, DiskNumber: 1, Score: 2})
 	s.state.Scores = append(s.state.Scores, &pb.DiskScore{InstanceId: 123224, DiskNumber: 1, Score: 2})
 
-	s.Listened(context.Background(), &pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, Rating: 5, FormatQuantity: 2}})
+	s.Listened(context.Background(), &pbrc.Record{Metadata: &pbrc.ReleaseMetadata{SetRating: 5}, Release: &pbgd.Release{InstanceId: 1234, FormatQuantity: 2}})
 
 	if updater.lastScore != 4 {
 		t.Errorf("Update has not combined scores: %v", updater.lastScore)

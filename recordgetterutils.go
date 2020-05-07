@@ -183,7 +183,7 @@ func (s *Server) getScore(rc *pbrc.Record) int32 {
 	//Add the score
 	s.state.Scores = append(s.state.Scores, &pb.DiskScore{InstanceId: rc.GetRelease().InstanceId, DiskNumber: maxDisk, ScoreDate: time.Now().Unix(), Score: rc.GetRelease().Rating})
 
-	s.Log(fmt.Sprintf("FOUND SCORE %v and %v", sum, count))
+	s.Log(fmt.Sprintf("FOUND SCORE For %v -> %v and %v = %v from %v", rc.GetRelease().InstanceId, sum, count, float64(sum)/float64(count), rc.GetMetadata().GetSetRating()))
 	if count >= rc.Release.FormatQuantity {
 		s.clearScores(rc.Release.InstanceId)
 		//Trick Rounding
