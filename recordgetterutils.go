@@ -169,8 +169,10 @@ func (s *Server) getScore(rc *pbrc.Record) int32 {
 	count++
 	maxDisk := int32(1)
 
+	scores := ""
 	for _, score := range s.state.Scores {
 		if score.InstanceId == rc.Release.InstanceId {
+			scores += fmt.Sprintf(" %v ", score)
 			sum += score.Score
 			count++
 
@@ -181,9 +183,9 @@ func (s *Server) getScore(rc *pbrc.Record) int32 {
 	}
 
 	//Add the score
-	s.state.Scores = append(s.state.Scores, &pb.DiskScore{InstanceId: rc.GetRelease().InstanceId, DiskNumber: maxDisk, ScoreDate: time.Now().Unix(), Score: rc.GetRelease().Rating})
+	s.state.Scores = append(s.state.Scores, &pb.DiskScore{InstanceId: rc.GetRelease().InstanceId, DiskNumber: maxDisk, ScoreDate: time.Now().Unix(), Score: rc.GetMetadata().GetSetRating()})
 
-	s.Log(fmt.Sprintf("FOUND SCORE For %v -> %v and %v = %v from %v", rc.GetRelease().InstanceId, sum, count, float64(sum)/float64(count), rc.GetMetadata().GetSetRating()))
+	s.Log(fmt.Sprintf("FOUND SCORE For %v -> %v and %v = %v from %v (%v)", rc.GetRelease().InstanceId, sum, count, float64(sum)/float64(count), rc.GetMetadata().GetSetRating(), scores))
 	if count >= rc.Release.FormatQuantity {
 		s.clearScores(rc.Release.InstanceId)
 		//Trick Rounding
