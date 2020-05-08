@@ -266,7 +266,7 @@ func (s *Server) GetState() []*pbg.State {
 		price = fmt.Sprintf("%v", s.state.CurrentPick.GetMetadata().CurrentSalePrice)
 		formats = fmt.Sprintf("%v", s.state.CurrentPick.GetRelease().Formats)
 		keep = fmt.Sprintf("%v", s.state.CurrentPick.GetMetadata().Keep)
-		last = fmt.Sprintf("%v", time.Now().Sub(time.Unix(s.state.CurrentPick.GetMetadata().GetLastListenTime(), 0)))
+		last = fmt.Sprintf("%v", time.Now().Sub(time.Unix(s.state.CurrentPick.GetMetadata().GetLastListenTime(), 0)).Hours()/24)
 	}
 
 	val := int64(0)
