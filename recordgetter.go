@@ -146,7 +146,8 @@ func (p *prodUpdater) update(ctx context.Context, id, rating int32) error {
 func (s *Server) dateFine(rc *pbrc.Record, t time.Time) bool {
 	for _, score := range s.state.Scores {
 		if score.InstanceId == rc.GetRelease().InstanceId {
-			if t.AddDate(0, 0, -7).Unix() <= score.ScoreDate {
+			// Two days between listens
+			if t.AddDate(0, 0, -2).Unix() <= score.ScoreDate {
 				return false
 			}
 		}
