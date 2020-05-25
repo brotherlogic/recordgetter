@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/brotherlogic/goserver/utils"
 	"google.golang.org/grpc"
@@ -83,7 +84,7 @@ func score(ctx context.Context, value int32) {
 }
 
 func main() {
-	ctx, cancel := utils.BuildContext("RecordGet-Score", "recordgetter")
+	ctx, cancel := utils.ManualContext("RecordGet-Score", "recordgetter", time.Minute)
 	defer cancel()
 	if len(os.Args) > 1 {
 		val, err := strconv.Atoi(os.Args[1])
