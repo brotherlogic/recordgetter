@@ -200,6 +200,14 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 		return rec, err
 	}
 
+	// Look for pre distringuished 12" records
+	for _, f := range []int32{242017} {
+		rec, err = s.getInFolderWithCategory(ctx, t, f, pbrc.ReleaseMetadata_PRE_DISTINGUISHED)
+		if err != nil || rec != nil {
+			return rec, err
+		}
+	}
+
 	rec, err = s.getInFolders(ctx, t, s.state.ActiveFolders)
 	if err != nil || rec != nil {
 		return rec, err
