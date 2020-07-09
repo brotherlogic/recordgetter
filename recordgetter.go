@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/brotherlogic/goserver"
-	"github.com/brotherlogic/keystore/client"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
@@ -368,9 +367,7 @@ func main() {
 		log.SetOutput(ioutil.Discard)
 	}
 
-	server.GoServer.KSclient = *keystoreclient.GetClient(server.DialMaster)
-	server.RPCTracing = true
-	err := server.RegisterServerV2("recordgetter", false, false)
+	err := server.RegisterServerV2("recordgetter", false, true)
 	if err != nil {
 		return
 	}
