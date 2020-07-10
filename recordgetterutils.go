@@ -13,22 +13,22 @@ import (
 	pbro "github.com/brotherlogic/recordsorganiser/proto"
 )
 
-func (s *Server) countSeven(t time.Time) bool {
-	if t.YearDay() == int(s.state.GetSevenDay()) {
-		s.state.SevenCount++
-		return s.state.SevenCount <= 10
+func (s *Server) countSeven(t time.Time, state *pb.State) bool {
+	if t.YearDay() == int(state.GetSevenDay()) {
+		state.SevenCount++
+		return state.SevenCount <= 10
 	}
 
-	s.state.SevenDay = int32(t.YearDay())
-	s.state.SevenCount = 1
+	state.SevenDay = int32(t.YearDay())
+	state.SevenCount = 1
 	return true
 }
 
-func (s *Server) validate(rec *pbrc.Record) bool {
+func (s *Server) validate(rec *pbrc.Record, state *pb.State) bool {
 	for _, format := range rec.GetRelease().GetFormats() {
 		for _, form := range format.GetDescriptions() {
 			if strings.Contains(form, "7") {
-				return s.countSeven(time.Now())
+				return s.countSeven(time.Now(), state)
 			}
 		}
 	}
@@ -36,7 +36,7 @@ func (s *Server) validate(rec *pbrc.Record) bool {
 	return true
 }
 
-func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.ReleaseMetadata_Category) (*pbrc.Record, error) {
+func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.ReleaseMetadata_Category, state *pb.State) (*pbrc.Record, error) {
 	pDate := int64(0)
 	var newRec *pbrc.Record
 	newRec = nil
@@ -51,7 +51,7 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 		rc, err := s.rGetter.getRelease(ctx, id)
 		if err == nil && rc != nil {
 			if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() && rc.GetMetadata().SetRating == 0 {
-				if s.dateFine(rc, t) && !s.needsRip(rc) {
+				if s.dateFine(rc, t, state) && !s.needsRip(rc) {
 					pDate = rc.GetMetadata().DateAdded
 					newRec = rc
 				}
@@ -66,7 +66,7 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 	return nil, nil
 }
 
-func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folder int32, cat pbrc.ReleaseMetadata_Category) (*pbrc.Record, error) {
+func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folder int32, cat pbrc.ReleaseMetadata_Category, state *pb.State) (*pbrc.Record, error) {
 	recs, err := s.rGetter.getRecordsInFolder(ctx, folder)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folde
 		r, err := s.rGetter.getRelease(ctx, id)
 		if err == nil {
 			if r.GetMetadata().GetCategory() == cat && r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() && r.GetMetadata().SetRating == 0 {
-				if s.dateFine(r, t) && !s.needsRip(r) {
+				if s.dateFine(r, t, state) && !s.needsRip(r) {
 					return r, nil
 				}
 			}
@@ -86,23 +86,23 @@ func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folde
 	return nil, nil
 }
 
-func (s *Server) removeSeven(allrecs []int32) []int32 {
+func (s *Server) removeSeven(allrecs []int32, state *pb.State) []int32 {
 	new := []int32{}
 	for _, val := range allrecs {
-		if time.Now().Sub(time.Unix(s.state.LastSeven, 0)) < time.Hour*2 || val != 267116 {
+		if time.Now().Sub(time.Unix(state.LastSeven, 0)) < time.Hour*2 || val != 267116 {
 			new = append(new, val)
 		}
 	}
 	return new
 }
 
-func (s *Server) setTime(r *pbrc.Record) {
+func (s *Server) setTime(r *pbrc.Record, state *pb.State) {
 	if r.GetRelease().FolderId == 267116 {
-		s.state.LastSeven = time.Now().Unix()
+		state.LastSeven = time.Now().Unix()
 	}
 }
 
-func (s *Server) getInFolders(ctx context.Context, t time.Time, folders []int32) (*pbrc.Record, error) {
+func (s *Server) getInFolders(ctx context.Context, t time.Time, folders []int32, state *pb.State) (*pbrc.Record, error) {
 	allrecs := make([]int32, 0)
 	for _, folder := range folders {
 		recs, err := s.rGetter.getRecordsInFolder(ctx, folder)
@@ -112,7 +112,7 @@ func (s *Server) getInFolders(ctx context.Context, t time.Time, folders []int32)
 		allrecs = append(allrecs, recs...)
 	}
 
-	allrecs = s.removeSeven(allrecs)
+	allrecs = s.removeSeven(allrecs, state)
 
 	// Shuffle allrecs to prevent bias
 	rand.Seed(time.Now().UnixNano())
@@ -122,8 +122,8 @@ func (s *Server) getInFolders(ctx context.Context, t time.Time, folders []int32)
 		r, err := s.rGetter.getRelease(ctx, id)
 		if err == nil && r != nil {
 			if r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() && r.GetMetadata().SetRating == 0 {
-				if s.dateFine(r, t) && !s.needsRip(r) {
-					s.setTime(r)
+				if s.dateFine(r, t, state) && !s.needsRip(r) {
+					s.setTime(r, state)
 					return r, nil
 				}
 			}
@@ -148,12 +148,12 @@ func (s *Server) needsRip(r *pbrc.Record) bool {
 	return false
 }
 
-func (s *Server) clearScores(instanceID int32) {
+func (s *Server) clearScores(instanceID int32, state *pb.State) {
 	i := 0
-	for i < len(s.state.Scores) {
-		if s.state.Scores[i].InstanceId == instanceID {
-			s.state.Scores[i] = s.state.Scores[len(s.state.Scores)-1]
-			s.state.Scores = s.state.Scores[:len(s.state.Scores)-1]
+	for i < len(state.Scores) {
+		if state.Scores[i].InstanceId == instanceID {
+			state.Scores[i] = state.Scores[len(state.Scores)-1]
+			state.Scores = state.Scores[:len(state.Scores)-1]
 		} else {
 			i++
 		}
@@ -161,7 +161,7 @@ func (s *Server) clearScores(instanceID int32) {
 	}
 }
 
-func (s *Server) getScore(rc *pbrc.Record) int32 {
+func (s *Server) getScore(rc *pbrc.Record, state *pb.State) int32 {
 	sum := int32(0)
 	count := int32(0)
 
@@ -170,7 +170,7 @@ func (s *Server) getScore(rc *pbrc.Record) int32 {
 	maxDisk := int32(1)
 
 	scores := ""
-	for _, score := range s.state.Scores {
+	for _, score := range state.Scores {
 		if score.InstanceId == rc.Release.InstanceId {
 			scores += fmt.Sprintf(" %v ", score)
 			sum += score.Score
@@ -183,11 +183,11 @@ func (s *Server) getScore(rc *pbrc.Record) int32 {
 	}
 
 	//Add the score
-	s.state.Scores = append(s.state.Scores, &pb.DiskScore{InstanceId: rc.GetRelease().InstanceId, DiskNumber: maxDisk, ScoreDate: time.Now().Unix(), Score: rc.GetMetadata().GetSetRating()})
+	state.Scores = append(state.Scores, &pb.DiskScore{InstanceId: rc.GetRelease().InstanceId, DiskNumber: maxDisk, ScoreDate: time.Now().Unix(), Score: rc.GetMetadata().GetSetRating()})
 
 	s.Log(fmt.Sprintf("FOUND SCORE For %v -> %v and %v = %v from %v (%v)", rc.GetRelease().InstanceId, sum, count, float64(sum)/float64(count), rc.GetMetadata().GetSetRating(), scores))
 	if count >= rc.Release.FormatQuantity {
-		s.clearScores(rc.Release.InstanceId)
+		s.clearScores(rc.Release.InstanceId, state)
 		//Trick Rounding
 		return int32((float64(sum) / float64(count)) + 0.5)
 	}
@@ -202,17 +202,17 @@ func getNumListens(rc *pbrc.Record) int32 {
 	return 1
 }
 
-func (s *Server) readLocations(ctx context.Context) error {
+func (s *Server) readLocations(ctx context.Context, state *pb.State) error {
 	locations, err := s.org.getLocations(ctx)
 	if err != nil {
 		return err
 	}
 
-	s.state.ActiveFolders = []int32{}
+	state.ActiveFolders = []int32{}
 	for _, location := range locations {
 		if location.InPlay == pbro.Location_IN_PLAY {
 			for _, folder := range location.FolderIds {
-				s.state.ActiveFolders = append(s.state.ActiveFolders, folder)
+				state.ActiveFolders = append(state.ActiveFolders, folder)
 			}
 		}
 	}

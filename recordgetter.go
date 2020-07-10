@@ -24,7 +24,6 @@ type Server struct {
 	*goserver.GoServer
 	serving    bool
 	delivering bool
-	state      *pbrg.State
 	updater    updater
 	rGetter    getter
 	rd         *rand.Rand
@@ -142,8 +141,8 @@ func (p *prodUpdater) update(ctx context.Context, id, rating int32) error {
 	return nil
 }
 
-func (s *Server) dateFine(rc *pbrc.Record, t time.Time) bool {
-	for _, score := range s.state.Scores {
+func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool {
+	for _, score := range state.Scores {
 		if score.InstanceId == rc.GetRelease().InstanceId {
 			// Two days between listens
 			if t.AddDate(0, 0, -2).Unix() <= score.ScoreDate {
@@ -154,13 +153,13 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time) bool {
 	return true
 }
 
-func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Record, error) {
+func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t time.Time) (*pbrc.Record, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	// Prioritise PRE_FRESHMAN if there's a lot of them.
 	things, err := s.rGetter.getRecordsInCategory(ctx, pbrc.ReleaseMetadata_PRE_FRESHMAN)
 	if len(things) > 10 {
-		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN)
+		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN, state)
 		if err != nil || rec != nil {
 			s.lastPre = time.Now()
 			s.Log(fmt.Sprintf("Returning PRE_FRESHMAN"))
@@ -169,13 +168,13 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 	}
 
 	//Look for a record staged to sell
-	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL)
-	if (err != nil || rec != nil) && s.validate(rec) {
+	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state)
+	if (err != nil || rec != nil) && s.validate(rec, state) {
 		s.Log(fmt.Sprintf("Returning STAGED_TO_SELL"))
 		return rec, err
 	}
 
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED)
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state)
 	if err != nil || rec != nil {
 		s.Log(fmt.Sprintf("Returning UNLISTENED"))
 		return rec, err
@@ -189,7 +188,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 	s.Log(fmt.Sprintf("Adjusted time to %v: %v", pfTime, t.Sub(s.lastPre)))
 
 	if t.Sub(s.lastPre) > pfTime {
-		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN)
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN, state)
 		if err != nil || rec != nil {
 			s.lastPre = time.Now()
 			s.Log(fmt.Sprintf("Returning CATEGORY PRE_FRESH"))
@@ -198,7 +197,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 	}
 
 	// Look for pre high school records
-	rec, err = s.getInFolderWithCategory(ctx, t, int32(673768), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL)
+	rec, err = s.getInFolderWithCategory(ctx, t, int32(673768), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state)
 	if err != nil || rec != nil {
 		s.Log(fmt.Sprintf("Returning LB PRE_HIGH_SCHOOL"))
 		return rec, err
@@ -206,14 +205,14 @@ func (s *Server) getReleaseFromPile(ctx context.Context, t time.Time) (*pbrc.Rec
 
 	// Look for pre distringuished 12" records
 	for _, f := range []int32{242017} {
-		rec, err = s.getInFolderWithCategory(ctx, t, f, pbrc.ReleaseMetadata_PRE_DISTINGUISHED)
+		rec, err = s.getInFolderWithCategory(ctx, t, f, pbrc.ReleaseMetadata_PRE_DISTINGUISHED, state)
 		if err != nil || rec != nil {
 			s.Log(fmt.Sprintf("Returning PRE_D IN FOLDER"))
 			return rec, err
 		}
 	}
 
-	rec, err = s.getInFolders(ctx, t, s.state.ActiveFolders)
+	rec, err = s.getInFolders(ctx, t, state.ActiveFolders, state)
 	if err != nil || rec != nil {
 		s.Log(fmt.Sprintf("Returning Default fallback"))
 		return rec, err
@@ -226,8 +225,7 @@ func Init() *Server {
 	s := &Server{
 		GoServer: &goserver.GoServer{},
 		serving:  true, delivering: true,
-		state: &pbrg.State{},
-		rd:    rand.New(rand.NewSource(time.Now().Unix())),
+		rd: rand.New(rand.NewSource(time.Now().Unix())),
 	}
 	s.updater = &prodUpdater{s.DialMaster}
 	s.rGetter = &prodGetter{s.DialMaster}
@@ -254,105 +252,36 @@ func (s *Server) Shutdown(ctx context.Context) error {
 
 // Mote promotes/demotes this server
 func (s *Server) Mote(ctx context.Context, master bool) error {
-	s.delivering = master
-
-	if master {
-		return s.readState(ctx)
-	}
-
 	return nil
 }
 
 // GetState gets the state of the server
 func (s *Server) GetState() []*pbg.State {
-	text := "No record chosen"
-	state := ""
-	match := ""
-	goal := ""
-	price := ""
-	formats := ""
-	keep := ""
-	last := ""
-	if s.state.CurrentPick != nil {
-		text = s.state.CurrentPick.GetRelease().Title
-		state = fmt.Sprintf("%v", s.state.CurrentPick.GetMetadata().Category)
-		match = fmt.Sprintf("%v", s.state.CurrentPick.GetMetadata().Match)
-		goal = fmt.Sprintf("%v", s.state.CurrentPick.GetMetadata().GoalFolder)
-		price = fmt.Sprintf("%v", s.state.CurrentPick.GetMetadata().CurrentSalePrice)
-		formats = fmt.Sprintf("%v", s.state.CurrentPick.GetRelease().Formats)
-		keep = fmt.Sprintf("%v", s.state.CurrentPick.GetMetadata().Keep)
-		last = fmt.Sprintf("%v", time.Unix(s.state.CurrentPick.GetMetadata().GetLastListenTime(), 0))
-	}
-
-	val := int64(0)
-	val2 := int64(0)
-	disk := int32(1)
-	if s.state != nil && s.state.CurrentPick != nil {
-		val = int64(s.state.CurrentPick.GetRelease().Id)
-		val2 = int64(s.state.CurrentPick.GetRelease().InstanceId)
-		for _, score := range s.state.Scores {
-			if score.InstanceId == s.state.CurrentPick.GetRelease().InstanceId && score.DiskNumber > disk {
-				disk = score.DiskNumber + 1
-			}
-		}
-	}
-
-	output := ""
-	for _, v := range s.state.Scores {
-		if s.state != nil && s.state.CurrentPick != nil {
-			if v.InstanceId == s.state.CurrentPick.GetRelease().InstanceId {
-				output += fmt.Sprintf("%v - %v,", v.DiskNumber, v.Score)
-			}
-		}
-	}
-
-	return []*pbg.State{
-		&pbg.State{Key: "seven_count", Value: int64(s.state.GetSevenCount())},
-		&pbg.State{Key: "last_pre", TimeValue: s.lastPre.Unix()},
-		&pbg.State{Key: "folders", Text: fmt.Sprintf("%v", s.state.ActiveFolders)},
-		&pbg.State{Key: "current", Text: text},
-		&pbg.State{Key: "format", Text: formats},
-		&pbg.State{Key: "disk", Value: int64(disk)},
-		&pbg.State{Key: "current_state", Text: state},
-		&pbg.State{Key: "match", Text: match},
-		&pbg.State{Key: "goal", Text: goal},
-		&pbg.State{Key: "keep", Text: keep},
-		&pbg.State{Key: "price", Text: price},
-		&pbg.State{Key: "current_id", Value: val},
-		&pbg.State{Key: "current_iid", Value: val2},
-		&pbg.State{Key: "last_listen", Text: last},
-		&pbg.State{Key: "requests", Value: s.requests},
-		&pbg.State{Key: "tracking", Text: output},
-		&pbg.State{Key: "scores", Value: int64(len(s.state.Scores))},
-	}
+	return []*pbg.State{}
 }
 
 // This is the only method that interacts with disk
-func (s *Server) readState(ctx context.Context) error {
+func (s *Server) loadState(ctx context.Context) (*pbrg.State, error) {
 	state := &pbrg.State{}
 	data, _, err := s.KSclient.Read(ctx, KEY, state)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if data != nil {
-		s.state = data.(*pbrg.State)
+		state = data.(*pbrg.State)
 	}
 
-	if len(s.state.ActiveFolders) == 0 {
-		s.state.ActiveFolders = []int32{242017}
-	}
-
-	return s.readLocations(ctx)
+	return state, s.readLocations(ctx, state)
 }
 
-func (s *Server) saveState(ctx context.Context) error {
-	if len(s.state.GetActiveFolders()) == 0 {
-		return fmt.Errorf("Invalid state for saving: %v", s.state)
+func (s *Server) saveState(ctx context.Context, state *pbrg.State) error {
+	if len(state.GetActiveFolders()) == 0 {
+		return fmt.Errorf("Invalid state for saving: %v", state)
 	}
 
-	return s.KSclient.Save(ctx, KEY, s.state)
+	return s.KSclient.Save(ctx, KEY, state)
 }
 
 func main() {
@@ -372,7 +301,6 @@ func main() {
 		return
 	}
 
-	//server.RegisterServingTask(server.GetRecords)
 	err = server.Serve()
 	if err != nil {
 		log.Fatalf("Error running getter: %v", err)
