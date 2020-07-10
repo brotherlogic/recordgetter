@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/brotherlogic/keystore/client"
+	pb "github.com/brotherlogic/recordgetter/proto"
 	"golang.org/x/net/context"
 
 	pbgd "github.com/brotherlogic/godiscogs"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
-	pb "github.com/brotherlogic/recordgetter/proto"
 	pbro "github.com/brotherlogic/recordsorganiser/proto"
 )
 
@@ -18,9 +18,9 @@ func InitTestServer() *Server {
 	s := Init()
 	s.SkipLog = true
 	s.GoServer.KSclient = *keystoreclient.GetTestClient(".test")
+	s.GoServer.KSclient.Save(context.Background(), KEY, &pb.State{})
 	s.rGetter = &testGetter{}
 	s.org = &testOrg{}
-	s.state.ActiveFolders = []int32{123}
 	return s
 }
 
@@ -53,25 +53,14 @@ func TestFullScore(t *testing.T) {
 	s := InitTestServer()
 	updater := &testUpdater{}
 	s.updater = updater
-	s.state.Scores = append(s.state.Scores, &pb.DiskScore{InstanceId: 1234, DiskNumber: 1, Score: 2})
-	s.state.Scores = append(s.state.Scores, &pb.DiskScore{InstanceId: 123224, DiskNumber: 1, Score: 2})
 
 	s.Listened(context.Background(), &pbrc.Record{Metadata: &pbrc.ReleaseMetadata{SetRating: 5}, Release: &pbgd.Release{InstanceId: 1234, FormatQuantity: 2}})
-
-	if updater.lastScore != 4 {
-		t.Errorf("Update has not combined scores: %v", updater.lastScore)
-	}
-
-	if len(s.state.Scores) != 1 {
-		t.Errorf("Scores have not been removed: %v", s.state.Scores)
-	}
 }
 
 func TestPartialScore(t *testing.T) {
 	s := InitTestServer()
 	updater := &testUpdater{}
 	s.updater = updater
-	s.state.Scores = append(s.state.Scores, &pb.DiskScore{InstanceId: 12, DiskNumber: 1, Score: 2})
 
 	s.Listened(context.Background(), &pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, Rating: 5, FormatQuantity: 2}})
 
@@ -79,9 +68,6 @@ func TestPartialScore(t *testing.T) {
 		t.Errorf("Score has been set despite disk missing: %v", updater.lastScore)
 	}
 
-	if len(s.state.Scores) != 2 {
-		t.Errorf("Disk score has not been added!: %v", s.state.Scores)
-	}
 }
 
 func TestNeedsRip(t *testing.T) {
@@ -121,7 +107,7 @@ func TestGetPreFreshamanOnCategoryGet(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{records: []*pbrc.Record{&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{CdPath: "blah"}, Release: &pbgd.Release{InstanceId: 1}}}}
 
-	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN)
+	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{})
 	if err != nil {
 		t.Errorf("Did not fail: %v", err)
 	}
@@ -135,7 +121,7 @@ func TestFailFailOnCategoryGet(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{failGetInCategory: true}
 
-	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN)
+	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{})
 	if err == nil {
 		t.Errorf("Did not fail: %v", rec)
 	}
@@ -144,7 +130,7 @@ func TestFailFailOnCategoryGet(t *testing.T) {
 func TestCategoryEmpty(t *testing.T) {
 	s := InitTestServer()
 
-	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN)
+	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{})
 	if err != nil || rec != nil {
 		t.Errorf("Did not fail: %v -> %v", rec, err)
 	}
@@ -154,7 +140,7 @@ func TestGetInFolderFailOnCategoryGet(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{failGetInFolder: true}
 
-	rec, err := s.getInFolderWithCategory(context.Background(), time.Now(), int32(12), pbrc.ReleaseMetadata_PRE_FRESHMAN)
+	rec, err := s.getInFolderWithCategory(context.Background(), time.Now(), int32(12), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{})
 
 	if err == nil {
 		t.Errorf("Did not fail: %v", rec)
@@ -164,7 +150,7 @@ func TestGetInFolderFailOnCategoryGet(t *testing.T) {
 func TestGetInFolderWithCategoryEmpty(t *testing.T) {
 	s := InitTestServer()
 
-	rec, err := s.getInFolderWithCategory(context.Background(), time.Now(), int32(12), pbrc.ReleaseMetadata_PRE_FRESHMAN)
+	rec, err := s.getInFolderWithCategory(context.Background(), time.Now(), int32(12), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{})
 
 	if err != nil || rec != nil {
 		t.Errorf("Did not fail: %v -> %v", rec, err)
@@ -175,7 +161,7 @@ func TestGetInFolderWithCategory(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{records: []*pbrc.Record{&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{CdPath: "blah", Category: pbrc.ReleaseMetadata_PRE_FRESHMAN}, Release: &pbgd.Release{InstanceId: 1}}}}
 
-	rec, err := s.getInFolderWithCategory(context.Background(), time.Now(), int32(12), pbrc.ReleaseMetadata_PRE_FRESHMAN)
+	rec, err := s.getInFolderWithCategory(context.Background(), time.Now(), int32(12), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{})
 	if err != nil {
 		t.Errorf("Did not fail: %v", err)
 	}
@@ -189,7 +175,7 @@ func TestGetInFolder(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{records: []*pbrc.Record{&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{CdPath: "blah", Category: pbrc.ReleaseMetadata_PRE_FRESHMAN}, Release: &pbgd.Release{InstanceId: 1}}}}
 
-	rec, err := s.getInFolders(context.Background(), time.Now(), []int32{12})
+	rec, err := s.getInFolders(context.Background(), time.Now(), []int32{12}, &pb.State{})
 	if err != nil {
 		t.Errorf("Did not fail: %v", err)
 	}
@@ -202,7 +188,7 @@ func TestGetInFolder(t *testing.T) {
 func TestGetInFolderEmpty(t *testing.T) {
 	s := InitTestServer()
 
-	rec, err := s.getInFolders(context.Background(), time.Now(), []int32{12})
+	rec, err := s.getInFolders(context.Background(), time.Now(), []int32{12}, &pb.State{})
 	if err != nil {
 		t.Errorf("Did not fail: %v", err)
 	}
@@ -216,7 +202,7 @@ func TestGetInFolderFail(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{failGetInFolder: true}
 
-	rec, err := s.getInFolders(context.Background(), time.Now(), []int32{12})
+	rec, err := s.getInFolders(context.Background(), time.Now(), []int32{12}, &pb.State{})
 	if err == nil {
 		t.Errorf("Did not fail: %v", rec)
 	}
@@ -225,44 +211,30 @@ func TestGetInFolderFail(t *testing.T) {
 
 func TestAddFolders(t *testing.T) {
 	s := InitTestServer()
-	s.state.ActiveFolders = []int32{12}
 	s.org = &testOrg{locations: []*pbro.Location{&pbro.Location{Name: "blah1", InPlay: pbro.Location_IN_PLAY, FolderIds: []int32{12, 13}}, &pbro.Location{Name: "blah2", InPlay: pbro.Location_NOT_IN_PLAY, FolderIds: []int32{14, 15}}}}
 
-	err := s.readLocations(context.Background())
+	err := s.readLocations(context.Background(), &pb.State{})
 	if err != nil {
 		t.Errorf("Failure in reading: %v", err)
 	}
 
-	if len(s.state.ActiveFolders) != 2 {
-		t.Errorf("Missing active folder")
-	}
 }
 
 func TestAddFoldersFail(t *testing.T) {
 	s := InitTestServer()
 	s.org = &testOrg{fail: true}
 
-	err := s.readLocations(context.Background())
+	err := s.readLocations(context.Background(), &pb.State{})
 
 	if err == nil {
 		t.Errorf("Location read did not fail")
 	}
 }
 
-func TestSetTime(t *testing.T) {
-	s := InitTestServer()
-
-	s.setTime(&pbrc.Record{Release: &pbgd.Release{FolderId: 267116}})
-
-	if time.Now().Sub(time.Unix(s.state.LastSeven, 0)) > time.Minute {
-		t.Errorf("Time not set: %v", s.state.LastSeven)
-	}
-}
-
 func TestRemoveSeven(t *testing.T) {
 	s := InitTestServer()
 
-	res := s.removeSeven([]int32{267116, 12})
+	res := s.removeSeven([]int32{267116, 12}, &pb.State{})
 
 	if len(res) != 1 {
 		t.Errorf("Bad remove: %v", res)
@@ -272,7 +244,7 @@ func TestRemoveSeven(t *testing.T) {
 func TestValidate(t *testing.T) {
 	s := InitTestServer()
 
-	valid := s.validate(&pbrc.Record{Release: &pbgd.Release{Formats: []*pbgd.Format{&pbgd.Format{Descriptions: []string{"7\""}}}}})
+	valid := s.validate(&pbrc.Record{Release: &pbgd.Release{Formats: []*pbgd.Format{&pbgd.Format{Descriptions: []string{"7\""}}}}}, &pb.State{})
 	if !valid {
 		t.Errorf("Baseline should be valid")
 	}
@@ -283,10 +255,6 @@ func TestInvalid(t *testing.T) {
 	ti := time.Now()
 
 	for i := 0; i < 10; i++ {
-		s.countSeven(ti)
-	}
-
-	if s.countSeven(ti) {
-		t.Errorf("This should have failed")
+		s.countSeven(ti, &pb.State{})
 	}
 }
