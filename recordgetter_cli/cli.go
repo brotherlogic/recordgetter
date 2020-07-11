@@ -51,23 +51,15 @@ func listened(score int32) {
 }
 
 func get(ctx context.Context) {
-	conn, err := grpc.Dial("discovery:///recordgetter", grpc.WithInsecure(), grpc.WithBalancerName("my_pick_first"))
+	conn, err := utils.LFDialServer(ctx, "recordgetter")
 	if err != nil {
 		log.Fatalf("Can't dial getter: %v", err)
 	}
 	defer conn.Close()
 	client := pbrg.NewRecordGetterClient(conn)
 
-	for i := 0; i < 5; i++ {
-		ctx, cancel := utils.ManualContext("RecordGet-Score", "recordgetter", time.Minute, false)
-		defer cancel()
-		r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Refresh: true})
-		if err == nil {
-			fmt.Printf("%v and %v", r, err)
-			return
-		}
-		fmt.Printf("%v and %v\n\n", r, err)
-	}
+	r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Refresh: true})
+	fmt.Printf("%v and %v\n\n", r, err)
 }
 
 func score(ctx context.Context, value int32) {
