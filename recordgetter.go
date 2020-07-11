@@ -44,11 +44,11 @@ type org interface {
 }
 
 type prodOrg struct {
-	dial func(server string) (*grpc.ClientConn, error)
+	dial func(ctx context.Context, server string) (*grpc.ClientConn, error)
 }
 
 func (p *prodOrg) getLocations(ctx context.Context) ([]*pbro.Location, error) {
-	conn, err := p.dial("recordsorganiser")
+	conn, err := p.dial(ctx, "recordsorganiser")
 	if err != nil {
 		return []*pbro.Location{}, err
 	}
@@ -69,11 +69,11 @@ type getter interface {
 }
 
 type prodGetter struct {
-	dial func(server string) (*grpc.ClientConn, error)
+	dial func(ctx context.Context, server string) (*grpc.ClientConn, error)
 }
 
 func (p *prodGetter) getRecordsInCategory(ctx context.Context, category pbrc.ReleaseMetadata_Category) ([]int32, error) {
-	conn, err := p.dial("recordcollection")
+	conn, err := p.dial(ctx, "recordcollection")
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (p *prodGetter) getRecordsInCategory(ctx context.Context, category pbrc.Rel
 }
 
 func (p *prodGetter) getRecordsInFolder(ctx context.Context, folder int32) ([]int32, error) {
-	conn, err := p.dial("recordcollection")
+	conn, err := p.dial(ctx, "recordcollection")
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (p *prodGetter) getRecordsInFolder(ctx context.Context, folder int32) ([]in
 }
 
 func (p *prodGetter) getRelease(ctx context.Context, instance int32) (*pbrc.Record, error) {
-	conn, err := p.dial("recordcollection")
+	conn, err := p.dial(ctx, "recordcollection")
 	if err != nil {
 		return nil, err
 	}
@@ -122,11 +122,11 @@ type updater interface {
 }
 
 type prodUpdater struct {
-	dial func(server string) (*grpc.ClientConn, error)
+	dial func(ctx context.Context, server string) (*grpc.ClientConn, error)
 }
 
 func (p *prodUpdater) update(ctx context.Context, id, rating int32) error {
-	conn, err := p.dial("recordcollection")
+	conn, err := p.dial(ctx, "recordcollection")
 	if err != nil {
 		return err
 	}
@@ -227,9 +227,9 @@ func Init() *Server {
 		serving:  true, delivering: true,
 		rd: rand.New(rand.NewSource(time.Now().Unix())),
 	}
-	s.updater = &prodUpdater{s.DialMaster}
-	s.rGetter = &prodGetter{s.DialMaster}
-	s.org = &prodOrg{s.DialMaster}
+	s.updater = &prodUpdater{s.FDialServer}
+	s.rGetter = &prodGetter{s.FDialServer}
+	s.org = &prodOrg{s.FDialServer}
 	s.Register = s
 	s.PrepServer()
 	return s
