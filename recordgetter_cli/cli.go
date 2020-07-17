@@ -78,7 +78,7 @@ func score(ctx context.Context, value int32) {
 }
 
 func main() {
-	ctx, cancel := utils.ManualContext("RecordGet-Score", "recordgetter", time.Minute*5, false)
+	ctx, cancel := utils.ManualContext("RecordGet-Score", "recordgetter", time.Minute, false)
 	defer cancel()
 	if len(os.Args) > 1 {
 		val, err := strconv.Atoi(os.Args[1])
