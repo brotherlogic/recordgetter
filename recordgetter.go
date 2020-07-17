@@ -70,17 +70,22 @@ type getter interface {
 
 type prodGetter struct {
 	dial func(ctx context.Context, server string) (*grpc.ClientConn, error)
+	Log  func(s string)
 }
 
 func (p *prodGetter) getRecordsInCategory(ctx context.Context, category pbrc.ReleaseMetadata_Category) ([]int32, error) {
+	t1 := time.Now()
 	conn, err := p.dial(ctx, "recordcollection")
+	p.Log(fmt.Sprintf("Dial took %v -> %v", time.Now().Sub(t1), err))
 	if err != nil {
 		return nil, err
 	}
 	defer conn.Close()
 	client := pbrc.NewRecordCollectionServiceClient(conn)
 
+	t2 := time.Now()
 	r, err := client.QueryRecords(ctx, &pbrc.QueryRecordsRequest{Query: &pbrc.QueryRecordsRequest_Category{category}})
+	p.Log(fmt.Sprintf("Query took %v -> %v", time.Now().Sub(t2), err))
 	if err == nil {
 		return r.GetInstanceIds(), err
 	}
@@ -231,7 +236,7 @@ func Init() *Server {
 		rd: rand.New(rand.NewSource(time.Now().Unix())),
 	}
 	s.updater = &prodUpdater{s.FDialServer}
-	s.rGetter = &prodGetter{s.FDialServer}
+	s.rGetter = &prodGetter{s.FDialServer, s.Log}
 	s.org = &prodOrg{s.FDialServer}
 	s.Register = s
 	s.PrepServer()
