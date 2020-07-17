@@ -115,7 +115,9 @@ func (p *prodGetter) getRelease(ctx context.Context, instance int32) (*pbrc.Reco
 	defer conn.Close()
 
 	client := pbrc.NewRecordCollectionServiceClient(conn)
+	t1 := time.Now()
 	r, err := client.GetRecord(ctx, &pbrc.GetRecordRequest{InstanceId: instance})
+	p.Log(fmt.Sprintf("GET RECORD Took %v -> %v", time.Now().Sub(t1), err))
 	if err != nil {
 		return nil, err
 	}
