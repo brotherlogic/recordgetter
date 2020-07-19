@@ -24,7 +24,6 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 		return nil, err
 	}
 
-	s.Log(fmt.Sprintf("Loaded: %v and %v", state, err))
 	s.requests++
 	if state.CurrentPick != nil {
 		if in.GetRefresh() {
