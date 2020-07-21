@@ -74,7 +74,6 @@ type prodGetter struct {
 }
 
 func (p *prodGetter) getRecordsInCategory(ctx context.Context, category pbrc.ReleaseMetadata_Category) ([]int32, error) {
-	t1 := time.Now()
 	conn, err := p.dial(ctx, "recordcollection")
 	if err != nil {
 		return nil, err
@@ -82,7 +81,6 @@ func (p *prodGetter) getRecordsInCategory(ctx context.Context, category pbrc.Rel
 	defer conn.Close()
 	client := pbrc.NewRecordCollectionServiceClient(conn)
 
-	t2 := time.Now()
 	r, err := client.QueryRecords(ctx, &pbrc.QueryRecordsRequest{Query: &pbrc.QueryRecordsRequest_Category{category}})
 	if err == nil {
 		return r.GetInstanceIds(), err
@@ -113,7 +111,6 @@ func (p *prodGetter) getRelease(ctx context.Context, instance int32) (*pbrc.Reco
 	defer conn.Close()
 
 	client := pbrc.NewRecordCollectionServiceClient(conn)
-	t1 := time.Now()
 	r, err := client.GetRecord(ctx, &pbrc.GetRecordRequest{InstanceId: instance})
 	if err != nil {
 		return nil, err
