@@ -158,29 +158,23 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	// Prioritise PRE_FRESHMAN if there's a lot of them.
-	s.Log(fmt.Sprintf("Getting PRE_FRESHMAN"))
 	things, err := s.rGetter.getRecordsInCategory(ctx, pbrc.ReleaseMetadata_PRE_FRESHMAN)
 	if len(things) > 10 {
 		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN, state)
 		if err != nil || rec != nil {
 			s.lastPre = time.Now()
-			s.Log(fmt.Sprintf("Returning PRE_FRESHMAN"))
 			return rec, err
 		}
 	}
 
 	//Look for a record staged to sell
-	s.Log(fmt.Sprintf("Getting STAGED TO SELL"))
 	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state)
 	if (err != nil || rec != nil) && s.validate(rec, state) {
-		s.Log(fmt.Sprintf("Returning STAGED_TO_SELL"))
 		return rec, err
 	}
 
-	s.Log(fmt.Sprintf("Getting UNLISTENED"))
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state)
 	if err != nil || rec != nil {
-		s.Log(fmt.Sprintf("Returning UNLISTENED"))
 		return rec, err
 	}
 
@@ -189,13 +183,10 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		pfTime = time.Minute * 30
 	}
 
-	s.Log(fmt.Sprintf("Adjusted time to %v: %v", pfTime, t.Sub(s.lastPre)))
-
 	if t.Sub(s.lastPre) > pfTime {
 		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN, state)
 		if err != nil || rec != nil {
 			s.lastPre = time.Now()
-			s.Log(fmt.Sprintf("Returning CATEGORY PRE_FRESH"))
 			return rec, err
 		}
 	}
@@ -203,7 +194,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	// Look for pre high school records
 	rec, err = s.getInFolderWithCategory(ctx, t, int32(673768), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state)
 	if err != nil || rec != nil {
-		s.Log(fmt.Sprintf("Returning LB PRE_HIGH_SCHOOL"))
 		return rec, err
 	}
 
@@ -211,14 +201,12 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	for _, f := range []int32{242017} {
 		rec, err = s.getInFolderWithCategory(ctx, t, f, pbrc.ReleaseMetadata_PRE_DISTINGUISHED, state)
 		if err != nil || rec != nil {
-			s.Log(fmt.Sprintf("Returning PRE_D IN FOLDER"))
 			return rec, err
 		}
 	}
 
 	rec, err = s.getInFolders(ctx, t, state.ActiveFolders, state)
 	if err != nil || rec != nil {
-		s.Log(fmt.Sprintf("Returning Default fallback"))
 		return rec, err
 	}
 	return nil, fmt.Errorf("Unable to locate record to listen to")
