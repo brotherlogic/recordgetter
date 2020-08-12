@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"golang.org/x/net/context"
@@ -14,11 +13,6 @@ import (
 
 //GetRecord gets a record
 func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.GetRecordResponse, error) {
-	t1 := time.Now()
-	defer func() {
-		time.Sleep(time.Second * 2)
-		s.Log(fmt.Sprintf("TOOK %v", time.Now().Sub(t1)))
-	}()
 	state, err := s.loadState(ctx)
 	if err != nil {
 		return nil, err
