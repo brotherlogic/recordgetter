@@ -187,8 +187,11 @@ func (s *Server) getScore(rc *pbrc.Record, state *pb.State) int32 {
 
 	if count >= rc.Release.FormatQuantity {
 		s.clearScores(rc.Release.InstanceId, state)
+
 		//Trick Rounding
-		return int32((float64(sum) / float64(count)) + 0.5)
+		score := int32((float64(sum) / float64(count)) + 0.5)
+		s.Log(fmt.Sprintf("Scoring %v, from %v (%v)", score, scores, rc.GetMetadata().GetSetRating()))
+		return score
 	}
 
 	return -1
