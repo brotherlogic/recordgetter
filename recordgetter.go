@@ -163,14 +163,17 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		return rec, err
 	}
 
+	// Look for pre high school records
+	rec, err = s.getInFolderWithCategory(ctx, t, int32(673768), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state)
+	if err != nil || rec != nil {
+		return rec, err
+	}
+
 	// Prioritise PRE_FRESHMAN if there's a lot of them.
-	things, err := s.rGetter.getRecordsInCategory(ctx, pbrc.ReleaseMetadata_PRE_FRESHMAN)
-	if len(things) > 10 {
-		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN, state)
-		if err != nil || rec != nil {
-			s.lastPre = time.Now()
-			return rec, err
-		}
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN, state)
+	if err != nil || rec != nil {
+		s.lastPre = time.Now()
+		return rec, err
 	}
 
 	//Look for a record staged to sell
@@ -180,9 +183,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	}
 
 	pfTime := time.Hour * 3
-	if err == nil && len(things) > 5 {
-		pfTime = time.Minute * 30
-	}
 
 	if t.Sub(s.lastPre) > pfTime {
 		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN, state)
@@ -190,12 +190,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 			s.lastPre = time.Now()
 			return rec, err
 		}
-	}
-
-	// Look for pre high school records
-	rec, err = s.getInFolderWithCategory(ctx, t, int32(673768), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state)
-	if err != nil || rec != nil {
-		return rec, err
 	}
 
 	// Look for pre distringuished 12" records
