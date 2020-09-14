@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"golang.org/x/net/context"
@@ -55,6 +56,10 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 	}
 
 	state.CurrentPick = rec
+
+	if rec.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_STAGED_TO_SELL && rec.GetMetadata().GetSaleAttempts() > 5 {
+		s.RaiseIssue(fmt.Sprintf("Figure out sale %v", rec.GetRelease().GetTitle()), "To sell or not to sell?")
+	}
 
 	return &pb.GetRecordResponse{Record: rec, NumListens: getNumListens(rec), Disk: disk}, s.saveState(ctx, state)
 }
