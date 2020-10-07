@@ -289,6 +289,7 @@ func Init() *Server {
 	s.updater = &prodUpdater{s.FDialServer}
 	s.rGetter = &prodGetter{s.FDialServer, s.Log}
 	s.org = &prodOrg{s.FDialServer}
+	s.wants = &prodWants{s.FDialServer}
 	s.Register = s
 	s.PrepServer()
 	return s
