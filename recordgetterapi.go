@@ -83,6 +83,7 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 		} else {
 			// Set to never
 			s.wants.updateWant(ctx, in.GetRelease().GetId(), rwpb.MasterWant_NEVER)
+			state.LastWant = time.Now().Unix()
 		}
 	} else {
 		score := s.getScore(in, state)
