@@ -11,6 +11,7 @@ import (
 	"github.com/brotherlogic/goserver/utils"
 	"google.golang.org/grpc"
 
+	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pbrg "github.com/brotherlogic/recordgetter/proto"
 
 	//Needed to pull in gzip encoding init
@@ -68,6 +69,9 @@ func score(ctx context.Context, value int32) {
 	r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{})
 	if err != nil {
 		log.Fatalf("Error in scoring: %v", err)
+	}
+	if r.GetRecord().GetMetadata() == nil {
+		r.GetRecord().Metadata = &pbrc.ReleaseMetadata{}
 	}
 	r.GetRecord().GetMetadata().SetRating = value
 	re, err := client.Listened(ctx, r.GetRecord())
