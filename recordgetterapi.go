@@ -74,14 +74,14 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 
 	// This is a want rather than a record
 	if in.GetRelease().GetInstanceId() == 0 {
-		s.Log(fmt.Sprintf("Tracking want change: %v -> %v", in.GetRelease().GetId(), in.GetRelease().GetRating()))
-		if in.GetRelease().GetRating() == 5 {
+		s.Log(fmt.Sprintf("Tracking want change: %v -> %v", in.GetRelease().GetId(), in.GetMetadata().GetSetRating()))
+		if in.GetMetadata().GetSetRating() == 5 {
 			// Get the OG vinyl
 			err = s.wants.updateWant(ctx, in.GetRelease().GetId(), rwpb.MasterWant_WANT_OG)
 			if err != nil {
 				return nil, err
 			}
-		} else if in.GetRelease().GetRating() == 4 {
+		} else if in.GetMetadata().GetSetRating() == 4 {
 			// Get the digital version
 			err = s.wants.updateWant(ctx, in.GetRelease().GetId(), rwpb.MasterWant_WANT_DIGITAL)
 			if err != nil {
