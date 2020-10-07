@@ -17,6 +17,7 @@ import (
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pbrg "github.com/brotherlogic/recordgetter/proto"
 	pbro "github.com/brotherlogic/recordsorganiser/proto"
+	rwpb "github.com/brotherlogic/recordwants/proto"
 )
 
 //Server main server type
@@ -30,6 +31,7 @@ type Server struct {
 	requests   int64
 	lastPre    time.Time
 	org        org
+	wants      wants
 }
 
 const (
@@ -38,6 +40,42 @@ const (
 	//KEY under which we store the collection
 	KEY = "/github.com/brotherlogic/recordgetter/state"
 )
+
+type wants interface {
+	getWants(ctx context.Context) ([]*rwpb.MasterWant, error)
+	updateWant(ctx context.Context, id int32, level rwpb.MasterWant_Level) error
+}
+
+type prodWants struct {
+	dial func(ctx context.Context, server string) (*grpc.ClientConn, error)
+}
+
+func (p *prodWants) getWants(ctx context.Context) ([]*rwpb.MasterWant, error) {
+	conn, err := p.dial(ctx, "recordwants")
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	client := rwpb.NewWantServiceClient(conn)
+	wants, err := client.GetWants(ctx, &rwpb.GetWantsRequest{})
+	if err != nil {
+		return nil, err
+	}
+	return wants.GetWant(), nil
+}
+
+func (p *prodWants) updateWant(ctx context.Context, id int32, level rwpb.MasterWant_Level) error {
+	conn, err := p.dial(ctx, "recordwants")
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	client := rwpb.NewWantServiceClient(conn)
+	_, err = client.Update(ctx, &rwpb.UpdateRequest{Want: &pbgd.Release{Id: id}, Level: level})
+	return err
+}
 
 type org interface {
 	getLocations(ctx context.Context) ([]*pbro.Location, error)
@@ -66,6 +104,7 @@ type getter interface {
 	getRelease(ctx context.Context, instanceID int32) (*pbrc.Record, error)
 	getRecordsInCategory(ctx context.Context, category pbrc.ReleaseMetadata_Category) ([]int32, error)
 	getRecordsInFolder(ctx context.Context, folder int32) ([]int32, error)
+	getPlainRecord(ctx context.Context, id int32) (*pbrc.Record, error)
 }
 
 type prodGetter struct {
@@ -112,6 +151,21 @@ func (p *prodGetter) getRelease(ctx context.Context, instance int32) (*pbrc.Reco
 
 	client := pbrc.NewRecordCollectionServiceClient(conn)
 	r, err := client.GetRecord(ctx, &pbrc.GetRecordRequest{InstanceId: instance})
+	if err != nil {
+		return nil, err
+	}
+	return r.GetRecord(), err
+}
+
+func (p *prodGetter) getPlainRecord(ctx context.Context, id int32) (*pbrc.Record, error) {
+	conn, err := p.dial(ctx, "recordcollection")
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	client := pbrc.NewRecordCollectionServiceClient(conn)
+	r, err := client.GetRecord(ctx, &pbrc.GetRecordRequest{ReleaseId: id})
 	if err != nil {
 		return nil, err
 	}
@@ -180,6 +234,24 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state)
 	if (err != nil || rec != nil) && s.validate(rec, state) {
 		return rec, err
+	}
+
+	// If it's been 6 hours since our last one, pull a want from the list
+	if time.Now().Sub(time.Unix(state.GetLastWant(), 0)) > time.Hour*6 {
+		wants, err := s.wants.getWants(ctx)
+		if err != nil {
+			return rec, err
+		}
+		for _, want := range wants {
+			if want.Level == rwpb.MasterWant_UNKNOWN {
+				rec, err := s.rGetter.getPlainRecord(ctx, want.GetRelease().GetId())
+				if err == nil {
+					return rec, err
+				}
+
+				s.RaiseIssue("GetRecordError", fmt.Sprintf("Weird response back from record: %v", err))
+			}
+		}
 	}
 
 	pfTime := time.Hour * 3
@@ -290,8 +362,5 @@ func main() {
 		return
 	}
 
-	err = server.Serve()
-	if err != nil {
-		log.Fatalf("Error running getter: %v", err)
-	}
+	server.Serve()
 }

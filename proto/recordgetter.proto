@@ -20,6 +20,9 @@ message State {
   int64 last_seven = 4;
   int32 seven_count = 5;
   int32 seven_day = 6;
+
+  // The time we pulled a want rather than an existing record
+  int64 last_want = 7;
 }
 
 message GetRecordRequest {

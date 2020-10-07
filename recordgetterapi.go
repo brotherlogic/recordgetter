@@ -10,6 +10,7 @@ import (
 
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordgetter/proto"
+	rwpb "github.com/brotherlogic/recordwants/proto"
 )
 
 //GetRecord gets a record
@@ -71,11 +72,25 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 		return nil, err
 	}
 
-	score := s.getScore(in, state)
-	if score >= 0 {
-		err := s.updater.update(ctx, in.GetRelease().GetInstanceId(), score)
-		if err != nil && status.Convert(err).Code() != codes.OutOfRange {
-			return &pb.Empty{}, err
+	// This is a want rather than a record
+	if in.GetRelease().GetInstanceId() == 0 {
+		if in.GetRelease().GetRating() == 5 {
+			// Get the OG vinyl
+			s.wants.updateWant(ctx, in.GetRelease().GetId(), rwpb.MasterWant_WANT_OG)
+		} else if in.GetRelease().GetRating() == 4 {
+			// Get the digital version
+			s.wants.updateWant(ctx, in.GetRelease().GetId(), rwpb.MasterWant_WANT_DIGITAL)
+		} else {
+			// Set to never
+			s.wants.updateWant(ctx, in.GetRelease().GetId(), rwpb.MasterWant_NEVER)
+		}
+	} else {
+		score := s.getScore(in, state)
+		if score >= 0 {
+			err := s.updater.update(ctx, in.GetRelease().GetInstanceId(), score)
+			if err != nil && status.Convert(err).Code() != codes.OutOfRange {
+				return &pb.Empty{}, err
+			}
 		}
 	}
 

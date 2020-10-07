@@ -35,6 +35,13 @@ func (tg *testGetter) getRelease(ctx context.Context, instanceID int32) (*pbrc.R
 	return nil, nil
 }
 
+func (tg *testGetter) getPlainRecord(ctx context.Context, id int32) (*pbrc.Record, error) {
+	if len(tg.records) > 0 {
+		return tg.records[0], nil
+	}
+	return nil, nil
+}
+
 func (tg *testGetter) getRecordsInCategory(ctx context.Context, category pbrc.ReleaseMetadata_Category) ([]int32, error) {
 	if tg.failGetInCategory {
 		return []int32{}, fmt.Errorf("Built to fail")
