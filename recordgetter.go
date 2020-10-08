@@ -14,6 +14,7 @@ import (
 
 	pbgd "github.com/brotherlogic/godiscogs"
 	pbg "github.com/brotherlogic/goserver/proto"
+	"github.com/brotherlogic/goserver/utils"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pbrg "github.com/brotherlogic/recordgetter/proto"
 	pbro "github.com/brotherlogic/recordsorganiser/proto"
@@ -335,7 +336,7 @@ func (s *Server) loadState(ctx context.Context) (*pbrg.State, error) {
 		state = data.(*pbrg.State)
 	}
 
-	return state, s.readLocations(ctx, state)
+	return state, nil
 }
 
 func (s *Server) saveState(ctx context.Context, state *pbrg.State) error {
@@ -362,6 +363,17 @@ func main() {
 	if err != nil {
 		return
 	}
+
+	// Try to  update in play folders - best effort
+	ctx, cancel := utils.ManualContext("rgload", "rgload", time.Minute, true)
+	state, err := server.loadState(ctx)
+	if err == nil {
+		err = server.readLocations(ctx, state)
+		server.Log(fmt.Sprintf("Read locations: %v", err))
+	} else {
+		server.Log(fmt.Sprintf("Unable to load state: %v", err))
+	}
+	cancel()
 
 	server.Serve()
 }
