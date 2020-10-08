@@ -219,5 +219,5 @@ func (s *Server) readLocations(ctx context.Context, state *pb.State) error {
 		}
 	}
 
-	return nil
+	return s.saveState(ctx, state)
 }
