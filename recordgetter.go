@@ -348,6 +348,9 @@ func (s *Server) loadState(ctx context.Context) (*pbrg.State, error) {
 		state = data.(*pbrg.State)
 	}
 
+	//Update the wait time
+	waiting.With(prometheus.Labels{"wait": "want"}).Set(float64(state.GetLastWant()))
+
 	return state, nil
 }
 
