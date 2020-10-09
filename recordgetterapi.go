@@ -11,6 +11,7 @@ import (
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordgetter/proto"
 	rwpb "github.com/brotherlogic/recordwants/proto"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 //GetRecord gets a record
@@ -19,6 +20,9 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 	if err != nil {
 		return nil, err
 	}
+
+	//Update the wait time
+	waiting.With(prometheus.Labels{"wait": "want"}).Set(float64(state.GetLastWant()))
 
 	s.requests++
 	if state.CurrentPick != nil {
