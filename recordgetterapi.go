@@ -93,8 +93,8 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 			if err != nil {
 				return nil, err
 			}
-			state.LastWant = time.Now().Unix()
 		}
+		state.LastWant = time.Now().Unix()
 	} else {
 		score := s.getScore(in, state)
 		if score >= 0 {
