@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/brotherlogic/goserver"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
@@ -19,6 +21,13 @@ import (
 	pbrg "github.com/brotherlogic/recordgetter/proto"
 	pbro "github.com/brotherlogic/recordsorganiser/proto"
 	rwpb "github.com/brotherlogic/recordwants/proto"
+)
+
+var (
+	waiting = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "recordgetter_wait",
+		Help: "Various Wait Times",
+	}, []string{"wait"})
 )
 
 //Server main server type
@@ -236,6 +245,9 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	if (err != nil || rec != nil) && s.validate(rec, state) {
 		return rec, err
 	}
+
+	//Update the wait time
+	waiting.With(prometheus.Labels{"wait": "want"}).Set(float64(state.GetLastWant()))
 
 	// If it's been 6 hours since our last one, pull a want from the list
 	if time.Now().Sub(time.Unix(state.GetLastWant(), 0)) > time.Hour*6 {
