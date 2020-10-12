@@ -13,6 +13,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	pbgd "github.com/brotherlogic/godiscogs"
 	pbg "github.com/brotherlogic/goserver/proto"
@@ -262,7 +264,10 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 					return rec, err
 				}
 
-				s.RaiseIssue("GetRecordError", fmt.Sprintf("Weird response back from record: %v", err))
+				code := status.Convert(err)
+				if code.Code() != codes.Canceled {
+					s.RaiseIssue("GetRecordError", fmt.Sprintf("Weird response back from record: %v", err))
+				}
 			}
 		}
 	}
