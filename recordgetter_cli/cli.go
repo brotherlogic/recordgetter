@@ -85,7 +85,7 @@ func main() {
 	ctx, cancel := utils.ManualContext("RecordGet-Score", "recordgetter", time.Minute*5, false)
 	defer cancel()
 	if len(os.Args) > 1 {
-		val, err := strconv.Atoi(os.Args[1])
+		val, err := strconv.ParseInt(os.Args[1], 10, 32)
 		if err != nil {
 			log.Fatalf("Error parsing num: %v", err)
 		}
