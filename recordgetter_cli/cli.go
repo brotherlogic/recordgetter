@@ -55,7 +55,18 @@ func get(ctx context.Context) {
 	client := pbrg.NewRecordGetterClient(conn)
 
 	r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Refresh: true})
-	fmt.Printf("%v and %v\n\n", r, err)
+	if err != nil {
+		log.Fatalf("Error on get: %v", err)
+	}
+	fmt.Printf("%v - %v [%v] (%v/%v) {%v,%v}\n",
+		r.GetRecord().GetRelease().GetArtists()[0].GetName(),
+		r.GetRecord().GetRelease().GetTitle(),
+		r.GetRecord().GetMetadata().GetCategory(),
+		r.GetDisk(),
+		r.GetRecord().GetRelease().GetFormatQuantity(),
+		r.GetRecord().GetRelease().GetId(),
+		r.GetRecord().GetRelease().GetInstanceId(),
+	)
 }
 
 func score(ctx context.Context, value int32) {
@@ -74,11 +85,10 @@ func score(ctx context.Context, value int32) {
 		r.GetRecord().Metadata = &pbrc.ReleaseMetadata{}
 	}
 	r.GetRecord().GetMetadata().SetRating = value
-	re, err := client.Listened(ctx, r.GetRecord())
+	_, err = client.Listened(ctx, r.GetRecord())
 	if err != nil {
 		fmt.Printf("%v", err)
 	}
-	fmt.Printf("%v and %v", re, err)
 }
 
 func main() {
@@ -90,6 +100,7 @@ func main() {
 			log.Fatalf("Error parsing num: %v", err)
 		}
 		score(ctx, int32(val))
+		get(ctx)
 	} else {
 		get(ctx)
 	}
