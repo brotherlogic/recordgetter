@@ -21,7 +21,7 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 	}
 
 	s.requests++
-	if state.CurrentPick != nil {
+	if state.CurrentPick != nil && state.CurrentPick.GetRelease().GetId() > 0 {
 		if in.GetRefresh() {
 			rec, err := s.rGetter.getRelease(ctx, state.CurrentPick.Release.InstanceId)
 			if err == nil {

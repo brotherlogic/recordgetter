@@ -58,6 +58,7 @@ func get(ctx context.Context) {
 	if err != nil {
 		log.Fatalf("Error on get: %v", err)
 	}
+	fmt.Printf("%v\n", r.GetRecord())
 	fmt.Printf("%v - %v [%v] (%v/%v) {%v,%v}\n",
 		r.GetRecord().GetRelease().GetArtists()[0].GetName(),
 		r.GetRecord().GetRelease().GetTitle(),
