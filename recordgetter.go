@@ -391,7 +391,7 @@ func main() {
 	}
 
 	// Try to  update in play folders - best effort
-	ctx, cancel := utils.ManualContext("rgload", "rgload", time.Minute, true)
+	ctx, cancel := utils.ManualContext("rgload", time.Minute)
 	state, err := server.loadState(ctx)
 	if err == nil {
 		err = server.readLocations(ctx, state)
