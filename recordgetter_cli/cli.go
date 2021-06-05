@@ -93,7 +93,12 @@ func score(ctx context.Context, value int32) {
 }
 
 func main() {
-	ctx, cancel := utils.ManualContext("RecordGet-Score", "recordgetter", time.Minute*5, false)
+	action := "get"
+	if len(os.Args) > 1 {
+		action = "score-and-get"
+	}
+	ctx, cancel := utils.ManualContext(fmt.Sprintf("recordgetter_cli-%v", action), time.Minute*5)
+	log.Printf("CONTXT: %v", ctx)
 	defer cancel()
 	if len(os.Args) > 1 {
 		val, err := strconv.ParseInt(os.Args[1], 10, 32)
