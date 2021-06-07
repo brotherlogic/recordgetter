@@ -278,6 +278,12 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		return rec, err
 	}
 
+	//Look for a record staged to sell
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state)
+	if (err != nil || rec != nil) && s.validate(rec, state) {
+		return rec, err
+	}
+
 	pfTime := time.Hour * 3
 
 	if t.Sub(s.lastPre) > pfTime {
