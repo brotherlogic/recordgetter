@@ -58,7 +58,6 @@ func get(ctx context.Context) {
 	if err != nil {
 		log.Fatalf("Error on get: %v", err)
 	}
-	fmt.Printf("%v\n", r.GetRecord())
 	fmt.Printf("%v - %v [%v] (%v/%v) {%v,%v}\n",
 		r.GetRecord().GetRelease().GetArtists()[0].GetName(),
 		r.GetRecord().GetRelease().GetTitle(),
@@ -98,7 +97,7 @@ func main() {
 		action = "score-and-get"
 	}
 	ctx, cancel := utils.ManualContext(fmt.Sprintf("recordgetter_cli-%v", action), time.Minute*5)
-	log.Printf("CONTXT: %v", ctx)
+
 	defer cancel()
 	if len(os.Args) > 1 {
 		val, err := strconv.ParseInt(os.Args[1], 10, 32)
