@@ -209,6 +209,11 @@ func (p *prodUpdater) update(ctx context.Context, id, rating int32) error {
 }
 
 func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool {
+	// Don't listen to in box record
+	if rc.GetMetadata().GetBoxState() == pbrc.ReleaseMetadata_IN_THE_BOX {
+		return false
+	}
+
 	for _, score := range state.Scores {
 		if score.InstanceId == rc.GetRelease().InstanceId {
 			// Two days between listens
