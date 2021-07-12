@@ -215,6 +215,8 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 		return false
 	}
 
+	s.Log(fmt.Sprintf("Found box state: %v", rc.GetMetadata().GetBoxState()))
+
 	for _, score := range state.Scores {
 		if score.InstanceId == rc.GetRelease().InstanceId {
 			// Two days between listens

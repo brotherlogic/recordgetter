@@ -23,9 +23,11 @@ func findServer(name string) (string, int) {
 	return ip, int(port)
 }
 
-func clear() {
-	host, port := findServer("recordgetter")
-	conn, _ := grpc.Dial(host+":"+strconv.Itoa(port), grpc.WithInsecure())
+func clear(ctx context.Context) {
+	conn, err := utils.LFDialServer(ctx, "recordgetter")
+	if err != nil {
+		log.Fatalf("Can't dial getter: %v", err)
+	}
 	defer conn.Close()
 	client := pbrg.NewRecordGetterClient(conn)
 	r, err := client.Force(context.Background(), &pbrg.Empty{})
@@ -99,7 +101,9 @@ func main() {
 	ctx, cancel := utils.ManualContext(fmt.Sprintf("recordgetter_cli-%v", action), time.Minute*5)
 
 	defer cancel()
-	if len(os.Args) > 1 {
+	if len(os.Args) > 2 {
+		clear(ctx)
+	} else if len(os.Args) > 1 {
 		val, err := strconv.ParseInt(os.Args[1], 10, 32)
 		if err != nil {
 			log.Fatalf("Error parsing num: %v", err)
