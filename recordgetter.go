@@ -1,10 +1,7 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"math/rand"
 	"time"
 
@@ -388,16 +385,8 @@ func (s *Server) saveState(ctx context.Context, state *pbrg.State) error {
 }
 
 func main() {
-	var quiet = flag.Bool("quiet", false, "Show all output")
-	flag.Parse()
 
 	server := Init()
-
-	//Turn off logging
-	if *quiet {
-		log.SetFlags(0)
-		log.SetOutput(ioutil.Discard)
-	}
 
 	err := server.RegisterServerV2("recordgetter", false, true)
 	if err != nil {
