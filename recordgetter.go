@@ -311,7 +311,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	if err != nil || rec != nil {
 		return rec, err
 	}
-	return nil, fmt.Errorf("Unable to locate record to listen to")
+	return nil, status.Errorf(codes.FailedPrecondition, "Unable to locate record to listen to")
 }
 
 //Init a record getter
