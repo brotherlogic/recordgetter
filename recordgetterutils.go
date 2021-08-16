@@ -34,11 +34,7 @@ func (s *Server) validate(rec *pbrc.Record, state *pb.State) bool {
 	}
 
 	// Don't push records that need cleaning
-	if rec.GetRelease().GetFolderId() == 3386035 {
-		return false
-	}
-
-	return true
+	return rec.GetRelease().GetFolderId() != 3386035
 }
 
 func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.ReleaseMetadata_Category, state *pb.State) (*pbrc.Record, error) {
