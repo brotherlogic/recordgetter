@@ -33,6 +33,11 @@ func (s *Server) validate(rec *pbrc.Record, state *pb.State) bool {
 		}
 	}
 
+	// Don't push records that need cleaning
+	if rec.GetRelease().GetFolderId() == 3386035 {
+		return false
+	}
+
 	return true
 }
 
