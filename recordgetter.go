@@ -222,7 +222,7 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 			}
 		}
 	}
-	return true
+	return rc.GetRelease().GetFolderId() != 3386035
 }
 
 func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t time.Time) (*pbrc.Record, error) {
