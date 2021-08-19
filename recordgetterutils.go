@@ -33,8 +33,8 @@ func (s *Server) validate(rec *pbrc.Record, state *pb.State) bool {
 		}
 	}
 
-	// Don't push records that need cleaning
-	return rec.GetRelease().GetFolderId() != 3386035
+	// Records should be in the listening pile
+	return rec.GetRelease().GetFolderId() == 812802
 }
 
 func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.ReleaseMetadata_Category, state *pb.State) (*pbrc.Record, error) {
