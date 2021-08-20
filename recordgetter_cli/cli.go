@@ -60,15 +60,26 @@ func get(ctx context.Context) {
 	if err != nil {
 		log.Fatalf("Error on get: %v", err)
 	}
-	fmt.Printf("%v - %v [%v] (%v/%v) {%v,%v}\n",
-		r.GetRecord().GetRelease().GetArtists()[0].GetName(),
-		r.GetRecord().GetRelease().GetTitle(),
-		r.GetRecord().GetMetadata().GetCategory(),
-		r.GetDisk(),
-		r.GetRecord().GetRelease().GetFormatQuantity(),
-		r.GetRecord().GetRelease().GetId(),
-		r.GetRecord().GetRelease().GetInstanceId(),
-	)
+	if len(r.GetRecord().GetRelease().GetArtists()) > 0 {
+		fmt.Printf("%v - %v [%v] (%v/%v) {%v,%v}\n",
+			r.GetRecord().GetRelease().GetArtists()[0].GetName(),
+			r.GetRecord().GetRelease().GetTitle(),
+			r.GetRecord().GetMetadata().GetCategory(),
+			r.GetDisk(),
+			r.GetRecord().GetRelease().GetFormatQuantity(),
+			r.GetRecord().GetRelease().GetId(),
+			r.GetRecord().GetRelease().GetInstanceId(),
+		)
+	} else {
+		fmt.Printf("UnknownArtist - %v [%v] (%v/%v) {%v,%v}\n",
+			r.GetRecord().GetRelease().GetTitle(),
+			r.GetRecord().GetMetadata().GetCategory(),
+			r.GetDisk(),
+			r.GetRecord().GetRelease().GetFormatQuantity(),
+			r.GetRecord().GetRelease().GetId(),
+			r.GetRecord().GetRelease().GetInstanceId(),
+		)
+	}
 }
 
 func score(ctx context.Context, value int32) {
