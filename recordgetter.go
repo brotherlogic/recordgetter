@@ -29,7 +29,7 @@ var (
 	}, []string{"wait"})
 
 	unfinished = promauto.NewGauge(prometheus.GaugeOpts{
-		Name: "recordadder_unfinished",
+		Name: "recordgetter_unfinished",
 		Help: "The number of running queues",
 	})
 )
