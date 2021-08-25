@@ -224,6 +224,8 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 			// Two days between listens
 			if t.Sub(time.Unix(score.ScoreDate, 0)) < time.Hour*24 {
 				return false
+			} else {
+				s.Log(fmt.Sprintf("Skipping %v - last listen was %v", score.GetInstanceId(), time.Unix(score.ScoreDate, 0)))
 			}
 		}
 	}
@@ -358,7 +360,7 @@ func (s *Server) Mote(ctx context.Context, master bool) error {
 // GetState gets the state of the server
 func (s *Server) GetState() []*pbg.State {
 	return []*pbg.State{
-		&pbg.State{Key: "blah", Value: int64(24)},
+		&pbg.State{Key: "blah", Value: int64(48)},
 	}
 }
 
