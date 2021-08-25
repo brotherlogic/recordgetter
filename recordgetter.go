@@ -27,6 +27,11 @@ var (
 		Name: "recordgetter_wait",
 		Help: "Various Wait Times",
 	}, []string{"wait"})
+
+	unfinished = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "recordadder_unfinished",
+		Help: "The number of running queues",
+	})
 )
 
 //Server main server type
@@ -372,6 +377,7 @@ func (s *Server) loadState(ctx context.Context) (*pbrg.State, error) {
 
 	//Update the wait time
 	waiting.With(prometheus.Labels{"wait": "want"}).Set(float64(state.GetLastWant()))
+	unfinished.Set(float64(len(state.GetScores())))
 
 	return state, nil
 }
