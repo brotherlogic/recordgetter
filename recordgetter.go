@@ -225,7 +225,7 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 			if t.Sub(time.Unix(score.ScoreDate, 0)) < time.Hour*16 {
 				return false
 			} else {
-				s.Log(fmt.Sprintf("Skipping %v - last listen was %v", score.GetInstanceId(), time.Unix(score.ScoreDate, 0)))
+				s.Log(fmt.Sprintf("Skipping %v - last listen was %v (%v)", score.GetInstanceId(), time.Unix(score.ScoreDate, 0), t.Sub(time.Unix(score.ScoreDate, 0))))
 			}
 		}
 	}
