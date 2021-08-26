@@ -12,8 +12,8 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/golang/protobuf v1.5.2
 	github.com/prometheus/client_golang v1.11.0
-	golang.org/x/net v0.0.0-20210813160813-60bc85c4be6d
-	google.golang.org/genproto v0.0.0-20210824181836-a4879c3d0e89 // indirect
+	golang.org/x/net v0.0.0-20210825183410-e898025ed96a
+	google.golang.org/genproto v0.0.0-20210825212027-de86158e7fda // indirect
 	google.golang.org/grpc v1.40.0
 	google.golang.org/protobuf v1.27.1
 )
