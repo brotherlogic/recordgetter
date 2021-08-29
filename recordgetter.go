@@ -285,7 +285,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	}
 
 	//Look for a record staged to sell
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state)
+	rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_VALIDATE, state)
 	if (err != nil || rec != nil) && s.validate(rec, state) {
 		return rec, err
 	}
