@@ -119,6 +119,7 @@ type getter interface {
 	getRecordsInCategory(ctx context.Context, category pbrc.ReleaseMetadata_Category) ([]int32, error)
 	getRecordsInFolder(ctx context.Context, folder int32) ([]int32, error)
 	getPlainRecord(ctx context.Context, id int32) (*pbrc.Record, error)
+	getAuditionRelease(ctx context.Context) (*pbrc.Record, error)
 }
 
 type prodGetter struct {
@@ -139,6 +140,38 @@ func (p *prodGetter) getRecordsInCategory(ctx context.Context, category pbrc.Rel
 		return r.GetInstanceIds(), err
 	}
 	return []int32{}, err
+}
+
+func (p *prodGetter) getAuditionRelease(ctx context.Context) (*pbrc.Record, error) {
+	conn, err := p.dial(ctx, "recordcollection")
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+	client := pbrc.NewRecordCollectionServiceClient(conn)
+
+	ids, err := client.QueryRecords(ctx, &pbrc.QueryRecordsRequest{Query: &pbrc.QueryRecordsRequest_Category{pbrc.ReleaseMetadata_IN_COLLECTION}})
+	if err != nil {
+		return nil, err
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(ids.InstanceIds), func(i, j int) { ids.InstanceIds[i], ids.InstanceIds[j] = ids.InstanceIds[j], ids.InstanceIds[i] })
+
+	for _, id := range ids.InstanceIds {
+		rec, err := p.getPlainRecord(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+
+		if rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL || rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD {
+			if time.Since(time.Unix(rec.GetMetadata().GetLastAudition(), 0)) > time.Hour*24*365*2 {
+				return rec, err
+			}
+		}
+	}
+
+	return nil, status.Errorf(codes.ResourceExhausted, "No record found")
 }
 
 func (p *prodGetter) getRecordsInFolder(ctx context.Context, folder int32) ([]int32, error) {

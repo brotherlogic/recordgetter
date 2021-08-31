@@ -20,6 +20,45 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 		return nil, err
 	}
 
+	if in.GetType() == pb.GetRecordRequest_AUDITION {
+		if state.AuditionPick > 0 {
+			rec, err := s.rGetter.getRelease(ctx, state.AuditionPick)
+
+			if err != nil {
+				return nil, err
+			}
+
+			disk := int32(1)
+			for _, score := range state.Scores {
+				if score.InstanceId == state.AuditionPick {
+					if score.DiskNumber >= disk {
+						disk = score.DiskNumber + 1
+					}
+				}
+			}
+
+			return &pb.GetRecordResponse{Record: rec, Disk: disk}, nil
+		}
+
+		rec, err := s.rGetter.getAuditionRelease(ctx)
+		if err != nil {
+			return nil, err
+		}
+		state.AuditionPick = rec.GetRelease().GetInstanceId()
+
+		disk := int32(1)
+		for _, score := range state.Scores {
+			if score.InstanceId == state.AuditionPick {
+				if score.DiskNumber >= disk {
+					disk = score.DiskNumber + 1
+				}
+			}
+		}
+
+		return &pb.GetRecordResponse{Record: rec, Disk: disk}, s.saveState(ctx, state)
+
+	}
+
 	s.requests++
 	if state.CurrentPick != nil && state.CurrentPick.GetRelease().GetId() > 0 {
 		if in.GetRefresh() {

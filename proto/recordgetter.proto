@@ -4,6 +4,8 @@ package recordgetter;
 
 import "github.com/brotherlogic/recordcollection/proto/recordcollection.proto";
 
+option go_package = "github.com/brotherlogic/recordgetter/proto";
+
 message Empty {}
 
 message DiskScore {
@@ -23,10 +25,17 @@ message State {
 
   // The time we pulled a want rather than an existing record
   int64 last_want = 7;
+
+  int32 audition_pick = 8;
 }
 
 message GetRecordRequest {
   bool refresh = 1;
+  enum RequestType {
+    DEFAULT = 0;
+    AUDITION = 1;
+  }
+  RequestType type = 2;
 }
 
 message GetRecordResponse {
