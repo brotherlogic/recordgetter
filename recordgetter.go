@@ -158,7 +158,7 @@ func (p *prodGetter) getAuditionRelease(ctx context.Context) (*pbrc.Record, erro
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(ids.InstanceIds), func(i, j int) { ids.InstanceIds[i], ids.InstanceIds[j] = ids.InstanceIds[j], ids.InstanceIds[i] })
 
-	p.Log(fmt.Sprintf("Searching through %v records", len(ids.InstanceIds)))
+	p.Log(fmt.Sprintf("Searching through %v records to find audition", len(ids.InstanceIds)))
 	for _, id := range ids.InstanceIds {
 		rec, err := p.getRelease(ctx, id)
 		if err != nil {
