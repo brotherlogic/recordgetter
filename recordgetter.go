@@ -160,12 +160,11 @@ func (p *prodGetter) getAuditionRelease(ctx context.Context) (*pbrc.Record, erro
 
 	p.Log(fmt.Sprintf("Searching through %v records", len(ids.InstanceIds)))
 	for _, id := range ids.InstanceIds {
-		rec, err := p.getPlainRecord(ctx, id)
+		rec, err := p.getRelease(ctx, id)
 		if err != nil {
 			return nil, err
 		}
 
-		p.Log(fmt.Sprintf("Found %v (%v) -> %v", rec.GetRelease().GetInstanceId(), id, rec.GetMetadata().GetFiledUnder()))
 		if rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL || rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD {
 			if time.Since(time.Unix(rec.GetMetadata().GetLastAudition(), 0)) > time.Hour*24*365*2 {
 				return rec, err
