@@ -159,6 +159,8 @@ func main() {
 			defer cancel()
 
 			audition(ctx)
+		default:
+			fmt.Printf("Unknown command: %v\n", os.Args[1])
 		}
 	}
 }
