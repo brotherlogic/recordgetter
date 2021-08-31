@@ -149,6 +149,9 @@ func main() {
 		case "get":
 			get(ctx)
 		case "audition":
+			ctx, cancel = utils.ManualContext(fmt.Sprintf("recordgetter_cli-%v", os.Args[1]), time.Minute*30)
+			defer cancel()
+
 			audition(ctx)
 		}
 	}
