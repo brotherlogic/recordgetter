@@ -148,6 +148,12 @@ func main() {
 		switch os.Args[1] {
 		case "get":
 			get(ctx)
+		case "score":
+			val, err := strconv.ParseInt(os.Args[2], 10, 32)
+			if err != nil {
+				log.Fatalf("Error parsing num: %v", err)
+			}
+			score(ctx, int32(val))
 		case "audition":
 			ctx, cancel = utils.ManualContext(fmt.Sprintf("recordgetter_cli-%v", os.Args[1]), time.Minute*30)
 			defer cancel()
