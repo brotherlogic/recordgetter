@@ -222,6 +222,7 @@ func (p *prodGetter) getPlainRecord(ctx context.Context, id int32) (*pbrc.Record
 
 type updater interface {
 	update(ctx context.Context, id, rating int32) error
+	audition(ctx context.Context, id int32) error
 }
 
 type prodUpdater struct {
@@ -237,6 +238,22 @@ func (p *prodUpdater) update(ctx context.Context, id, rating int32) error {
 	defer conn.Close()
 	client := pbrc.NewRecordCollectionServiceClient(conn)
 	_, err = client.UpdateRecord(ctx, &pbrc.UpdateRecordRequest{Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: id}, Metadata: &pbrc.ReleaseMetadata{SetRating: rating}}, Reason: "RecordScore from Getter"})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *prodUpdater) audition(ctx context.Context, id int32) error {
+	conn, err := p.dial(ctx, "recordcollection")
+	if err != nil {
+		return err
+	}
+
+	defer conn.Close()
+	client := pbrc.NewRecordCollectionServiceClient(conn)
+	_, err = client.UpdateRecord(ctx, &pbrc.UpdateRecordRequest{Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: id}, Metadata: &pbrc.ReleaseMetadata{LastAudition: time.Now().Unix()}}, Reason: "RecordScore from Getter"})
 	if err != nil {
 		return err
 	}

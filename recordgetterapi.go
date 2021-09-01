@@ -134,7 +134,7 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 			}
 		}
 		state.LastWant = time.Now().Unix()
-	} else {
+	} else if state.GetCurrentPick().GetRelease().GetInstanceId() == in.GetRelease().GetInstanceId() {
 		score := s.getScore(in, state)
 		if score >= 0 {
 			err := s.updater.update(ctx, in.GetRelease().GetInstanceId(), score)
@@ -142,9 +142,15 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 				return &pb.Empty{}, err
 			}
 		}
+		state.CurrentPick = nil
+	} else if state.GetAuditionPick() == in.GetRelease().GetInstanceId() {
+		err := s.updater.audition(ctx, in.GetRelease().GetInstanceId())
+		if err != nil {
+			return nil, err
+		}
+		state.AuditionPick = 0
 	}
 
-	state.CurrentPick = nil
 	return &pb.Empty{}, s.saveState(ctx, state)
 }
 
