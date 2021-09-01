@@ -113,7 +113,7 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 
 	// This is a want rather than a record
 	if in.GetRelease().GetInstanceId() == 0 {
-		s.Log(fmt.Sprintf("Tracking want change: %v -> %v", in.GetRelease().GetId(), in))
+		s.Log(fmt.Sprintf("Tracking a want change: %v -> %v", in.GetRelease().GetId(), in))
 		if in.GetMetadata().GetSetRating() == 5 {
 			// Get the OG vinyl
 			err = s.wants.updateWant(ctx, in.GetRelease().GetId(), rwpb.MasterWant_WANT_OG)
