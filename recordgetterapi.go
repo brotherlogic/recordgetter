@@ -144,6 +144,7 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 		}
 		state.CurrentPick = nil
 	} else if state.GetAuditionPick() == in.GetRelease().GetInstanceId() {
+		s.Log(fmt.Sprintf("AUDITIONINGG"))
 		err := s.updater.audition(ctx, in.GetRelease().GetInstanceId())
 		if err != nil {
 			return nil, err

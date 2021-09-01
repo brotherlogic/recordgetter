@@ -138,7 +138,7 @@ func score(ctx context.Context, value int32) {
 	}
 }
 
-func scoreAudition(ctx context.Context, value int32) {
+func scoreAudition(ctx context.Context) {
 	conn, err := utils.LFDialServer(ctx, "recordgetter")
 	if err != nil {
 		log.Fatalf("Can't dial getter: %v", err)
@@ -150,10 +150,6 @@ func scoreAudition(ctx context.Context, value int32) {
 	if err != nil {
 		log.Fatalf("Error in scoring: %v", err)
 	}
-	if r.GetRecord().GetMetadata() == nil {
-		r.GetRecord().Metadata = &pbrc.ReleaseMetadata{}
-	}
-	r.GetRecord().GetMetadata().SetRating = value
 	_, err = client.Listened(ctx, r.GetRecord())
 	if err != nil {
 		fmt.Printf("%v", err)
@@ -177,11 +173,7 @@ func main() {
 			}
 			score(ctx, int32(val))
 		case "scoreaudition":
-			val, err := strconv.ParseInt(os.Args[2], 10, 32)
-			if err != nil {
-				log.Fatalf("Error parsing num: %v", err)
-			}
-			scoreAudition(ctx, int32(val))
+			scoreAudition(ctx)
 		case "audition":
 			ctx, cancel = utils.ManualContext(fmt.Sprintf("recordgetter_cli-%v", os.Args[1]), time.Minute*30)
 			defer cancel()
