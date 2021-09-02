@@ -164,6 +164,8 @@ func main() {
 		get(ctx)
 	} else {
 		switch os.Args[1] {
+		case "clear":
+			clear(ctx)
 		case "get":
 			get(ctx)
 		case "score":
