@@ -268,8 +268,6 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 		return false
 	}
 
-	s.Log(fmt.Sprintf("Found box state: (%v -> %v)", rc.GetRelease().GetInstanceId(), rc.GetMetadata().GetBoxState()))
-
 	for _, score := range state.Scores {
 		if score.InstanceId == rc.GetRelease().InstanceId {
 			// Two days between listens
@@ -338,7 +336,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	//Look for a record staged to sell
 	rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_VALIDATE, state)
 	if (err != nil || rec != nil) && s.validate(rec, state) {
-		s.Log(fmt.Sprintf("Found %v -> %v", rec.GetRelease().GetFolderId(), rec.GetMetadata().GetCategory()))
+		s.Log(fmt.Sprintf("PRE_VALID FOUND %v -> %v", rec.GetRelease().GetFolderId(), rec.GetMetadata().GetCategory()))
 		return rec, err
 	}
 
