@@ -291,7 +291,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	}
 
 	// Look for pre high school records
-	rec, err = s.getInFolderWithCategory(ctx, t, int32(673768), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state)
+	rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state)
 	if err != nil || rec != nil {
 		return rec, err
 	}
