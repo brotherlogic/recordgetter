@@ -27,6 +27,7 @@ message State {
   int64 last_want = 7;
 
   int32 audition_pick = 8;
+  int32 current_digital_pick = 9;
 }
 
 message GetRecordRequest {
@@ -34,6 +35,7 @@ message GetRecordRequest {
   enum RequestType {
     DEFAULT = 0;
     AUDITION = 1;
+    DIGITAL = 2;
   }
   RequestType type = 2;
 }

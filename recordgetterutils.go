@@ -24,6 +24,11 @@ func (s *Server) countSeven(t time.Time, state *pb.State) bool {
 	return true
 }
 
+func isDigital(rec *pbrc.Record) bool {
+	return rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD ||
+		rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD
+}
+
 func (s *Server) validate(rec *pbrc.Record, state *pb.State) bool {
 	for _, format := range rec.GetRelease().GetFormats() {
 		for _, form := range format.GetDescriptions() {
@@ -37,7 +42,7 @@ func (s *Server) validate(rec *pbrc.Record, state *pb.State) bool {
 	return rec.GetRelease().GetFolderId() == 812802
 }
 
-func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.ReleaseMetadata_Category, state *pb.State) (*pbrc.Record, error) {
+func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.ReleaseMetadata_Category, state *pb.State, dig bool) (*pbrc.Record, error) {
 	pDate := int64(0)
 	var newRec *pbrc.Record
 	newRec = nil
@@ -52,7 +57,7 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 		rc, err := s.rGetter.getRelease(ctx, id)
 		if err == nil && rc != nil {
 			if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() && rc.GetMetadata().SetRating == 0 {
-				if s.dateFine(rc, t, state) && !s.needsRip(rc) {
+				if s.dateFine(rc, t, state) && !s.needsRip(rc) && dig == isDigital(rc) {
 					pDate = rc.GetMetadata().DateAdded
 					newRec = rc
 				}
@@ -67,7 +72,7 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 	return nil, nil
 }
 
-func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folder int32, cat pbrc.ReleaseMetadata_Category, state *pb.State) (*pbrc.Record, error) {
+func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folder int32, cat pbrc.ReleaseMetadata_Category, state *pb.State, dig bool) (*pbrc.Record, error) {
 	recs, err := s.rGetter.getRecordsInFolder(ctx, folder)
 	if err != nil {
 		return nil, err
@@ -77,7 +82,7 @@ func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folde
 		r, err := s.rGetter.getRelease(ctx, id)
 		if err == nil {
 			if r.GetMetadata().GetCategory() == cat && r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() && r.GetMetadata().SetRating == 0 {
-				if s.dateFine(r, t, state) && !s.needsRip(r) {
+				if s.dateFine(r, t, state) && !s.needsRip(r) && dig == isDigital(r) {
 					return r, nil
 				}
 			}
@@ -103,7 +108,7 @@ func (s *Server) setTime(r *pbrc.Record, state *pb.State) {
 	}
 }
 
-func (s *Server) getInFolders(ctx context.Context, t time.Time, folders []int32, state *pb.State) (*pbrc.Record, error) {
+func (s *Server) getInFolders(ctx context.Context, t time.Time, folders []int32, state *pb.State, dig bool) (*pbrc.Record, error) {
 	allrecs := make([]int32, 0)
 	for _, folder := range folders {
 		recs, err := s.rGetter.getRecordsInFolder(ctx, folder)
@@ -123,7 +128,7 @@ func (s *Server) getInFolders(ctx context.Context, t time.Time, folders []int32,
 		r, err := s.rGetter.getRelease(ctx, id)
 		if err == nil && r != nil {
 			if r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() && r.GetMetadata().SetRating == 0 {
-				if s.dateFine(r, t, state) && !s.needsRip(r) {
+				if s.dateFine(r, t, state) && !s.needsRip(r) && dig == isDigital(r) {
 					s.setTime(r, state)
 					return r, nil
 				}

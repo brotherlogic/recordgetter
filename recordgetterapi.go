@@ -60,26 +60,46 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 	}
 
 	s.requests++
-	if state.CurrentPick != nil && state.CurrentPick.GetRelease().GetId() > 0 {
-		if in.GetRefresh() {
-			rec, err := s.rGetter.getRelease(ctx, state.CurrentPick.Release.InstanceId)
-			if err == nil {
-				state.CurrentPick = rec
+	if in.GetType() == pb.GetRecordRequest_DIGITAL {
+		if state.CurrentDigitalPick > 0 {
+			rec, err := s.rGetter.getRelease(ctx, state.CurrentDigitalPick)
+
+			if err != nil {
+				return nil, err
 			}
-		}
-		disk := int32(1)
-		for _, score := range state.Scores {
-			if score.InstanceId == state.CurrentPick.GetRelease().InstanceId {
-				if score.DiskNumber >= disk {
-					disk = score.DiskNumber + 1
+			disk := int32(1)
+			for _, score := range state.Scores {
+				if score.InstanceId == state.CurrentDigitalPick {
+					if score.DiskNumber >= disk {
+						disk = score.DiskNumber + 1
+					}
 				}
 			}
+			return &pb.GetRecordResponse{Record: rec,
+				Disk: disk}, nil
 		}
+	} else {
+		if state.CurrentPick != nil && state.CurrentPick.GetRelease().GetId() > 0 {
+			if in.GetRefresh() {
+				rec, err := s.rGetter.getRelease(ctx, state.CurrentPick.Release.InstanceId)
+				if err == nil {
+					state.CurrentPick = rec
+				}
+			}
+			disk := int32(1)
+			for _, score := range state.Scores {
+				if score.InstanceId == state.CurrentPick.GetRelease().InstanceId {
+					if score.DiskNumber >= disk {
+						disk = score.DiskNumber + 1
+					}
+				}
+			}
 
-		return &pb.GetRecordResponse{Record: state.CurrentPick, NumListens: getNumListens(state.CurrentPick), Disk: disk}, nil
+			return &pb.GetRecordResponse{Record: state.CurrentPick, NumListens: getNumListens(state.CurrentPick), Disk: disk}, nil
+		}
 	}
 
-	rec, err := s.getReleaseFromPile(ctx, state, time.Now())
+	rec, err := s.getReleaseFromPile(ctx, state, time.Now(), in.GetType() == pb.GetRecordRequest_DIGITAL)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +115,11 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 		}
 	}
 
-	state.CurrentPick = rec
+	if in.GetType() == pb.GetRecordRequest_DIGITAL {
+		state.CurrentDigitalPick = rec.Release.GetInstanceId()
+	} else {
+		state.CurrentPick = rec
+	}
 
 	if rec.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_STAGED_TO_SELL && rec.GetMetadata().GetSaleAttempts() > 5 {
 		s.RaiseIssue(fmt.Sprintf("Figure out sale %v", rec.GetRelease().GetTitle()), fmt.Sprintf("To sell or not to sell?: %v", rec.GetRelease().GetInstanceId()))
