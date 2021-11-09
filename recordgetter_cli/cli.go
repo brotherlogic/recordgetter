@@ -234,12 +234,12 @@ func main() {
 
 			audition(ctx)
 		case "scoredigital":
-			scoreAudition(ctx)
+			scoreDigital(ctx)
 		case "digital":
 			ctx, cancel = utils.ManualContext(fmt.Sprintf("recordgetter_cli-%v", os.Args[1]), time.Minute*30)
 			defer cancel()
 
-			audition(ctx)
+			digital(ctx)
 		default:
 			fmt.Printf("Unknown command: %v\n", os.Args[1])
 		}
