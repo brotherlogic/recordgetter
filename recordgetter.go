@@ -313,7 +313,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	waiting.With(prometheus.Labels{"wait": "want"}).Set(float64(state.GetLastWant()))
 
 	// If it's been 6 hours since our last one, pull a want from the list
-	if time.Now().Sub(time.Unix(state.GetLastWant(), 0)) > time.Hour*6 {
+	if time.Now().Sub(time.Unix(state.GetLastWant(), 0)) > time.Hour*6 && !digitalOnly {
 		wants, err := s.wants.getWants(ctx)
 		if err != nil {
 			return rec, err
