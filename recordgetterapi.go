@@ -158,7 +158,10 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 			}
 		}
 		state.LastWant = time.Now().Unix()
+
+		state.CurrentDigitalPick = 0
 		state.CurrentPick = nil
+
 	} else if state.GetCurrentPick().GetRelease().GetInstanceId() == in.GetRelease().GetInstanceId() {
 		score := s.getScore(in, state)
 		if score >= 0 {
