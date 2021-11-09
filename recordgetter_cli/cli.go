@@ -48,6 +48,40 @@ func listened(score int32) {
 	fmt.Printf("%v", err)
 }
 
+func digital(ctx context.Context) {
+	conn, err := utils.LFDialServer(ctx, "recordgetter")
+	if err != nil {
+		log.Fatalf("Can't dial getter: %v", err)
+	}
+	defer conn.Close()
+	client := pbrg.NewRecordGetterClient(conn)
+
+	r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Type: pbrg.GetRecordRequest_DIGITAL})
+	if err != nil {
+		log.Fatalf("Error on get: %v", err)
+	}
+	if len(r.GetRecord().GetRelease().GetArtists()) > 0 {
+		fmt.Printf("%v - %v [%v] (%v/%v) {%v,%v}\n",
+			r.GetRecord().GetRelease().GetArtists()[0].GetName(),
+			r.GetRecord().GetRelease().GetTitle(),
+			r.GetRecord().GetMetadata().GetCategory(),
+			r.GetDisk(),
+			r.GetRecord().GetRelease().GetFormatQuantity(),
+			r.GetRecord().GetRelease().GetId(),
+			r.GetRecord().GetRelease().GetInstanceId(),
+		)
+	} else {
+		fmt.Printf("UnknownArtist - %v [%v] (%v/%v) {%v,%v}\n",
+			r.GetRecord().GetRelease().GetTitle(),
+			r.GetRecord().GetMetadata().GetCategory(),
+			r.GetDisk(),
+			r.GetRecord().GetRelease().GetFormatQuantity(),
+			r.GetRecord().GetRelease().GetId(),
+			r.GetRecord().GetRelease().GetInstanceId(),
+		)
+	}
+}
+
 func audition(ctx context.Context) {
 	conn, err := utils.LFDialServer(ctx, "recordgetter")
 	if err != nil {
@@ -156,6 +190,24 @@ func scoreAudition(ctx context.Context) {
 	}
 }
 
+func scoreDigital(ctx context.Context) {
+	conn, err := utils.LFDialServer(ctx, "recordgetter")
+	if err != nil {
+		log.Fatalf("Can't dial getter: %v", err)
+	}
+	defer conn.Close()
+	client := pbrg.NewRecordGetterClient(conn)
+
+	r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Type: pbrg.GetRecordRequest_DIGITAL})
+	if err != nil {
+		log.Fatalf("Error in scoring: %v", err)
+	}
+	_, err = client.Listened(ctx, r.GetRecord())
+	if err != nil {
+		fmt.Printf("%v", err)
+	}
+}
+
 func main() {
 	ctx, cancel := utils.ManualContext(fmt.Sprintf("recordgetter_cli-%v", os.Args[1]), time.Minute*5)
 	defer cancel()
@@ -177,6 +229,13 @@ func main() {
 		case "scoreaudition":
 			scoreAudition(ctx)
 		case "audition":
+			ctx, cancel = utils.ManualContext(fmt.Sprintf("recordgetter_cli-%v", os.Args[1]), time.Minute*30)
+			defer cancel()
+
+			audition(ctx)
+		case "scoredigital":
+			scoreAudition(ctx)
+		case "digital":
 			ctx, cancel = utils.ManualContext(fmt.Sprintf("recordgetter_cli-%v", os.Args[1]), time.Minute*30)
 			defer cancel()
 
