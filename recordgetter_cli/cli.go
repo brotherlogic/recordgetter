@@ -238,7 +238,11 @@ func main() {
 
 			audition(ctx)
 		case "scoredigital":
-			scoreDigital(ctx)
+			val, err := strconv.ParseInt(os.Args[2], 10, 32)
+			if err != nil {
+				log.Fatalf("Error parsing num: %v", err)
+			}
+			scoreDigital(ctx, int32(val))
 		case "digital":
 			ctx, cancel = utils.ManualContext(fmt.Sprintf("recordgetter_cli-%v", os.Args[1]), time.Minute*30)
 			defer cancel()
