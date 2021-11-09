@@ -172,6 +172,28 @@ func score(ctx context.Context, value int32) {
 	}
 }
 
+func scoreDigital(ctx context.Context, value int32) {
+	conn, err := utils.LFDialServer(ctx, "recordgetter")
+	if err != nil {
+		log.Fatalf("Can't dial getter: %v", err)
+	}
+	defer conn.Close()
+	client := pbrg.NewRecordGetterClient(conn)
+
+	r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Type: pbrg.GetRecordRequest_DIGITAL})
+	if err != nil {
+		log.Fatalf("Error in scoring: %v", err)
+	}
+	if r.GetRecord().GetMetadata() == nil {
+		r.GetRecord().Metadata = &pbrc.ReleaseMetadata{}
+	}
+	r.GetRecord().GetMetadata().SetRating = value
+	_, err = client.Listened(ctx, r.GetRecord())
+	if err != nil {
+		fmt.Printf("%v", err)
+	}
+}
+
 func scoreAudition(ctx context.Context) {
 	conn, err := utils.LFDialServer(ctx, "recordgetter")
 	if err != nil {
@@ -181,24 +203,6 @@ func scoreAudition(ctx context.Context) {
 	client := pbrg.NewRecordGetterClient(conn)
 
 	r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Type: pbrg.GetRecordRequest_AUDITION})
-	if err != nil {
-		log.Fatalf("Error in scoring: %v", err)
-	}
-	_, err = client.Listened(ctx, r.GetRecord())
-	if err != nil {
-		fmt.Printf("%v", err)
-	}
-}
-
-func scoreDigital(ctx context.Context) {
-	conn, err := utils.LFDialServer(ctx, "recordgetter")
-	if err != nil {
-		log.Fatalf("Can't dial getter: %v", err)
-	}
-	defer conn.Close()
-	client := pbrg.NewRecordGetterClient(conn)
-
-	r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Type: pbrg.GetRecordRequest_DIGITAL})
 	if err != nil {
 		log.Fatalf("Error in scoring: %v", err)
 	}
