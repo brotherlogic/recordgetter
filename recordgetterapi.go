@@ -188,8 +188,8 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 			if err != nil && status.Convert(err).Code() != codes.OutOfRange {
 				return &pb.Empty{}, err
 			}
+			state.AuditionPick = 0
 		}
-		state.AuditionPick = 0
 	}
 
 	return &pb.Empty{}, s.saveState(ctx, state)
