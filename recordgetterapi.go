@@ -181,10 +181,13 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 		}
 		state.CurrentDigitalPick = 0
 	} else if state.GetAuditionPick() == in.GetRelease().GetInstanceId() {
-		s.Log(fmt.Sprintf("AUDITIONINGG"))
-		err := s.updater.audition(ctx, in.GetRelease().GetInstanceId())
-		if err != nil {
-			return nil, err
+		s.Log(fmt.Sprintf("AUDITIONING"))
+		score := s.getScore(in, state)
+		if score >= 0 {
+			err := s.updater.audition(ctx, in.GetRelease().GetInstanceId(), score)
+			if err != nil && status.Convert(err).Code() != codes.OutOfRange {
+				return &pb.Empty{}, err
+			}
 		}
 		state.AuditionPick = 0
 	}

@@ -165,10 +165,9 @@ func (p *prodGetter) getAuditionRelease(ctx context.Context) (*pbrc.Record, erro
 			return nil, err
 		}
 
-		if rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL || rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD {
-			if time.Since(time.Unix(rec.GetMetadata().GetLastAudition(), 0)) > time.Hour*24*365*2 {
-				return rec, err
-			}
+		// Listen to everything every 2 years
+		if time.Since(time.Unix(rec.GetMetadata().GetLastAudition(), 0)) > time.Hour*24*365*2 {
+			return rec, err
 		}
 	}
 
@@ -222,7 +221,7 @@ func (p *prodGetter) getPlainRecord(ctx context.Context, id int32) (*pbrc.Record
 
 type updater interface {
 	update(ctx context.Context, id, rating int32) error
-	audition(ctx context.Context, id int32) error
+	audition(ctx context.Context, id, rating int32) error
 }
 
 type prodUpdater struct {
@@ -245,7 +244,7 @@ func (p *prodUpdater) update(ctx context.Context, id, rating int32) error {
 	return nil
 }
 
-func (p *prodUpdater) audition(ctx context.Context, id int32) error {
+func (p *prodUpdater) audition(ctx context.Context, id, rating int32) error {
 	conn, err := p.dial(ctx, "recordcollection")
 	if err != nil {
 		return err
