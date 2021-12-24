@@ -166,8 +166,10 @@ func (p *prodGetter) getAuditionRelease(ctx context.Context) (*pbrc.Record, erro
 		}
 
 		// Listen to everything every 2 years
-		if time.Since(time.Unix(rec.GetMetadata().GetLastAudition(), 0)) > time.Hour*24*365*2 {
-			return rec, err
+		if rec.GetMetadata().GetBoxState() == pbrc.ReleaseMetadata_OUT_OF_BOX || rec.GetMetadata().GetBoxState() == pbrc.ReleaseMetadata_BOX_UNKNOWN {
+			if time.Since(time.Unix(rec.GetMetadata().GetLastAudition(), 0)) > time.Hour*24*365*2 {
+				return rec, err
+			}
 		}
 	}
 

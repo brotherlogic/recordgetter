@@ -30,13 +30,14 @@ message State {
   int32 current_digital_pick = 9;
 }
 
-message GetRecordRequest {
-  bool refresh = 1;
-  enum RequestType {
+enum RequestType {
     DEFAULT = 0;
     AUDITION = 1;
     DIGITAL = 2;
   }
+
+message GetRecordRequest {
+  bool refresh = 1;
   RequestType type = 2;
 }
 
@@ -46,8 +47,12 @@ message GetRecordResponse {
   int32 disk = 3;
 }
 
+message ForceRequest{
+  RequestType type = 1;
+}
+
 service RecordGetter {
   rpc GetRecord(GetRecordRequest) returns (GetRecordResponse);
   rpc Listened(recordcollection.Record) returns (Empty);
-  rpc Force(Empty) returns (Empty);
+  rpc Force(ForceRequest) returns (Empty);
 }

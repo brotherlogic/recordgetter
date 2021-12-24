@@ -23,14 +23,14 @@ func findServer(name string) (string, int) {
 	return ip, int(port)
 }
 
-func clear(ctx context.Context) {
+func clear(ctx context.Context, t pbrg.RequestType) {
 	conn, err := utils.LFDialServer(ctx, "recordgetter")
 	if err != nil {
 		log.Fatalf("Can't dial getter: %v", err)
 	}
 	defer conn.Close()
 	client := pbrg.NewRecordGetterClient(conn)
-	r, err := client.Force(context.Background(), &pbrg.Empty{})
+	r, err := client.Force(context.Background(), &pbrg.ForceRequest{Type: t})
 	fmt.Printf("%v and %v", r, err)
 }
 
@@ -56,7 +56,7 @@ func digital(ctx context.Context) {
 	defer conn.Close()
 	client := pbrg.NewRecordGetterClient(conn)
 
-	r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Type: pbrg.GetRecordRequest_DIGITAL})
+	r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Type: pbrg.RequestType_DIGITAL})
 	if err != nil {
 		log.Fatalf("Error on get: %v", err)
 	}
@@ -90,7 +90,7 @@ func audition(ctx context.Context) {
 	defer conn.Close()
 	client := pbrg.NewRecordGetterClient(conn)
 
-	r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Type: pbrg.GetRecordRequest_AUDITION})
+	r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Type: pbrg.RequestType_AUDITION})
 	if err != nil {
 		log.Fatalf("Error on get: %v", err)
 	}
@@ -180,7 +180,7 @@ func scoreDigital(ctx context.Context, value int32) {
 	defer conn.Close()
 	client := pbrg.NewRecordGetterClient(conn)
 
-	r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Type: pbrg.GetRecordRequest_DIGITAL})
+	r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Type: pbrg.RequestType_DIGITAL})
 	if err != nil {
 		log.Fatalf("Error in scoring: %v", err)
 	}
@@ -202,7 +202,7 @@ func scoreAudition(ctx context.Context) {
 	defer conn.Close()
 	client := pbrg.NewRecordGetterClient(conn)
 
-	r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Type: pbrg.GetRecordRequest_AUDITION})
+	r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Type: pbrg.RequestType_AUDITION})
 	if err != nil {
 		log.Fatalf("Error in scoring: %v", err)
 	}
@@ -221,7 +221,10 @@ func main() {
 	} else {
 		switch os.Args[1] {
 		case "clear":
-			clear(ctx)
+			switch os.Args[2] {
+			case "audition":
+				clear(ctx, pbrg.RequestType_AUDITION)
+			}
 		case "get":
 			get(ctx)
 		case "score":

@@ -20,7 +20,7 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 		return nil, err
 	}
 
-	if in.GetType() == pb.GetRecordRequest_AUDITION {
+	if in.GetType() == pb.RequestType_AUDITION {
 		if state.AuditionPick > 0 {
 			rec, err := s.rGetter.getRelease(ctx, state.AuditionPick)
 
@@ -60,7 +60,7 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 	}
 
 	s.requests++
-	if in.GetType() == pb.GetRecordRequest_DIGITAL {
+	if in.GetType() == pb.RequestType_DIGITAL {
 		if state.CurrentDigitalPick > 0 {
 			rec, err := s.rGetter.getRelease(ctx, state.CurrentDigitalPick)
 
@@ -99,7 +99,7 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 		}
 	}
 
-	rec, err := s.getReleaseFromPile(ctx, state, time.Now(), in.GetType() == pb.GetRecordRequest_DIGITAL)
+	rec, err := s.getReleaseFromPile(ctx, state, time.Now(), in.GetType() == pb.RequestType_DIGITAL)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 		}
 	}
 
-	if in.GetType() == pb.GetRecordRequest_DIGITAL {
+	if in.GetType() == pb.RequestType_DIGITAL {
 		state.CurrentDigitalPick = rec.Release.GetInstanceId()
 	} else {
 		state.CurrentPick = rec
@@ -196,10 +196,14 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 }
 
 //Force forces a repick
-func (s *Server) Force(ctx context.Context, in *pb.Empty) (*pb.Empty, error) {
+func (s *Server) Force(ctx context.Context, in *pb.ForceRequest) (*pb.Empty, error) {
 	state, err := s.loadState(ctx)
 	if err != nil {
 		return nil, err
+	}
+	switch in.GetType() {
+	case pb.RequestType_AUDITION:
+		state.AuditionPick = -1
 	}
 	state.CurrentPick = nil
 	s.saveState(ctx, state)

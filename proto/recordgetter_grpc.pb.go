@@ -12,7 +12,6 @@ import (
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-// Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
 // RecordGetterClient is the client API for RecordGetter service.
@@ -21,7 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type RecordGetterClient interface {
 	GetRecord(ctx context.Context, in *GetRecordRequest, opts ...grpc.CallOption) (*GetRecordResponse, error)
 	Listened(ctx context.Context, in *proto.Record, opts ...grpc.CallOption) (*Empty, error)
-	Force(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
+	Force(ctx context.Context, in *ForceRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type recordGetterClient struct {
@@ -50,7 +49,7 @@ func (c *recordGetterClient) Listened(ctx context.Context, in *proto.Record, opt
 	return out, nil
 }
 
-func (c *recordGetterClient) Force(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
+func (c *recordGetterClient) Force(ctx context.Context, in *ForceRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/recordgetter.RecordGetter/Force", in, out, opts...)
 	if err != nil {
@@ -65,7 +64,7 @@ func (c *recordGetterClient) Force(ctx context.Context, in *Empty, opts ...grpc.
 type RecordGetterServer interface {
 	GetRecord(context.Context, *GetRecordRequest) (*GetRecordResponse, error)
 	Listened(context.Context, *proto.Record) (*Empty, error)
-	Force(context.Context, *Empty) (*Empty, error)
+	Force(context.Context, *ForceRequest) (*Empty, error)
 }
 
 // UnimplementedRecordGetterServer should be embedded to have forward compatible implementations.
@@ -78,7 +77,7 @@ func (UnimplementedRecordGetterServer) GetRecord(context.Context, *GetRecordRequ
 func (UnimplementedRecordGetterServer) Listened(context.Context, *proto.Record) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Listened not implemented")
 }
-func (UnimplementedRecordGetterServer) Force(context.Context, *Empty) (*Empty, error) {
+func (UnimplementedRecordGetterServer) Force(context.Context, *ForceRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Force not implemented")
 }
 
@@ -90,7 +89,7 @@ type UnsafeRecordGetterServer interface {
 }
 
 func RegisterRecordGetterServer(s grpc.ServiceRegistrar, srv RecordGetterServer) {
-	s.RegisterService(&RecordGetter_ServiceDesc, srv)
+	s.RegisterService(&_RecordGetter_serviceDesc, srv)
 }
 
 func _RecordGetter_GetRecord_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -130,7 +129,7 @@ func _RecordGetter_Listened_Handler(srv interface{}, ctx context.Context, dec fu
 }
 
 func _RecordGetter_Force_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
+	in := new(ForceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -142,15 +141,12 @@ func _RecordGetter_Force_Handler(srv interface{}, ctx context.Context, dec func(
 		FullMethod: "/recordgetter.RecordGetter/Force",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RecordGetterServer).Force(ctx, req.(*Empty))
+		return srv.(RecordGetterServer).Force(ctx, req.(*ForceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// RecordGetter_ServiceDesc is the grpc.ServiceDesc for RecordGetter service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var RecordGetter_ServiceDesc = grpc.ServiceDesc{
+var _RecordGetter_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "recordgetter.RecordGetter",
 	HandlerType: (*RecordGetterServer)(nil),
 	Methods: []grpc.MethodDesc{
