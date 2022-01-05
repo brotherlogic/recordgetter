@@ -26,7 +26,8 @@ func (s *Server) countSeven(t time.Time, state *pb.State) bool {
 
 func isDigital(rec *pbrc.Record) bool {
 	return rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL ||
-		rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD
+		rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD ||
+		rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_TAPE
 }
 
 func (s *Server) validate(rec *pbrc.Record, state *pb.State) bool {
