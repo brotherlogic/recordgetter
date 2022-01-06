@@ -224,6 +224,8 @@ func main() {
 			switch os.Args[2] {
 			case "audition":
 				clear(ctx, pbrg.RequestType_AUDITION)
+			case "main":
+				clear(ctx, pbrg.RequestType_DEFAULT)
 			}
 		case "get":
 			get(ctx)
