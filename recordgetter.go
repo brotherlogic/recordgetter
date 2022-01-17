@@ -291,6 +291,14 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t time.Time, digitalOnly bool) (*pbrc.Record, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
+	if state.ValidCount == 0 {
+		rec, err := s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_VALIDATE, state, digitalOnly)
+		if (err != nil || rec != nil) && s.validate(rec, state) {
+			state.ValidCount++
+			return rec, err
+		}
+	}
+
 	// Get a new record first
 	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, digitalOnly)
 	if err != nil || rec != nil {
@@ -437,6 +445,11 @@ func (s *Server) loadState(ctx context.Context) (*pbrg.State, error) {
 	//Update the wait time
 	waiting.With(prometheus.Labels{"wait": "want"}).Set(float64(state.GetLastWant()))
 	unfinished.Set(float64(len(state.GetScores())))
+
+	if time.Now().YearDay() != int(state.GetCurrDate()) {
+		state.CurrDate = int32(time.Now().YearDay())
+		state.ValidCount = 0
+	}
 
 	return state, nil
 }
