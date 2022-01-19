@@ -181,9 +181,9 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 		}
 		state.CurrentDigitalPick = 0
 	} else if state.GetAuditionPick() == in.GetRelease().GetInstanceId() {
-		s.Log(fmt.Sprintf("AUDITIONING"))
 		score := s.getScore(in, state)
 		if score >= 0 {
+			s.Log(fmt.Sprintf("AUDITIONING with %v", score))
 			err := s.updater.audition(ctx, in.GetRelease().GetInstanceId(), score)
 			if err != nil && status.Convert(err).Code() != codes.OutOfRange {
 				return &pb.Empty{}, err
