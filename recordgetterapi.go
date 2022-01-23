@@ -99,6 +99,12 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 		}
 	}
 
+	key, err := s.RunLockingElection(ctx, "recordgetter")
+	if err != nil {
+		return nil, err
+	}
+	defer s.ReleaseLockingElection(ctx, key, "recordgetter")
+
 	rec, err := s.getReleaseFromPile(ctx, state, time.Now(), in.GetType() == pb.RequestType_DIGITAL)
 	if err != nil {
 		return nil, err
