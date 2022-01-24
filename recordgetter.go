@@ -32,7 +32,16 @@ var (
 		Name: "recordgetter_unfinished",
 		Help: "The number of running queues",
 	})
+
+	sevens = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "recordgetter_sevens",
+		Help: "The number of running queues",
+	})
 )
+
+func (s *Server) metrics(config *pbrg.State) {
+	sevens.Set(float64(config.GetSevenCount()))
+}
 
 //Server main server type
 type Server struct {
@@ -452,10 +461,13 @@ func (s *Server) loadState(ctx context.Context) (*pbrg.State, error) {
 		state.ValidCount = 0
 	}
 
+	s.metrics(state)
+
 	return state, nil
 }
 
 func (s *Server) saveState(ctx context.Context, state *pbrg.State) error {
+	s.metrics(state)
 	if len(state.GetActiveFolders()) == 0 {
 		return fmt.Errorf("Invalid state for saving: %v", state)
 	}
