@@ -186,6 +186,7 @@ func (p *prodGetter) getRecordsInFolder(ctx context.Context, folder int32) ([]in
 
 	r, err := client.QueryRecords(ctx, &pbrc.QueryRecordsRequest{Query: &pbrc.QueryRecordsRequest_FolderId{folder}})
 	if err == nil {
+		rand.Shuffle(len(r.InstanceIds), func(i, j int) { r.InstanceIds[i], r.InstanceIds[j] = r.InstanceIds[j], r.InstanceIds[i] })
 		return r.GetInstanceIds(), err
 	}
 	return []int32{}, err
