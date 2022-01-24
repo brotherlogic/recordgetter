@@ -110,6 +110,13 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 	if err != nil {
 		return nil, err
 	}
+	// If we're picking - also defer an update to the display; do so best effort
+	c, err := s.FDialServer(ctx, "display")
+	if err == nil {
+		defer c.Close()
+		cup := pbrc.NewClientUpdateServiceClient(c)
+		cup.ClientUpdate(ctx, &pbrc.ClientUpdateRequest{InstanceId: rec.GetRelease().GetInstanceId()})
+	}
 
 	disk := int32(1)
 	if rec != nil && state.Scores != nil {
