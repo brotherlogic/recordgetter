@@ -104,7 +104,7 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 		return nil, err
 	}
 	s.CtxLog(ctx, fmt.Sprintf("ACK LOCK %v with %v, %v, %v", key, state.CurrentDigitalPick, state.CurrentPick, state.AuditionPick))
-	defer s.ReleaseLockingElection(ctx, key, "recordgetter")
+	defer s.ReleaseLockingElection(ctx, "recordgetter", key)
 
 	rec, err := s.getReleaseFromPile(ctx, state, time.Now(), in.GetType() == pb.RequestType_DIGITAL)
 	if err != nil {
