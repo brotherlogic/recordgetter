@@ -290,6 +290,11 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 		return false
 	}
 
+	// Don't pick records in Limbo {
+	if rc.GetRelease().GetFolderId() == 3380098 {
+		return false
+	}
+
 	for _, score := range state.Scores {
 		if score.InstanceId == rc.GetRelease().InstanceId {
 			// Two days between listens
