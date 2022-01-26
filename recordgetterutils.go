@@ -16,7 +16,7 @@ import (
 func (s *Server) countSeven(t time.Time, state *pb.State) bool {
 	if t.YearDay() == int(state.GetSevenDay()) {
 		state.SevenCount++
-		return state.SevenCount <= 10
+		return state.SevenCount <= 5
 	}
 
 	state.SevenDay = int32(t.YearDay())
@@ -37,6 +37,11 @@ func (s *Server) validate(rec *pbrc.Record, state *pb.State) bool {
 				return s.countSeven(time.Now(), state)
 			}
 		}
+	}
+
+	if time.Now().YearDay() != int(state.GetSevenDay()) {
+		state.SevenCount = 1
+		state.SevenDay = int32(time.Now().YearDay())
 	}
 
 	// Records should be in the listening pile
