@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/brotherlogic/goserver/utils"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordgetter/proto"
 	rwpb "github.com/brotherlogic/recordwants/proto"
@@ -110,13 +111,6 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 	if err != nil {
 		return nil, err
 	}
-	// If we're picking - also defer an update to the display; do so best effort
-	c, err := s.FDialServer(ctx, "display")
-	if err == nil {
-		defer c.Close()
-		cup := pbrc.NewClientUpdateServiceClient(c)
-		cup.ClientUpdate(ctx, &pbrc.ClientUpdateRequest{InstanceId: rec.GetRelease().GetInstanceId()})
-	}
 
 	disk := int32(1)
 	if rec != nil && state.Scores != nil {
@@ -139,6 +133,18 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 		s.RaiseIssue(fmt.Sprintf("Figure out sale %v", rec.GetRelease().GetTitle()), fmt.Sprintf("To sell or not to sell?: %v", rec.GetRelease().GetInstanceId()))
 	}
 
+	// If we're picking - also defer an update to the display; do so best effort
+	f := func() {
+		ctx, cancel := utils.ManualContext("getter-display-ping", time.Minute)
+		defer cancel()
+		c, err := s.FDialServer(ctx, "display")
+		if err == nil {
+			defer c.Close()
+			cup := pbrc.NewClientUpdateServiceClient(c)
+			cup.ClientUpdate(ctx, &pbrc.ClientUpdateRequest{InstanceId: rec.GetRelease().GetInstanceId()})
+		}
+	}
+	defer f()
 	return &pb.GetRecordResponse{Record: rec, NumListens: getNumListens(rec), Disk: disk}, s.saveState(ctx, state)
 }
 
