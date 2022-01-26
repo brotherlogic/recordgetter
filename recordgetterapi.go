@@ -155,6 +155,19 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 		return nil, err
 	}
 
+	// We've listended - so trigger a new get
+	f := func() {
+		ctx, cancel := utils.ManualContext("getter-display-ping", time.Minute)
+		defer cancel()
+		c, err := s.FDialServer(ctx, "display")
+		if err == nil {
+			defer c.Close()
+			cup := pbrc.NewClientUpdateServiceClient(c)
+			cup.ClientUpdate(ctx, &pbrc.ClientUpdateRequest{InstanceId: rec.GetRelease().GetInstanceId()})
+		}
+	}
+	defer f()
+
 	// This is a want rather than a record
 	if in.GetRelease().GetInstanceId() == 0 {
 		s.Log(fmt.Sprintf("Tracking a want change: %v -> %v", in.GetRelease().GetId(), in))
