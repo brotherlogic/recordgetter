@@ -163,11 +163,10 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 		if err == nil {
 			defer c.Close()
 			cup := pbrc.NewClientUpdateServiceClient(c)
-			cup.ClientUpdate(ctx, &pbrc.ClientUpdateRequest{InstanceId: rec.GetRelease().GetInstanceId()})
+			cup.ClientUpdate(ctx, &pbrc.ClientUpdateRequest{InstanceId: in.GetRelease().GetInstanceId()})
 		}
 	}
 	defer f()
-
 	// This is a want rather than a record
 	if in.GetRelease().GetInstanceId() == 0 {
 		s.Log(fmt.Sprintf("Tracking a want change: %v -> %v", in.GetRelease().GetId(), in))
