@@ -16,7 +16,7 @@ import (
 func (s *Server) countSeven(t time.Time, state *pb.State) bool {
 	if t.YearDay() == int(state.GetSevenDay()) {
 		state.SevenCount++
-		return state.SevenCount <= 5
+		return state.SevenCount <= 6
 	}
 
 	state.SevenDay = int32(t.YearDay())
