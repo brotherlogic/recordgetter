@@ -99,6 +99,7 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 			return &pb.GetRecordResponse{Record: state.CurrentPick, NumListens: getNumListens(state.CurrentPick), Disk: disk}, nil
 		}
 	}
+	s.CtxLog(ctx, fmt.Sprintf("ATTEMPT LOCK with %v, %v, %v", state.CurrentDigitalPick, state.CurrentPick, state.AuditionPick))
 
 	key, err := s.RunLockingElection(ctx, "recordgetter")
 	if err != nil {
