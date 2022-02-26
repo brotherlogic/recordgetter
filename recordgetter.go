@@ -319,63 +319,67 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		}
 	}
 
-	// Get a new record first
-	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, digitalOnly)
-	if err != nil || rec != nil {
-		return rec, err
-	}
+	if time.Now().Weekday() != time.Saturday || time.Now().Weekday() != time.Sunday {
 
-	// Look for pre high school records
-	rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, digitalOnly)
-	if err != nil || rec != nil {
-		return rec, err
-	}
-
-	// Prioritise PRE_FRESHMAN if there's a lot of them.
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN, state, digitalOnly)
-	if err != nil || rec != nil {
-		s.lastPre = time.Now()
-		return rec, err
-	}
-
-	//Look for a record staged to sell
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, digitalOnly)
-	if (err != nil || rec != nil) && s.validate(rec, state) {
-		return rec, err
-	}
-
-	//Update the wait time
-	waiting.With(prometheus.Labels{"wait": "want"}).Set(float64(state.GetLastWant()))
-
-	// If it's been 6 hours since our last one, pull a want from the list
-	if time.Now().Sub(time.Unix(state.GetLastWant(), 0)) > time.Hour*6 && !digitalOnly {
-		wants, err := s.wants.getWants(ctx)
-		if err != nil {
+		// Get a new record first
+		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, digitalOnly)
+		if err != nil || rec != nil {
 			return rec, err
 		}
-		for _, want := range wants {
-			if want.Level == rwpb.MasterWant_UNKNOWN {
-				rec, err := s.rGetter.getPlainRecord(ctx, want.GetRelease().GetId())
-				if err == nil {
-					return rec, err
-				}
 
-				code := status.Convert(err)
-				if code.Code() != codes.Canceled {
-					s.RaiseIssue("GetRecordError", fmt.Sprintf("Weird response back from record: %v", err))
+		// Look for pre high school records
+		rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, digitalOnly)
+		if err != nil || rec != nil {
+			return rec, err
+		}
+
+		// Prioritise PRE_FRESHMAN if there's a lot of them.
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN, state, digitalOnly)
+		if err != nil || rec != nil {
+			s.lastPre = time.Now()
+			return rec, err
+		}
+
+		//Look for a record staged to sell
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, digitalOnly)
+		if (err != nil || rec != nil) && s.validate(rec, state) {
+			return rec, err
+		}
+
+		//Update the wait time
+		waiting.With(prometheus.Labels{"wait": "want"}).Set(float64(state.GetLastWant()))
+
+		// If it's been 6 hours since our last one, pull a want from the list
+		if time.Now().Sub(time.Unix(state.GetLastWant(), 0)) > time.Hour*6 && !digitalOnly {
+			wants, err := s.wants.getWants(ctx)
+			if err != nil {
+				return rec, err
+			}
+			for _, want := range wants {
+				if want.Level == rwpb.MasterWant_UNKNOWN {
+					rec, err := s.rGetter.getPlainRecord(ctx, want.GetRelease().GetId())
+					if err == nil {
+						return rec, err
+					}
+
+					code := status.Convert(err)
+					if code.Code() != codes.Canceled {
+						s.RaiseIssue("GetRecordError", fmt.Sprintf("Weird response back from record: %v", err))
+					}
 				}
 			}
 		}
+
+		//Look for a record staged to sell
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, digitalOnly)
+		if (err != nil || rec != nil) && s.validate(rec, state) {
+			return rec, err
+		}
+
 	}
 
 	//Look for a record staged to sell
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, digitalOnly)
-	if (err != nil || rec != nil) && s.validate(rec, state) {
-		return rec, err
-	}
-
-	//Look for a record staged to sell
-	rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_VALIDATE, state, digitalOnly)
+	rec, err := s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_VALIDATE, state, digitalOnly)
 	if (err != nil || rec != nil) && s.validate(rec, state) {
 		s.Log(fmt.Sprintf("PRE_VALID FOUND %v -> %v", rec.GetRelease().GetFolderId(), rec.GetMetadata().GetCategory()))
 		return rec, err
