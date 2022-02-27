@@ -319,7 +319,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		}
 	}
 
-	if time.Now().Weekday() != time.Saturday || time.Now().Weekday() != time.Sunday {
+	if time.Now().Weekday() != time.Saturday && time.Now().Weekday() != time.Sunday {
 		s.CtxLog(ctx, fmt.Sprintf("Regular pick because: %v", time.Now().Weekday()))
 
 		// Get a new record first
