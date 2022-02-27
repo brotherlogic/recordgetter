@@ -301,7 +301,7 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 			if t.Sub(time.Unix(score.ScoreDate, 0)) < time.Hour*12 {
 				return false
 			} else {
-				s.Log(fmt.Sprintf("Skipping %v - last listen was %v (%v)", score.GetInstanceId(), time.Unix(score.ScoreDate, 0), t.Sub(time.Unix(score.ScoreDate, 0))))
+				s.DLog(context.Background(), fmt.Sprintf("Skipping %v - last listen was %v (%v)", score.GetInstanceId(), time.Unix(score.ScoreDate, 0), t.Sub(time.Unix(score.ScoreDate, 0))))
 			}
 		}
 	}
@@ -320,6 +320,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	}
 
 	if time.Now().Weekday() != time.Saturday || time.Now().Weekday() != time.Sunday {
+		s.CtxLog(ctx, fmt.Sprintf("Regular pick because: %v", time.Now().Weekday()))
 
 		// Get a new record first
 		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, digitalOnly)
@@ -381,7 +382,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	//Look for a record staged to sell
 	rec, err := s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_VALIDATE, state, digitalOnly)
 	if (err != nil || rec != nil) && s.validate(rec, state) {
-		s.Log(fmt.Sprintf("PRE_VALID FOUND %v -> %v", rec.GetRelease().GetFolderId(), rec.GetMetadata().GetCategory()))
+		s.DLog(ctx, fmt.Sprintf("PRE_VALID FOUND %v -> %v", rec.GetRelease().GetFolderId(), rec.GetMetadata().GetCategory()))
 		return rec, err
 	}
 

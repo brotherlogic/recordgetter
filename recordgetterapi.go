@@ -170,7 +170,7 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 	defer f()
 	// This is a want rather than a record
 	if in.GetRelease().GetInstanceId() == 0 {
-		s.Log(fmt.Sprintf("Tracking a want change: %v -> %v", in.GetRelease().GetId(), in))
+		s.DLog(ctx, fmt.Sprintf("Tracking a want change: %v -> %v", in.GetRelease().GetId(), in))
 		if in.GetMetadata().GetSetRating() == 5 {
 			// Get the OG vinyl
 			err = s.wants.updateWant(ctx, in.GetRelease().GetId(), rwpb.MasterWant_WANT_OG)
@@ -216,7 +216,7 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 	} else if state.GetAuditionPick() == in.GetRelease().GetInstanceId() {
 		score := s.getScore(in, state)
 		if score >= 0 {
-			s.Log(fmt.Sprintf("AUDITIONING with %v", score))
+			s.DLog(ctx, fmt.Sprintf("AUDITIONING with %v", score))
 			err := s.updater.audition(ctx, in.GetRelease().GetInstanceId(), score)
 			if err != nil && status.Convert(err).Code() != codes.OutOfRange {
 				return &pb.Empty{}, err

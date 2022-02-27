@@ -62,7 +62,7 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 		if err == nil && rc != nil {
 			if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() && rc.GetMetadata().SetRating == 0 {
 				if s.dateFine(rc, t, state) && !s.needsRip(rc) && dig == isDigital(rc) {
-					s.Log(fmt.Sprintf("%v and %v -> %v", dig, isDigital(rc), rc.GetMetadata()))
+					s.DLog(ctx, fmt.Sprintf("%v and %v -> %v", dig, isDigital(rc), rc.GetMetadata()))
 					pDate = rc.GetMetadata().DateAdded
 					newRec = rc
 				}
@@ -201,7 +201,7 @@ func (s *Server) getScore(rc *pbrc.Record, state *pb.State) int32 {
 
 		//Trick Rounding
 		score := int32((float64(sum) / float64(count)) + 0.5)
-		s.Log(fmt.Sprintf("Scoring %v, from %v (%v)", score, scores, rc.GetMetadata().GetSetRating()))
+		s.DLog(context.Background(), fmt.Sprintf("Scoring %v, from %v (%v)", score, scores, rc.GetMetadata().GetSetRating()))
 		return score
 	}
 
