@@ -37,10 +37,15 @@ var (
 		Name: "recordgetter_sevens",
 		Help: "The number of running queues",
 	})
+	valids = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "recordgetter_valids",
+		Help: "The number of running queues",
+	})
 )
 
 func (s *Server) metrics(config *pbrg.State) {
 	sevens.Set(float64(config.GetSevenCount()))
+	valids.Set(float64(config.GetValidCount()))
 }
 
 //Server main server type
