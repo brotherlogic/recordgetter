@@ -126,6 +126,7 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 		state.CurrentDigitalPick = rec.Release.GetInstanceId()
 	} else {
 		state.CurrentPick = rec
+		state.CatCount[pbrc.ReleaseMetadata_Category_value[rec.GetMetadata().GetCategory().String()]]++
 	}
 
 	if rec.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_STAGED_TO_SELL && rec.GetMetadata().GetSaleAttempts() > 5 {

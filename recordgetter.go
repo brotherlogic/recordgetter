@@ -284,6 +284,13 @@ func (p *prodUpdater) audition(ctx context.Context, id, rating int32) error {
 }
 
 func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool {
+	// Only do one of each category per day, unless PRE_VALIDATE
+	s.Log(fmt.Sprintf("CATCOUNT %v", state.GetCatCount()))
+	if rc.GetMetadata().GetCategory() != pbrc.ReleaseMetadata_PRE_VALIDATE &&
+		state.GetCatCount()[pbrc.ReleaseMetadata_Category_value[rc.GetMetadata().GetCategory().String()]] < 1 {
+		return false
+	}
+
 	// Don't listen to in box record
 	if rc.GetMetadata().GetBoxState() != pbrc.ReleaseMetadata_BOX_UNKNOWN &&
 		rc.GetMetadata().GetBoxState() != pbrc.ReleaseMetadata_OUT_OF_BOX {
@@ -472,6 +479,10 @@ func (s *Server) loadState(ctx context.Context) (*pbrg.State, error) {
 		state = data.(*pbrg.State)
 	}
 
+	if state.GetCatCount() == nil {
+		state.CatCount = make(map[int32]int32)
+	}
+
 	//Update the wait time
 	waiting.With(prometheus.Labels{"wait": "want"}).Set(float64(state.GetLastWant()))
 	unfinished.Set(float64(len(state.GetScores())))
@@ -479,6 +490,7 @@ func (s *Server) loadState(ctx context.Context) (*pbrg.State, error) {
 	if time.Now().YearDay() != int(state.GetCurrDate()) {
 		state.CurrDate = int32(time.Now().YearDay())
 		state.ValidCount = 0
+		state.CatCount = make(map[int32]int32)
 	}
 
 	s.metrics(state)
