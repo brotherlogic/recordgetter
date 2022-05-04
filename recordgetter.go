@@ -286,7 +286,7 @@ func (p *prodUpdater) audition(ctx context.Context, id, rating int32) error {
 func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool {
 	// Only do one of each category per day, unless PRE_VALIDATE
 	s.Log(fmt.Sprintf("CATCOUNT %v", state.GetCatCount()))
-	if rc.GetMetadata().GetCategory() != pbrc.ReleaseMetadata_PRE_VALIDATE &&
+	if rc.GetMetadata().GetCategory() != pbrc.ReleaseMetadata_UNLISTENED &&
 		state.GetCatCount()[pbrc.ReleaseMetadata_Category_value[rc.GetMetadata().GetCategory().String()]] >= 1 {
 		return false
 	}
