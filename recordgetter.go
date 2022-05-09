@@ -17,6 +17,7 @@ import (
 	pbg "github.com/brotherlogic/goserver/proto"
 	"github.com/brotherlogic/goserver/utils"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
+	pb "github.com/brotherlogic/recordgetter/proto"
 	pbrg "github.com/brotherlogic/recordgetter/proto"
 	pbro "github.com/brotherlogic/recordsorganiser/proto"
 	rwpb "github.com/brotherlogic/recordwants/proto"
@@ -237,7 +238,7 @@ func (p *prodGetter) getPlainRecord(ctx context.Context, id int32) (*pbrc.Record
 }
 
 type updater interface {
-	update(ctx context.Context, id, rating int32) error
+	update(ctx context.Context, config *pb.State, id, rating int32) error
 	audition(ctx context.Context, id, rating int32) error
 }
 
@@ -245,7 +246,7 @@ type prodUpdater struct {
 	dial func(ctx context.Context, server string) (*grpc.ClientConn, error)
 }
 
-func (p *prodUpdater) update(ctx context.Context, id, rating int32) error {
+func (p *prodUpdater) update(ctx context.Context, config *pb.State, id, rating int32) error {
 	conn, err := p.dial(ctx, "recordcollection")
 	if err != nil {
 		return err
@@ -253,6 +254,16 @@ func (p *prodUpdater) update(ctx context.Context, id, rating int32) error {
 
 	defer conn.Close()
 	client := pbrc.NewRecordCollectionServiceClient(conn)
+
+	rec, err := client.GetRecord(ctx, &pbrc.GetRecordRequest{InstanceId: id})
+	if err != nil {
+		return err
+	}
+	if rec.GetRecord().GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_VALIDATE &&
+		rec.GetRecord().GetMetadata().GetGoalFolder() == 242017 {
+		config.ValidCount++
+	}
+
 	_, err = client.UpdateRecord(ctx, &pbrc.UpdateRecordRequest{Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: id}, Metadata: &pbrc.ReleaseMetadata{SetRating: rating}}, Reason: "RecordScore from Getter"})
 	if err != nil {
 		return err
@@ -326,7 +337,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	if state.ValidCount <= 5 {
 		rec, err := s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_VALIDATE, state, digitalOnly)
 		if (err != nil || rec != nil) && s.validate(rec, state) {
-			state.ValidCount++
 			return rec, err
 		}
 	}

@@ -197,7 +197,7 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 	} else if state.GetCurrentPick().GetRelease().GetInstanceId() == in.GetRelease().GetInstanceId() {
 		score := s.getScore(in, state)
 		if score >= 0 {
-			err := s.updater.update(ctx, in.GetRelease().GetInstanceId(), score)
+			err := s.updater.update(ctx, state, in.GetRelease().GetInstanceId(), score)
 			if err != nil && status.Convert(err).Code() != codes.OutOfRange {
 				return &pb.Empty{}, err
 			}
@@ -206,7 +206,7 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 	} else if state.GetCurrentDigitalPick() == in.GetRelease().GetInstanceId() {
 		score := s.getScore(in, state)
 		if score >= 0 {
-			err := s.updater.update(ctx, in.GetRelease().GetInstanceId(), score)
+			err := s.updater.update(ctx, state, in.GetRelease().GetInstanceId(), score)
 			if err != nil && status.Convert(err).Code() != codes.OutOfRange {
 				return &pb.Empty{}, err
 			}
