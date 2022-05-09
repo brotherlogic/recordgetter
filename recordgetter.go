@@ -286,7 +286,7 @@ func (p *prodUpdater) audition(ctx context.Context, id, rating int32) error {
 func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool {
 	// Only do one of each category per day, unless PRE_VALIDATE
 	s.Log(fmt.Sprintf("CATCOUNT %v", state.GetCatCount()))
-	if rc.GetMetadata().GetCategory() != pbrc.ReleaseMetadata_UNLISTENED &&
+	if rc.GetMetadata().GetCategory() != pbrc.ReleaseMetadata_PRE_VALIDATE &&
 		state.GetCatCount()[pbrc.ReleaseMetadata_Category_value[rc.GetMetadata().GetCategory().String()]] >= 1 {
 		return false
 	}
@@ -323,13 +323,13 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t time.Time, digitalOnly bool) (*pbrc.Record, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	/*if state.ValidCount <= 2 {
+	if state.ValidCount <= 5 {
 		rec, err := s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_VALIDATE, state, digitalOnly)
 		if (err != nil || rec != nil) && s.validate(rec, state) {
 			state.ValidCount++
 			return rec, err
 		}
-	}*/
+	}
 
 	if time.Now().Weekday() != time.Saturday && time.Now().Weekday() != time.Sunday {
 		s.CtxLog(ctx, fmt.Sprintf("Regular pick because: %v", time.Now().Weekday()))
