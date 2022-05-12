@@ -244,6 +244,7 @@ type updater interface {
 
 type prodUpdater struct {
 	dial func(ctx context.Context, server string) (*grpc.ClientConn, error)
+	log  func(ctx context.Context, log string)
 }
 
 func (p *prodUpdater) update(ctx context.Context, config *pb.State, id, rating int32) error {
@@ -261,6 +262,7 @@ func (p *prodUpdater) update(ctx context.Context, config *pb.State, id, rating i
 	}
 	if rec.GetRecord().GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_VALIDATE &&
 		rec.GetRecord().GetMetadata().GetGoalFolder() == 242017 {
+		p.log(ctx, fmt.Sprintf("Recording %v as valid", rec.GetRecord().GetRelease().GetInstanceId()))
 		config.ValidCount++
 	}
 
@@ -440,7 +442,7 @@ func Init() *Server {
 		serving:  true, delivering: true,
 		rd: rand.New(rand.NewSource(time.Now().Unix())),
 	}
-	s.updater = &prodUpdater{s.FDialServer}
+	s.updater = &prodUpdater{s.FDialServer, s.CtxLog}
 	s.rGetter = &prodGetter{s.FDialServer, s.Log}
 	s.org = &prodOrg{s.FDialServer}
 	s.wants = &prodWants{s.FDialServer}
