@@ -336,6 +336,7 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t time.Time, digitalOnly bool) (*pbrc.Record, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
+	s.CtxLog(ctx, fmt.Sprintf("Picking with %v valids", state.ValidCount))
 	if state.ValidCount <= 5 {
 		rec, err := s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_VALIDATE, state, digitalOnly)
 		if (err != nil || rec != nil) && s.validate(rec, state) {
