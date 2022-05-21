@@ -354,7 +354,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		}
 
 		// Look for pre high school records
-		rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, digitalOnly)
+		rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, digitalOnly, false)
 		if err != nil || rec != nil {
 			return rec, err
 		}
@@ -405,7 +405,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	}
 
 	//Look for a record staged to sell
-	rec, err := s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_VALIDATE, state, digitalOnly)
+	rec, err := s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_VALIDATE, state, digitalOnly, false)
 	if (err != nil || rec != nil) && s.validate(rec, state) {
 		s.DLog(ctx, fmt.Sprintf("PRE_VALID FOUND %v -> %v", rec.GetRelease().GetFolderId(), rec.GetMetadata().GetCategory()))
 		return rec, err
@@ -423,7 +423,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 
 	// Look for pre distringuished 12" records
 	for _, f := range []int32{242017} {
-		rec, err = s.getInFolderWithCategory(ctx, t, f, pbrc.ReleaseMetadata_PRE_DISTINGUISHED, state, digitalOnly)
+		rec, err = s.getInFolderWithCategory(ctx, t, f, pbrc.ReleaseMetadata_PRE_DISTINGUISHED, state, digitalOnly, false)
 		if err != nil || rec != nil {
 			return rec, err
 		}

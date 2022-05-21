@@ -50,7 +50,7 @@ func (s *Server) isFilable(rc *pbrc.Record) bool {
 	return rc.GetMetadata().GetGoalFolder() == 242017 && rc.GetRelease().GetFormatQuantity() == 1
 }
 
-func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.ReleaseMetadata_Category, state *pb.State, dig bool, filable bool) (*pbrc.Record, error) {
+func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.ReleaseMetadata_Category, state *pb.State, dig bool) (*pbrc.Record, error) {
 	pDate := int64(0)
 	var newRec *pbrc.Record
 	newRec = nil
@@ -66,11 +66,10 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 		if err == nil && rc != nil {
 			if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() && rc.GetMetadata().SetRating == 0 {
 				if s.dateFine(rc, t, state) && !s.needsRip(rc) && dig == isDigital(rc) {
-					if !filable || s.isFilable(rc) {
-						s.DLog(ctx, fmt.Sprintf("%v and %v -> %v", dig, isDigital(rc), rc.GetMetadata()))
-						pDate = rc.GetMetadata().DateAdded
-						newRec = rc
-					}
+
+					s.DLog(ctx, fmt.Sprintf("%v and %v -> %v", dig, isDigital(rc), rc.GetMetadata()))
+					pDate = rc.GetMetadata().DateAdded
+					newRec = rc
 				}
 			}
 		}
@@ -83,7 +82,7 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 	return nil, nil
 }
 
-func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folder int32, cat pbrc.ReleaseMetadata_Category, state *pb.State, dig bool) (*pbrc.Record, error) {
+func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folder int32, cat pbrc.ReleaseMetadata_Category, state *pb.State, dig bool, filable bool) (*pbrc.Record, error) {
 	recs, err := s.rGetter.getRecordsInFolder(ctx, folder)
 	if err != nil {
 		return nil, err
@@ -94,7 +93,9 @@ func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folde
 		if err == nil {
 			if r.GetMetadata().GetCategory() == cat && r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() && r.GetMetadata().SetRating == 0 {
 				if s.dateFine(r, t, state) && !s.needsRip(r) && dig == isDigital(r) {
-					return r, nil
+					if !filable || s.isFilable(r) {
+						return r, nil
+					}
 				}
 			}
 		}
