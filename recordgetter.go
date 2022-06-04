@@ -337,7 +337,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	s.CtxLog(ctx, fmt.Sprintf("Picking with %v valids", state.ValidCount))
-	if state.ValidCount <= 5 {
+	if state.ValidCount < 5 {
 		rec, err := s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_VALIDATE, state, digitalOnly, true)
 		if (err != nil || rec != nil) && s.validate(rec, state) {
 			return rec, err
