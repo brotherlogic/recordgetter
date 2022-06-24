@@ -342,6 +342,11 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		if (err != nil || rec != nil) && s.validate(rec, state) {
 			return rec, err
 		}
+
+		rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_VALIDATE, state, digitalOnly, false)
+		if (err != nil || rec != nil) && s.validate(rec, state) {
+			return rec, err
+		}
 	}
 
 	s.CtxLog(ctx, fmt.Sprintf("Regular pick because: %v", time.Now().Weekday()))
