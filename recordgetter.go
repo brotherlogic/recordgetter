@@ -357,6 +357,12 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		return rec, err
 	}
 
+	//Look for a record staged to sell
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, digitalOnly)
+	if (err != nil || rec != nil) && s.validate(rec, state) {
+		return rec, err
+	}
+
 	// Look for pre high school records
 	rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, digitalOnly, false)
 	if err != nil || rec != nil {
@@ -398,12 +404,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 				}
 			}
 		}
-	}
-
-	//Look for a record staged to sell
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, digitalOnly)
-	if (err != nil || rec != nil) && s.validate(rec, state) {
-		return rec, err
 	}
 
 	//Look for a record staged to sell
