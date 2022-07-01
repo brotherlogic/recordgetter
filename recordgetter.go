@@ -351,8 +351,14 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 
 	s.CtxLog(ctx, fmt.Sprintf("Regular pick because: %v", time.Now().Weekday()))
 
+	//Look for a record staged to sell
+	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, digitalOnly)
+	if (err != nil || rec != nil) && s.validate(rec, state) {
+		return rec, err
+	}
+
 	// Get a new record first
-	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, digitalOnly)
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, digitalOnly)
 	if err != nil || rec != nil {
 		return rec, err
 	}
@@ -373,12 +379,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN, state, digitalOnly)
 	if err != nil || rec != nil {
 		s.lastPre = time.Now()
-		return rec, err
-	}
-
-	//Look for a record staged to sell
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, digitalOnly)
-	if (err != nil || rec != nil) && s.validate(rec, state) {
 		return rec, err
 	}
 
