@@ -450,7 +450,7 @@ func Init() *Server {
 	s.org = &prodOrg{s.FDialServer}
 	s.wants = &prodWants{s.FDialServer}
 	s.Register = s
-	s.PrepServer()
+
 	return s
 }
 
@@ -525,8 +525,9 @@ func (s *Server) saveState(ctx context.Context, state *pbrg.State) error {
 func main() {
 
 	server := Init()
+	server.PrepServer("recordgetter")
 
-	err := server.RegisterServerV2("recordgetter", false, true)
+	err := server.RegisterServerV2(false)
 	if err != nil {
 		return
 	}

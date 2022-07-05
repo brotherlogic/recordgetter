@@ -100,7 +100,7 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 		}
 	}
 
-	key, err := s.RunLockingElection(ctx, "recordgetter")
+	key, err := s.RunLockingElection(ctx, "recordgetter", "Locking to pick record to get")
 	if err != nil {
 		return nil, err
 	}
