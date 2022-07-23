@@ -167,6 +167,7 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 		}
 	}
 	defer f()
+
 	// This is a want rather than a record
 	if in.GetRelease().GetInstanceId() == 0 {
 		s.DLog(ctx, fmt.Sprintf("Tracking a want change: %v -> %v", in.GetRelease().GetId(), in))
@@ -195,7 +196,17 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 		state.CurrentPick = nil
 
 	} else if state.GetCurrentPick().GetRelease().GetInstanceId() == in.GetRelease().GetInstanceId() {
+		record, err := s.rGetter.getRelease(ctx, in.GetRelease().GetInstanceId())
+		if err != nil {
+			return nil, err
+		}
+
 		score := s.getScore(in, state)
+		// Immediate score on sale items
+		if record.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_STAGED_TO_SELL {
+			score = in.GetMetadata().GetSetRating()
+		}
+
 		if score >= 0 {
 			err := s.updater.update(ctx, state, in.GetRelease().GetInstanceId(), score)
 			if err != nil && status.Convert(err).Code() != codes.OutOfRange {
