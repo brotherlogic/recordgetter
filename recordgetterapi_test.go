@@ -35,6 +35,13 @@ func (tg *testGetter) getRelease(ctx context.Context, instanceID int32) (*pbrc.R
 	return nil, nil
 }
 
+func (tg *testGetter) getAuditionRelease(ctx context.Context) (*pbrc.Record, error) {
+	if len(tg.records) > 0 {
+		return tg.records[0], nil
+	}
+	return nil, nil
+}
+
 func (tg *testGetter) getPlainRecord(ctx context.Context, id int32) (*pbrc.Record, error) {
 	if len(tg.records) > 0 {
 		return tg.records[0], nil
@@ -63,80 +70,13 @@ func TestGetFromDigital(t *testing.T) {
 	}}
 }
 
-func TestScoreFailGet(t *testing.T) {
-	s := InitTestServer()
-	s.rGetter = &testGetter{records: []*pbrc.Record{
-		&pbrc.Record{Release: &pbgd.Release{InstanceId: 12, FormatQuantity: 1}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_SOPHMORE, DateAdded: 12}},
-		&pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, FormatQuantity: 1}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_PROFESSOR, DateAdded: 1234}},
-	}}
-
-	s.GetRecord(context.Background(), &pb.GetRecordRequest{})
-}
-
-func TestScoreRecordGadPull(t *testing.T) {
-	s := InitTestServer()
-	s.rGetter = &testGetter{records: []*pbrc.Record{
-		&pbrc.Record{Release: &pbgd.Release{InstanceId: 12, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_FRESHMAN, DateAdded: 12}},
-	}}
-
-	s.GetRecord(context.Background(), &pb.GetRecordRequest{})
-}
-
-func TestRecordGetDiskReturn(t *testing.T) {
-	s := InitTestServer()
-	s.rGetter = &testGetter{records: []*pbrc.Record{
-		&pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_PROFESSOR, DateAdded: 1234}},
-	}}
-
-	s.GetRecord(context.Background(), &pb.GetRecordRequest{})
-}
-
-func TestRecordGetDiskSkipOnDate(t *testing.T) {
-	s := InitTestServer()
-	s.rGetter = &testGetter{records: []*pbrc.Record{
-		&pbrc.Record{Release: &pbgd.Release{InstanceId: 12, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_SOPHMORE, DateAdded: 12}},
-		&pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_PROFESSOR, DateAdded: 1234}},
-	}}
-
-	s.GetRecord(context.Background(), &pb.GetRecordRequest{})
-}
-
-func TestRecordGetNextDisk(t *testing.T) {
-	s := InitTestServer()
-	s.rGetter = &testGetter{records: []*pbrc.Record{
-		&pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_SOPHMORE, DateAdded: 12}},
-		&pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_PROFESSOR, DateAdded: 1234}},
-	}}
-
-	s.GetRecord(context.Background(), &pb.GetRecordRequest{})
-}
-
 func TestForce(t *testing.T) {
 	s := InitTestServer()
 
-	_, err := s.Force(context.Background(), &pb.Empty{})
+	_, err := s.Force(context.Background(), &pb.ForceRequest{})
 
 	if err != nil {
 		t.Errorf("Error forcing: %v", err)
 	}
 
-}
-
-func TestRecordGetRefresh(t *testing.T) {
-	s := InitTestServer()
-	s.rGetter = &testGetter{
-		records: []*pbrc.Record{
-			&pbrc.Record{Release: &pbgd.Release{InstanceId: 12, FormatQuantity: 2}, Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_SOPHMORE, DateAdded: 12}},
-		},
-	}
-
-	s.GetRecord(context.Background(), &pb.GetRecordRequest{Refresh: true})
-}
-
-func TestGetRecord(t *testing.T) {
-	s := InitTestServer()
-	resp, err := s.GetRecord(context.Background(), &pb.GetRecordRequest{})
-	if err == nil {
-		t.Errorf("Empty get did not fail: %v", resp)
-	}
 }
