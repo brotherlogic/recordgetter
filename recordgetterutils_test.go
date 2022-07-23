@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/brotherlogic/keystore/client"
+	keystoreclient "github.com/brotherlogic/keystore/client"
 	pb "github.com/brotherlogic/recordgetter/proto"
 	"golang.org/x/net/context"
 
@@ -41,33 +41,16 @@ type testUpdater struct {
 	fail      bool
 }
 
-func (t *testUpdater) update(ctx context.Context, id, score int32) error {
+func (t *testUpdater) update(ctx context.Context, config *pb.State, id, rating int32) error {
 	if t.fail {
 		return fmt.Errorf("Build to fail")
 	}
-	t.lastScore = score
+	t.lastScore = rating
 	return nil
 }
 
-func TestFullScore(t *testing.T) {
-	s := InitTestServer()
-	updater := &testUpdater{}
-	s.updater = updater
-
-	s.Listened(context.Background(), &pbrc.Record{Metadata: &pbrc.ReleaseMetadata{SetRating: 5}, Release: &pbgd.Release{InstanceId: 1234, FormatQuantity: 2}})
-}
-
-func TestPartialScore(t *testing.T) {
-	s := InitTestServer()
-	updater := &testUpdater{}
-	s.updater = updater
-
-	s.Listened(context.Background(), &pbrc.Record{Release: &pbgd.Release{InstanceId: 1234, Rating: 5, FormatQuantity: 2}})
-
-	if updater.lastScore != 0 {
-		t.Errorf("Score has been set despite disk missing: %v", updater.lastScore)
-	}
-
+func (t *testUpdater) audition(ctx context.Context, id, rating int32) error {
+	return nil
 }
 
 func TestNeedsRip(t *testing.T) {
@@ -107,7 +90,7 @@ func TestGetPreFreshamanOnCategoryGet(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{records: []*pbrc.Record{&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{CdPath: "blah"}, Release: &pbgd.Release{InstanceId: 1}}}}
 
-	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{})
+	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{}, false)
 	if err != nil {
 		t.Errorf("Did not fail: %v", err)
 	}
@@ -121,7 +104,7 @@ func TestFailFailOnCategoryGet(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{failGetInCategory: true}
 
-	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{})
+	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{}, false)
 	if err == nil {
 		t.Errorf("Did not fail: %v", rec)
 	}
@@ -130,7 +113,7 @@ func TestFailFailOnCategoryGet(t *testing.T) {
 func TestCategoryEmpty(t *testing.T) {
 	s := InitTestServer()
 
-	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{})
+	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{}, false)
 	if err != nil || rec != nil {
 		t.Errorf("Did not fail: %v -> %v", rec, err)
 	}
@@ -140,7 +123,7 @@ func TestGetInFolderFailOnCategoryGet(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{failGetInFolder: true}
 
-	rec, err := s.getInFolderWithCategory(context.Background(), time.Now(), int32(12), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{})
+	rec, err := s.getInFolderWithCategory(context.Background(), time.Now(), int32(12), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{}, false, true)
 
 	if err == nil {
 		t.Errorf("Did not fail: %v", rec)
@@ -150,24 +133,10 @@ func TestGetInFolderFailOnCategoryGet(t *testing.T) {
 func TestGetInFolderWithCategoryEmpty(t *testing.T) {
 	s := InitTestServer()
 
-	rec, err := s.getInFolderWithCategory(context.Background(), time.Now(), int32(12), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{})
+	rec, err := s.getInFolderWithCategory(context.Background(), time.Now(), int32(12), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{}, false, true)
 
 	if err != nil || rec != nil {
 		t.Errorf("Did not fail: %v -> %v", rec, err)
-	}
-}
-
-func TestGetInFolderWithCategory(t *testing.T) {
-	s := InitTestServer()
-	s.rGetter = &testGetter{records: []*pbrc.Record{&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{CdPath: "blah", Category: pbrc.ReleaseMetadata_PRE_FRESHMAN}, Release: &pbgd.Release{InstanceId: 1}}}}
-
-	rec, err := s.getInFolderWithCategory(context.Background(), time.Now(), int32(12), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{})
-	if err != nil {
-		t.Errorf("Did not fail: %v", err)
-	}
-
-	if rec == nil {
-		t.Errorf("No record returned")
 	}
 }
 
@@ -175,7 +144,7 @@ func TestGetInFolder(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{records: []*pbrc.Record{&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{CdPath: "blah", Category: pbrc.ReleaseMetadata_PRE_FRESHMAN}, Release: &pbgd.Release{InstanceId: 1}}}}
 
-	rec, err := s.getInFolders(context.Background(), time.Now(), []int32{12}, &pb.State{})
+	rec, err := s.getInFolders(context.Background(), time.Now(), []int32{12}, &pb.State{}, false)
 	if err != nil {
 		t.Errorf("Did not fail: %v", err)
 	}
@@ -188,7 +157,7 @@ func TestGetInFolder(t *testing.T) {
 func TestGetInFolderEmpty(t *testing.T) {
 	s := InitTestServer()
 
-	rec, err := s.getInFolders(context.Background(), time.Now(), []int32{12}, &pb.State{})
+	rec, err := s.getInFolders(context.Background(), time.Now(), []int32{12}, &pb.State{}, false)
 	if err != nil {
 		t.Errorf("Did not fail: %v", err)
 	}
@@ -202,7 +171,7 @@ func TestGetInFolderFail(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{failGetInFolder: true}
 
-	rec, err := s.getInFolders(context.Background(), time.Now(), []int32{12}, &pb.State{})
+	rec, err := s.getInFolders(context.Background(), time.Now(), []int32{12}, &pb.State{}, false)
 	if err == nil {
 		t.Errorf("Did not fail: %v", rec)
 	}
