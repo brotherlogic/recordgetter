@@ -297,6 +297,9 @@ func (p *prodUpdater) audition(ctx context.Context, id, rating int32) error {
 }
 
 func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool {
+	if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_STAGED_TO_SELL {
+		return true
+	}
 
 	/*s.Log(fmt.Sprintf("CATCOUNT %v", state.GetCatCount()))
 	if rc.GetMetadata().GetCategory() != pbrc.ReleaseMetadata_PRE_VALIDATE &&
