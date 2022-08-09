@@ -345,20 +345,22 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		return rec, err
 	}
 
-	s.CtxLog(ctx, fmt.Sprintf("Picking with %v valids", state.ValidCount))
-	if state.ValidCount < 6 {
-		rec, err := s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_VALIDATE, state, digitalOnly, true)
-		if (err != nil || rec != nil) && s.validate(rec, state) {
-			return rec, err
-		}
+	if !digitalOnly {
+		s.CtxLog(ctx, fmt.Sprintf("Picking with %v valids", state.ValidCount))
+		if state.ValidCount < 6 {
+			rec, err := s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_VALIDATE, state, digitalOnly, true)
+			if (err != nil || rec != nil) && s.validate(rec, state) {
+				return rec, err
+			}
 
-		rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_VALIDATE, state, digitalOnly, false)
-		if (err != nil || rec != nil) && s.validate(rec, state) {
-			return rec, err
+			rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_VALIDATE, state, digitalOnly, false)
+			if (err != nil || rec != nil) && s.validate(rec, state) {
+				return rec, err
+			}
 		}
 	}
 
-	s.CtxLog(ctx, fmt.Sprintf("Regular pick because: %v", time.Now().Weekday()))
+	s.CtxLog(ctx, fmt.Sprintf("Regular pick because: %v and %v", time.Now().Weekday(), digitalOnly))
 
 	// Get a new record first
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, digitalOnly)
