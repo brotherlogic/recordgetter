@@ -266,6 +266,10 @@ func (p *prodUpdater) update(ctx context.Context, config *pb.State, id, rating i
 		config.ValidCount++
 	}
 
+	if rec.GetRecord().GetMetadata().GetCategory() == pbrc.ReleaseMetadata_UNLISTENED {
+		config.UnlistenedCount++
+	}
+
 	_, err = client.UpdateRecord(ctx, &pbrc.UpdateRecordRequest{Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: id}, Metadata: &pbrc.ReleaseMetadata{SetRating: rating}}, Reason: "RecordScore from Getter"})
 	if err != nil {
 		return err
@@ -362,10 +366,12 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 
 	s.CtxLog(ctx, fmt.Sprintf("Regular pick because: %v and %v", time.Now().Weekday(), digitalOnly))
 
-	// Get a new record first
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, digitalOnly)
-	if err != nil || rec != nil {
-		return rec, err
+	// Get a new record first (only one per day)
+	if state.UnlistenedCount < 1 {
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, digitalOnly)
+		if err != nil || rec != nil {
+			return rec, err
+		}
 	}
 
 	//Look for a record staged to sell
@@ -510,6 +516,7 @@ func (s *Server) loadState(ctx context.Context) (*pbrg.State, error) {
 	if time.Now().YearDay() != int(state.GetCurrDate()) {
 		state.CurrDate = int32(time.Now().YearDay())
 		state.ValidCount = 0
+		state.UnlistenedCount = 0
 		state.CatCount = make(map[int32]int32)
 	}
 
