@@ -549,9 +549,9 @@ func main() {
 	state, err := server.loadState(ctx)
 	if err == nil {
 		err = server.readLocations(ctx, state)
-		server.Log(fmt.Sprintf("Read locations: %v", err))
+		server.CtxLog(ctx, fmt.Sprintf("Read locations: %v", err))
 	} else {
-		server.Log(fmt.Sprintf("Unable to load state: %v", err))
+		server.CtxLog(ctx, fmt.Sprintf("Unable to load state: %v", err))
 	}
 	cancel()
 
