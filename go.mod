@@ -1,13 +1,11 @@
 module github.com/brotherlogic/recordgetter
 
-go 1.13
+go 1.16
 
 require (
-	github.com/brotherlogic/buildserver v0.0.0-20220821201154-6ce2632b9e2c // indirect
 	github.com/brotherlogic/godiscogs v0.0.0-20220814182128-f8eecacc4756
 	github.com/brotherlogic/goserver v0.0.0-20220821031349-d47a1932e1b3
 	github.com/brotherlogic/keystore v0.0.0-20220819230625-94090acd1be1
-	github.com/brotherlogic/lock v0.0.0-20220821031448-128a4731a690 // indirect
 	github.com/brotherlogic/recordcollection v0.0.0-20220820011423-996c17d176cf
 	github.com/brotherlogic/recordsorganiser v0.0.0-20220820145516-301f8ddfc3d2
 	github.com/brotherlogic/recordwants v0.0.0-20220819190947-62c6aa86b3d3
