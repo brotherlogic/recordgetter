@@ -201,7 +201,7 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 			return nil, err
 		}
 
-		score := s.getScore(in, state)
+		score := s.getScore(ctx, in, state)
 		// Immediate score on sale items
 		if record.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_STAGED_TO_SELL {
 			score = in.GetMetadata().GetSetRating()
@@ -215,7 +215,7 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 		}
 		state.CurrentPick = nil
 	} else if state.GetCurrentDigitalPick() == in.GetRelease().GetInstanceId() {
-		score := s.getScore(in, state)
+		score := s.getScore(ctx, in, state)
 		if score >= 0 {
 			err := s.updater.update(ctx, state, in.GetRelease().GetInstanceId(), score)
 			if err != nil && status.Convert(err).Code() != codes.OutOfRange {
@@ -224,7 +224,7 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 		}
 		state.CurrentDigitalPick = 0
 	} else if state.GetAuditionPick() == in.GetRelease().GetInstanceId() {
-		score := s.getScore(in, state)
+		score := s.getScore(ctx, in, state)
 		if score >= 0 {
 			s.DLog(ctx, fmt.Sprintf("AUDITIONING with %v", score))
 			err := s.updater.audition(ctx, in.GetRelease().GetInstanceId(), score)

@@ -139,7 +139,7 @@ type getter interface {
 
 type prodGetter struct {
 	dial func(ctx context.Context, server string) (*grpc.ClientConn, error)
-	Log  func(s string)
+	Log  func(ctx context.Context, s string)
 }
 
 func (p *prodGetter) getRecordsInCategory(ctx context.Context, category pbrc.ReleaseMetadata_Category) ([]int32, error) {
@@ -173,7 +173,7 @@ func (p *prodGetter) getAuditionRelease(ctx context.Context) (*pbrc.Record, erro
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(ids.InstanceIds), func(i, j int) { ids.InstanceIds[i], ids.InstanceIds[j] = ids.InstanceIds[j], ids.InstanceIds[i] })
 
-	p.Log(fmt.Sprintf("Searching through %v records to find audition", len(ids.InstanceIds)))
+	p.Log(ctx, fmt.Sprintf("Searching through %v records to find audition", len(ids.InstanceIds)))
 	for _, id := range ids.InstanceIds {
 		rec, err := p.getRelease(ctx, id)
 		if err != nil {
@@ -304,12 +304,6 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 	if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_STAGED_TO_SELL {
 		return true
 	}
-
-	/*s.Log(fmt.Sprintf("CATCOUNT %v", state.GetCatCount()))
-	if rc.GetMetadata().GetCategory() != pbrc.ReleaseMetadata_PRE_VALIDATE &&
-		state.GetCatCount()[pbrc.ReleaseMetadata_Category_value[rc.GetMetadata().GetCategory().String()]] >= 1 {
-		return false
-	}*/
 
 	// Don't listen to in box record
 	if rc.GetMetadata().GetBoxState() != pbrc.ReleaseMetadata_BOX_UNKNOWN &&
@@ -457,7 +451,7 @@ func Init() *Server {
 		rd: rand.New(rand.NewSource(time.Now().Unix())),
 	}
 	s.updater = &prodUpdater{s.FDialServer, s.CtxLog}
-	s.rGetter = &prodGetter{s.FDialServer, s.Log}
+	s.rGetter = &prodGetter{s.FDialServer, s.CtxLog}
 	s.org = &prodOrg{s.FDialServer}
 	s.wants = &prodWants{s.FDialServer}
 	s.Register = s

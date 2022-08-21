@@ -179,7 +179,7 @@ func (s *Server) clearScores(instanceID int32, state *pb.State) {
 	}
 }
 
-func (s *Server) getScore(rc *pbrc.Record, state *pb.State) int32 {
+func (s *Server) getScore(ctx context.Context, rc *pbrc.Record, state *pb.State) int32 {
 	sum := int32(0)
 	count := int32(0)
 
@@ -208,7 +208,7 @@ func (s *Server) getScore(rc *pbrc.Record, state *pb.State) int32 {
 
 		//Trick Rounding
 		score := int32((float64(sum) / float64(count)) + 0.5)
-		s.DLog(context.Background(), fmt.Sprintf("Scoring %v, from %v (%v)", score, scores, rc.GetMetadata().GetSetRating()))
+		s.DLog(ctx, fmt.Sprintf("Scoring %v, from %v (%v)", score, scores, rc.GetMetadata().GetSetRating()))
 		return score
 	}
 
