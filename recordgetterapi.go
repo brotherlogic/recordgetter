@@ -21,7 +21,7 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 		return nil, err
 	}
 
-	s.CtxLog(ctx, fmt.Sprintf("Catcount: %v", state.GetCatCount()))
+	s.CtxLog(ctx, fmt.Sprintf("Catcount: %v -> %v", state.GetCatCount(), int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number())))
 
 	if in.GetType() == pb.RequestType_AUDITION {
 		if state.AuditionPick > 0 {
