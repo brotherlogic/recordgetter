@@ -21,6 +21,8 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 		return nil, err
 	}
 
+	s.CtxLog(ctx, fmt.Sprintf("Catcount: %v", state.GetCatCount()))
+
 	if in.GetType() == pb.RequestType_AUDITION {
 		if state.AuditionPick > 0 {
 			rec, err := s.rGetter.getRelease(ctx, state.AuditionPick)
