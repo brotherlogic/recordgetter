@@ -524,16 +524,18 @@ func main() {
 		return
 	}
 
-	// Try to  update in play folders - best effort
-	ctx, cancel := utils.ManualContext("rgload", time.Minute)
-	state, err := server.loadState(ctx)
-	if err == nil {
-		err = server.readLocations(ctx, state)
-		server.CtxLog(ctx, fmt.Sprintf("Read locations: %v", err))
-	} else {
-		server.CtxLog(ctx, fmt.Sprintf("Unable to load state: %v", err))
-	}
-	cancel()
+	go func() {
+		// Try to  update in play folders - best effort
+		ctx, cancel := utils.ManualContext("rgload", time.Minute)
+		state, err := server.loadState(ctx)
+		if err == nil {
+			err = server.readLocations(ctx, state)
+			server.CtxLog(ctx, fmt.Sprintf("Read locations: %v", err))
+		} else {
+			server.CtxLog(ctx, fmt.Sprintf("Unable to load state: %v", err))
+		}
+		cancel()
+	}()
 
 	server.Serve()
 }
