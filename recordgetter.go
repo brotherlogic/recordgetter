@@ -335,6 +335,13 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t time.Time, digitalOnly bool) (*pbrc.Record, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
+	if state.CatCount[int32(pbrc.ReleaseMetadata_PRE_VALIDATE.Number())] < 6 {
+		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state, false)
+		if (err != nil || rec != nil) && s.validate(rec, state) {
+			return rec, err
+		}
+	}
+
 	//Look for a record staged to sell
 	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, digitalOnly)
 	if (err != nil || rec != nil) && s.validate(rec, state) {
