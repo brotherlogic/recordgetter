@@ -28,6 +28,10 @@ func isDigital(rec *pbrc.Record) bool {
 	return rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL
 }
 
+func isTwelve(rec *pbrc.Record) bool {
+	return rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_12_INCH
+}
+
 func (s *Server) validate(rec *pbrc.Record, state *pb.State) bool {
 	for _, format := range rec.GetRelease().GetFormats() {
 		for _, form := range format.GetDescriptions() {
@@ -50,7 +54,7 @@ func (s *Server) isFilable(rc *pbrc.Record) bool {
 	return rc.GetMetadata().GetGoalFolder() == 242017 && rc.GetRelease().GetFormatQuantity() == 1
 }
 
-func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.ReleaseMetadata_Category, state *pb.State, dig bool) (*pbrc.Record, error) {
+func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.ReleaseMetadata_Category, state *pb.State, twelve bool) (*pbrc.Record, error) {
 	pDate := int64(0)
 	var newRec *pbrc.Record
 	newRec = nil
@@ -65,9 +69,9 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 		rc, err := s.rGetter.getRelease(ctx, id)
 		if err == nil && rc != nil {
 			if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() && rc.GetMetadata().SetRating == 0 {
-				if s.dateFine(rc, t, state) && !s.needsRip(rc) && dig == isDigital(rc) {
+				if s.dateFine(rc, t, state) && !s.needsRip(rc) && twelve == isTwelve(rc) {
 
-					s.DLog(ctx, fmt.Sprintf("%v and %v -> %v", dig, isDigital(rc), rc.GetMetadata()))
+					s.DLog(ctx, fmt.Sprintf("%v and %v -> %v", twelve, isDigital(rc), rc.GetMetadata()))
 					pDate = rc.GetMetadata().DateAdded
 					newRec = rc
 				}

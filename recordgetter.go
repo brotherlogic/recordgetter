@@ -336,7 +336,12 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	if state.CatCount[int32(pbrc.ReleaseMetadata_PRE_VALIDATE.Number())] < 6 {
-		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state, false)
+		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state, true)
+		if (err != nil || rec != nil) && s.validate(rec, state) {
+			return rec, err
+		}
+
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state, false)
 		if (err != nil || rec != nil) && s.validate(rec, state) {
 			return rec, err
 		}
