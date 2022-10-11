@@ -357,7 +357,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 
 	// Get a new record first (only one per day)
 	if state.UnlistenedCount < 1 {
-		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, digitalOnly)
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, true)
 		if err != nil || rec != nil {
 			return rec, err
 		}
@@ -366,7 +366,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	//Look for a record staged to sell
 	s.CtxLog(ctx, fmt.Sprintf("PICK %v %v ->%v", state.CatCount, int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number()), state.CatCount[int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number())]))
 	if state.CatCount[int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number())] == 0 {
-		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, digitalOnly)
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, true)
 		if (err != nil || rec != nil) && s.validate(rec, state) {
 			return rec, err
 		}
