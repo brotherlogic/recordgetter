@@ -51,7 +51,7 @@ func (s *Server) validate(rec *pbrc.Record, state *pb.State) bool {
 }
 
 func (s *Server) isFilable(rc *pbrc.Record) bool {
-	return rc.GetMetadata().GetGoalFolder() == 242017 && rc.GetRelease().GetFormatQuantity() == 1
+	return rc.GetMetadata().GetGoalFolder() == 242017 && rc.GetRelease().GetFormatQuantity() <= 3
 }
 
 func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.ReleaseMetadata_Category, state *pb.State, twelve bool) (*pbrc.Record, error) {
