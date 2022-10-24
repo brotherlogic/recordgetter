@@ -29,7 +29,7 @@ func isDigital(rec *pbrc.Record) bool {
 }
 
 func isTwelve(rec *pbrc.Record) bool {
-	return rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_12_INCH
+	return true
 }
 
 func (s *Server) validate(rec *pbrc.Record, state *pb.State) bool {
@@ -96,7 +96,7 @@ func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folde
 		r, err := s.rGetter.getRelease(ctx, id)
 		if err == nil {
 			if r.GetMetadata().GetCategory() == cat && r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() && r.GetMetadata().SetRating == 0 {
-				if s.dateFine(r, t, state) && !s.needsRip(r) && dig == isDigital(r) {
+				if s.dateFine(r, t, state) && !s.needsRip(r) {
 					if !filable || s.isFilable(r) {
 						return r, nil
 					}
@@ -144,7 +144,7 @@ func (s *Server) getInFolders(ctx context.Context, t time.Time, folders []int32,
 		r, err := s.rGetter.getRelease(ctx, id)
 		if err == nil && r != nil {
 			if r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() && r.GetMetadata().SetRating == 0 {
-				if s.dateFine(r, t, state) && !s.needsRip(r) && dig == isDigital(r) {
+				if s.dateFine(r, t, state) && !s.needsRip(r) {
 					s.setTime(r, state)
 					return r, nil
 				}
