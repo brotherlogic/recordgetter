@@ -355,7 +355,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	s.CtxLog(ctx, fmt.Sprintf("Regular pick because: %v and %v", time.Now().Weekday(), digitalOnly))
 
 	// Get a new record first (only one per day)
-	if state.CatCount[int32(pbrc.ReleaseMetadata_UNLISTENED.Number())] < 1 {
+	if state.CatCount[int32(pbrc.ReleaseMetadata_UNLISTENED.Number())] < 5 {
 		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state)
 		if err != nil || rec != nil {
 			return rec, err
