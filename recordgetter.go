@@ -49,7 +49,7 @@ func (s *Server) metrics(config *pbrg.State) {
 	valids.Set(float64(config.GetValidCount()))
 }
 
-//Server main server type
+// Server main server type
 type Server struct {
 	*goserver.GoServer
 	serving    bool
@@ -336,19 +336,18 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	if state.CatCount[int32(pbrc.ReleaseMetadata_PRE_VALIDATE.Number())] < 6 {
-		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state, true)
+		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state)
 		if (err != nil || rec != nil) && s.validate(rec, state) {
 			return rec, err
 		}
 
-		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state, false)
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state)
 		if (err != nil || rec != nil) && s.validate(rec, state) {
 			return rec, err
 		}
 	}
-
 	//Look for a record staged to sell
-	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, true)
+	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state)
 	if (err != nil || rec != nil) && s.validate(rec, state) {
 		return rec, err
 	}
@@ -357,7 +356,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 
 	// Get a new record first (only one per day)
 	if state.CatCount[int32(pbrc.ReleaseMetadata_UNLISTENED.Number())] < 1 {
-		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, true)
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state)
 		if err != nil || rec != nil {
 			return rec, err
 		}
@@ -366,7 +365,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	//Look for a record staged to sell
 	s.CtxLog(ctx, fmt.Sprintf("PICK %v %v ->%v", state.CatCount, int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number()), state.CatCount[int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number())]))
 	if state.CatCount[int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number())] == 0 {
-		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, true)
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state)
 		if (err != nil || rec != nil) && s.validate(rec, state) {
 			return rec, err
 		}
@@ -379,7 +378,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	}
 
 	// Prioritise PRE_FRESHMAN if there's a lot of them.
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN, state, digitalOnly)
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN, state)
 	if err != nil || rec != nil {
 		s.lastPre = time.Now()
 		return rec, err
@@ -419,7 +418,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	pfTime := time.Hour * 3
 
 	if t.Sub(s.lastPre) > pfTime {
-		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN, state, digitalOnly)
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN, state)
 		if err != nil || rec != nil {
 			s.lastPre = time.Now()
 			return rec, err
@@ -441,7 +440,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	return nil, status.Errorf(codes.FailedPrecondition, "Unable to locate record to listen to")
 }
 
-//Init a record getter
+// Init a record getter
 func Init() *Server {
 	s := &Server{
 		GoServer: &goserver.GoServer{},
