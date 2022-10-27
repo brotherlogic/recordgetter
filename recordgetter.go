@@ -260,9 +260,7 @@ func (p *prodUpdater) update(ctx context.Context, config *pb.State, id, rating i
 	if err != nil {
 		return err
 	}
-	if rec.GetRecord().GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_VALIDATE &&
-		rec.GetRecord().GetMetadata().GetGoalFolder() == 242017 {
-		p.log(ctx, fmt.Sprintf("Recording %v as valid", rec.GetRecord().GetRelease().GetInstanceId()))
+	if rec.GetRecord().GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_VALIDATE {
 		config.ValidCount++
 	}
 
