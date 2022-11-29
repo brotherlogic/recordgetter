@@ -3,12 +3,14 @@ module github.com/brotherlogic/recordgetter
 go 1.16
 
 require (
+	github.com/brotherlogic/discovery v0.0.0-20221129050818-9bfbf289ffb5 // indirect
+	github.com/brotherlogic/gobuildslave v0.0.0-20221129050816-ede1d7000d46 // indirect
 	github.com/brotherlogic/godiscogs v0.0.0-20221025153630-9ad31d9fab21
 	github.com/brotherlogic/goserver v0.0.0-20221106165541-0672428e3628
-	github.com/brotherlogic/keystore v0.0.0-20221118101511-9bbbd1bfa3b7
-	github.com/brotherlogic/recordcollection v0.0.0-20221128050959-4a0d8f1de640
-	github.com/brotherlogic/recordsorganiser v0.0.0-20221128050901-c8a55c0c4351
-	github.com/brotherlogic/recordwants v0.0.0-20221128050114-ed2a46260d56
+	github.com/brotherlogic/keystore v0.0.0-20221128110345-4d7503224d42
+	github.com/brotherlogic/recordcollection v0.0.0-20221128055951-164ed5986c1d
+	github.com/brotherlogic/recordsorganiser v0.0.0-20221128055437-aac70b65fac4
+	github.com/brotherlogic/recordwants v0.0.0-20221128065632-47a81b50b9fe
 	github.com/golang/protobuf v1.5.2
 	github.com/prometheus/client_golang v1.14.0
 	golang.org/x/net v0.2.0
