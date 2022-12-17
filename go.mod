@@ -3,7 +3,7 @@ module github.com/brotherlogic/recordgetter
 go 1.16
 
 require (
-	github.com/brotherlogic/dstore v0.0.0-20221217180602-7a44fe29b27a // indirect
+	github.com/brotherlogic/discovery v0.0.0-20221217181235-38a9c3ae2dc4 // indirect
 	github.com/brotherlogic/godiscogs v0.0.0-20221025153630-9ad31d9fab21
 	github.com/brotherlogic/goserver v0.0.0-20221217002224-0ba5c0213be1
 	github.com/brotherlogic/keystore v0.0.0-20221210190215-af3698c6a2c9
