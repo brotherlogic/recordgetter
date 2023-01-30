@@ -333,7 +333,13 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t time.Time, digitalOnly bool) (*pbrc.Record, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state)
+	//Look for a record staged to sell
+	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state)
+	if (err != nil || rec != nil) && s.validate(rec, state) {
+		return rec, err
+	}
+
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state)
 	if (err != nil || rec != nil) && s.validate(rec, state) {
 		return rec, err
 	}
@@ -343,11 +349,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		if (err != nil || rec != nil) && s.validate(rec, state) {
 			return rec, err
 		}
-	}
-	//Look for a record staged to sell
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state)
-	if (err != nil || rec != nil) && s.validate(rec, state) {
-		return rec, err
 	}
 
 	s.CtxLog(ctx, fmt.Sprintf("Regular pick because: %v and %v", time.Now().Weekday(), digitalOnly))
