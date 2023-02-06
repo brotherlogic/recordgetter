@@ -9,7 +9,7 @@ import (
 	pb "github.com/brotherlogic/recordgetter/proto"
 	"golang.org/x/net/context"
 
-	pbgd "github.com/brotherlogic/godiscogs"
+	pbgd "github.com/brotherlogic/godiscogs/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pbro "github.com/brotherlogic/recordsorganiser/proto"
 )
