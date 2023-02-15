@@ -344,18 +344,14 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		return rec, err
 	}
 
-	if state.CatCount[int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number())] < 1 {
-		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state)
-		if (err != nil || rec != nil) && s.validate(rec, state) {
-			return rec, err
-		}
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state)
+	if (err != nil || rec != nil) && s.validate(rec, state) {
+		return rec, err
 	}
 
-	if state.CatCount[int32(pbrc.ReleaseMetadata_PRE_VALIDATE.Number())] < 3 {
-		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state)
-		if (err != nil || rec != nil) && s.validate(rec, state) {
-			return rec, err
-		}
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state)
+	if (err != nil || rec != nil) && s.validate(rec, state) {
+		return rec, err
 	}
 
 	s.CtxLog(ctx, fmt.Sprintf("Regular pick because: %v and %v", time.Now().Weekday(), digitalOnly))
