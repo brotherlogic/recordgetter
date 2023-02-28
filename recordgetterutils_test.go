@@ -88,7 +88,7 @@ func TestNumberListens(t *testing.T) {
 
 func TestGetPreFreshamanOnCategoryGet(t *testing.T) {
 	s := InitTestServer()
-	s.rGetter = &testGetter{records: []*pbrc.Record{&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{CdPath: "blah"}, Release: &pbgd.Release{InstanceId: 1}}}}
+	s.rGetter = &testGetter{records: []*pbrc.Record{&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{CdPath: "blah", FiledUnder: pbrc.ReleaseMetadata_FILE_12_INCH}, Release: &pbgd.Release{InstanceId: 1}}}}
 
 	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{})
 	if err != nil {

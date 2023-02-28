@@ -25,7 +25,7 @@ func (s *Server) countSeven(t time.Time, state *pb.State) bool {
 }
 
 func isDigital(rec *pbrc.Record) bool {
-	return rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL
+	return rec.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_12_INCH
 }
 
 func isTwelve(rec *pbrc.Record) bool {
