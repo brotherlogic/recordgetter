@@ -359,7 +359,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	// Look for pre high school records
 	if state.CatCount[int32(pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL.Number())] == 0 {
 		rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, digitalOnly, false)
-		if err != nil || rec != nil {
+		if (err != nil || rec != nil) && s.validate(rec, state) {
 			return rec, err
 		}
 	}
