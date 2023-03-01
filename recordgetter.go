@@ -102,7 +102,7 @@ func (p *prodWants) updateWant(ctx context.Context, id int32, level rwpb.MasterW
 	defer conn.Close()
 
 	client := rwpb.NewWantServiceClient(conn)
-	_, err = client.Update(ctx, &rwpb.UpdateRequest{Want: &pbgd.Release{Id: id}, Level: level})
+	_, err = client.Update(ctx, &rwpb.UpdateRequest{Reason: "from recordgetter", Want: &pbgd.Release{Id: id}, Level: level})
 	return err
 }
 
