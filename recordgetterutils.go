@@ -98,8 +98,10 @@ func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folde
 		if err == nil {
 			if r.GetMetadata().GetCategory() == cat && r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() && r.GetMetadata().SetRating == 0 {
 				if s.dateFine(r, t, state) && !s.needsRip(r) {
-					if !filable || s.isFilable(r) {
-						return r, nil
+					if !isDigital(r) {
+						if !filable || s.isFilable(r) {
+							return r, nil
+						}
 					}
 				}
 			}
