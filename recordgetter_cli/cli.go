@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/brotherlogic/goserver/utils"
-	"google.golang.org/grpc"
 
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pbrg "github.com/brotherlogic/recordgetter/proto"
@@ -30,22 +29,8 @@ func clear(ctx context.Context, t pbrg.RequestType) {
 	}
 	defer conn.Close()
 	client := pbrg.NewRecordGetterClient(conn)
-	r, err := client.Force(context.Background(), &pbrg.ForceRequest{Type: t})
+	r, err := client.Force(ctx, &pbrg.ForceRequest{Type: t})
 	fmt.Printf("%v and %v", r, err)
-}
-
-func listened(score int32) {
-	host, port := findServer("recordgetter")
-	conn, _ := grpc.Dial(host+":"+strconv.Itoa(port), grpc.WithInsecure())
-	defer conn.Close()
-	client := pbrg.NewRecordGetterClient(conn)
-	r, err := client.GetRecord(context.Background(), &pbrg.GetRecordRequest{})
-	if err != nil {
-		log.Fatalf("%v", err)
-	}
-	r.GetRecord().GetRelease().Rating = score
-	_, err = client.Listened(context.Background(), r.GetRecord())
-	fmt.Printf("%v", err)
 }
 
 func digital(ctx context.Context) {

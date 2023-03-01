@@ -25,7 +25,7 @@ func (s *Server) countSeven(t time.Time, state *pb.State) bool {
 }
 
 func isDigital(rec *pbrc.Record) bool {
-	return rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL
+	return rec.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_12_INCH
 }
 
 func isTwelve(rec *pbrc.Record) bool {
@@ -70,10 +70,11 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 		if err == nil && rc != nil {
 			if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() && rc.GetMetadata().SetRating == 0 {
 				if s.dateFine(rc, t, state) && !s.needsRip(rc) {
-
-					s.DLog(ctx, fmt.Sprintf("%v -> %v", isDigital(rc), rc.GetMetadata()))
-					pDate = rc.GetMetadata().DateAdded
-					newRec = rc
+					if !isDigital(rc) {
+						s.DLog(ctx, fmt.Sprintf("%v -> %v", isDigital(rc), rc.GetMetadata()))
+						pDate = rc.GetMetadata().DateAdded
+						newRec = rc
+					}
 				}
 			}
 		}

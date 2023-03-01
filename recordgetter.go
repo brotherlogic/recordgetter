@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	pbgd "github.com/brotherlogic/godiscogs"
+	pbgd "github.com/brotherlogic/godiscogs/proto"
 	pbg "github.com/brotherlogic/goserver/proto"
 	"github.com/brotherlogic/goserver/utils"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
@@ -349,8 +349,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		return rec, err
 	}
 
-	s.CtxLog(ctx, fmt.Sprintf("Regular pick because: %v and %v", time.Now().Weekday(), digitalOnly))
-
 	if state.CatCount[int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number())] == 0 {
 		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state)
 		if (err != nil || rec != nil) && s.validate(rec, state) {
@@ -359,9 +357,11 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	}
 
 	// Look for pre high school records
-	rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, digitalOnly, false)
-	if err != nil || rec != nil {
-		return rec, err
+	if state.CatCount[int32(pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL.Number())] == 0 {
+		rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, digitalOnly, false)
+		if err != nil || rec != nil {
+			return rec, err
+		}
 	}
 
 	// Prioritise PRE_FRESHMAN if there's a lot of them.
