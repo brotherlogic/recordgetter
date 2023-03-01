@@ -349,23 +349,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		return rec, err
 	}
 
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state)
-	if (err != nil || rec != nil) && s.validate(rec, state) {
-		return rec, err
-	}
-
-	s.CtxLog(ctx, fmt.Sprintf("Regular pick because: %v and %v", time.Now().Weekday(), digitalOnly))
-
-	// Get a new record first (only one per day)
-	if state.CatCount[int32(pbrc.ReleaseMetadata_UNLISTENED.Number())] < 5 {
-		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state)
-		if err != nil || rec != nil {
-			return rec, err
-		}
-	}
-
-	//Look for a record staged to sell
-	s.CtxLog(ctx, fmt.Sprintf("PICK %v %v ->%v", state.CatCount, int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number()), state.CatCount[int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number())]))
 	if state.CatCount[int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number())] == 0 {
 		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state)
 		if (err != nil || rec != nil) && s.validate(rec, state) {
@@ -374,9 +357,11 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	}
 
 	// Look for pre high school records
-	rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, digitalOnly, false)
-	if err != nil || rec != nil {
-		return rec, err
+	if state.CatCount[int32(pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL.Number())] == 0 {
+		rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, digitalOnly, false)
+		if err != nil || rec != nil {
+			return rec, err
+		}
 	}
 
 	// Prioritise PRE_FRESHMAN if there's a lot of them.
