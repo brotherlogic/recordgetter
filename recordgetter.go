@@ -346,12 +346,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		return rec, err
 	}
 
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state)
-	if (err != nil || rec != nil) && s.validate(rec, state) {
-		s.CtxLog(ctx, "PICKED PV")
-		return rec, err
-	}
-
 	if state.CatCount[int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number())] == 0 {
 		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state)
 		if (err != nil || rec != nil) && s.validate(rec, state) {
@@ -369,11 +363,21 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		}
 	}
 
-	// Prioritise PRE_FRESHMAN if there's a lot of them.
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_FRESHMAN, state)
-	if err != nil || rec != nil {
-		s.CtxLog(ctx, "PICKED PF")
-		s.lastPre = time.Now()
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state)
+	if (err != nil || rec != nil) && s.validate(rec, state) {
+		s.CtxLog(ctx, "PICKED PV")
+		return rec, err
+	}
+
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state)
+	if (err != nil || rec != nil) && s.validate(rec, state) {
+		s.CtxLog(ctx, "PICKED PIC")
+		return rec, err
+	}
+
+	rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, digitalOnly, false)
+	if (err != nil || rec != nil) && s.validate(rec, state) {
+		s.CtxLog(ctx, "PICKED PHS")
 		return rec, err
 	}
 
