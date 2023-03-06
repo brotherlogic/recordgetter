@@ -349,7 +349,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	if state.CatCount[int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number())] == 0 {
 		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state)
 		if (err != nil || rec != nil) && s.validate(rec, state) {
-			s.CtxLog(ctx, "PICKED PIC")
+			s.CtxLog(ctx, "PICKED FIST PIC")
 			return rec, err
 		}
 	}
@@ -358,7 +358,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	if state.CatCount[int32(pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL.Number())] == 0 {
 		rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, digitalOnly, false)
 		if (err != nil || rec != nil) && s.validate(rec, state) {
-			s.CtxLog(ctx, "PICKED PHS")
+			s.CtxLog(ctx, "PICKED FIRST PHS")
 			return rec, err
 		}
 	}
