@@ -309,11 +309,6 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 		return false
 	}
 
-	// Fix the number of 45 listened to per day
-	if state.SevenCount > 5 && rc.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_7_INCH {
-		return false
-	}
-
 	// Don't pick records in Limbo {
 	if rc.GetRelease().GetFolderId() == 3380098 {
 		return false
