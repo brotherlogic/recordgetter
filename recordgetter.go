@@ -367,6 +367,8 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	if (err != nil || rec != nil) && s.validate(rec, state) {
 		s.CtxLog(ctx, "PICKED PV")
 		return rec, err
+	} else {
+		s.CtxLog(ctx, fmt.Sprintf("SKIPPING PV: %v, %v, %v", err, rec, s.validate(rec, state)))
 	}
 
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state)
