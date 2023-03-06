@@ -61,6 +61,8 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 
 	recs, err := s.rGetter.getRecordsInCategory(ctx, c)
 
+	s.CtxLog(ctx, fmt.Sprintf("For %v got %v", c, len(recs)))
+
 	if err != nil {
 		return nil, err
 	}
