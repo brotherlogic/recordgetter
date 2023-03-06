@@ -322,7 +322,7 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 	for _, score := range state.Scores {
 		if score.InstanceId == rc.GetRelease().InstanceId {
 			// One day between listens
-			if t.Sub(time.Unix(score.ScoreDate, 0)) < time.Hour*24 {
+			if t.Sub(time.Unix(score.ScoreDate, 0)) < time.Minute {
 				return false
 			}
 		}
