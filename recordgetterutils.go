@@ -33,19 +33,6 @@ func isTwelve(rec *pbrc.Record) bool {
 }
 
 func (s *Server) validate(rec *pbrc.Record, state *pb.State) bool {
-	for _, format := range rec.GetRelease().GetFormats() {
-		for _, form := range format.GetDescriptions() {
-			if strings.Contains(form, "7") {
-				return s.countSeven(time.Now(), state)
-			}
-		}
-	}
-
-	if time.Now().YearDay() != int(state.GetSevenDay()) {
-		state.SevenCount = 1
-		state.SevenDay = int32(time.Now().YearDay())
-	}
-
 	// Records should be in the listening pile
 	return rec.GetRelease().GetFolderId() == 812802 && rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_12_INCH
 }
