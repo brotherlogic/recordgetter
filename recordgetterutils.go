@@ -24,8 +24,8 @@ func (s *Server) countSeven(t time.Time, state *pb.State) bool {
 	return true
 }
 
-func isDigital(rec *pbrc.Record) bool {
-	return rec.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_12_INCH && rec.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_CD
+func isLegit(rec *pbrc.Record) bool {
+	return rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_12_INCH || rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD
 }
 
 func isTwelve(rec *pbrc.Record) bool {
@@ -59,8 +59,8 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 		if err == nil && rc != nil {
 			if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() && rc.GetMetadata().SetRating == 0 {
 				if s.dateFine(rc, t, state) && !s.needsRip(rc) {
-					if !isDigital(rc) {
-						s.DLog(ctx, fmt.Sprintf("%v -> %v", isDigital(rc), rc.GetMetadata()))
+					if isLegit(rc) {
+						s.DLog(ctx, fmt.Sprintf("%v -> %v", isLegit(rc), rc.GetMetadata()))
 						pDate = rc.GetMetadata().DateAdded
 						newRec = rc
 					}
@@ -87,7 +87,7 @@ func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folde
 		if err == nil {
 			if r.GetMetadata().GetCategory() == cat && r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() && r.GetMetadata().SetRating == 0 {
 				if s.dateFine(r, t, state) && !s.needsRip(r) {
-					if !isDigital(r) {
+					if isLegit(r) {
 						if !filable || s.isFilable(r) {
 							return r, nil
 						}
