@@ -34,7 +34,7 @@ func isTwelve(rec *pbrc.Record) bool {
 
 func (s *Server) validate(rec *pbrc.Record, state *pb.State) bool {
 	// Records should be in the listening pile
-	return rec.GetRelease().GetFolderId() == 812802 && rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_12_INCH
+	return rec.GetRelease().GetFolderId() == 812802 && (rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_12_INCH || rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD)
 }
 
 func (s *Server) isFilable(rc *pbrc.Record) bool {
