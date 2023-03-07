@@ -371,6 +371,8 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	if (err != nil || rec != nil) && s.validate(rec, state) {
 		s.CtxLog(ctx, "PICKED PIC")
 		return rec, err
+	} else {
+		s.CtxLog(ctx, fmt.Sprintf("SKIPPING PIC: %v, %v, %v", err, rec, s.validate(rec, state)))
 	}
 
 	rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, digitalOnly, false)
