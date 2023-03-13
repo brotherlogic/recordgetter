@@ -34,6 +34,7 @@ message State {
   int32 unlistened_count = 13;
 
   map<int32, int32> cat_count = 12;
+  map<int32, int32> score_count = 14;
 }
 
 enum RequestType {

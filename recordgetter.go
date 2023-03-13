@@ -268,6 +268,8 @@ func (p *prodUpdater) update(ctx context.Context, config *pb.State, id, rating i
 		config.UnlistenedCount++
 	}
 
+	config.ScoreCount[int32(rec.GetRecord().GetMetadata().GetCategory())]++
+
 	_, err = client.UpdateRecord(ctx, &pbrc.UpdateRecordRequest{Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: id}, Metadata: &pbrc.ReleaseMetadata{SetRating: rating}}, Reason: "RecordScore from Getter"})
 	if err != nil {
 		return err
@@ -327,6 +329,14 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 
 func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t time.Time, digitalOnly bool) (*pbrc.Record, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
+
+	if state.ScoreCount[int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number())] == 0 {
+		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state)
+		if (err != nil || rec != nil) && s.validate(rec, state) {
+			s.CtxLog(ctx, "PICKED FIST PIC")
+			return rec, err
+		}
+	}
 
 	//Look for a record staged to sell
 	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state)
@@ -467,6 +477,9 @@ func (s *Server) loadState(ctx context.Context) (*pbrg.State, error) {
 
 	if state.GetCatCount() == nil {
 		state.CatCount = make(map[int32]int32)
+	}
+	if state.GetScoreCount() == nil {
+		state.ScoreCount = make(map[int32]int32)
 	}
 
 	//Update the wait time
