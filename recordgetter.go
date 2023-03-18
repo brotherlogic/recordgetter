@@ -42,11 +42,19 @@ var (
 		Name: "recordgetter_valids",
 		Help: "The number of running queues",
 	})
+
+	scoreCount = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "recordgetter_scorecount",
+	}, []string{"category"})
 )
 
 func (s *Server) metrics(config *pbrg.State) {
 	sevens.Set(float64(config.GetSevenCount()))
 	valids.Set(float64(config.GetValidCount()))
+
+	for cat, val := range config.ScoreCount {
+		scoreCount.With(prometheus.Labels{"category": pbrc.ReleaseMetadata_Category_name[cat]}).Set(float64(val))
+	}
 }
 
 // Server main server type
