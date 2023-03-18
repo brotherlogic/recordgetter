@@ -55,6 +55,12 @@ func (s *Server) metrics(config *pbrg.State) {
 	for cat, val := range config.ScoreCount {
 		scoreCount.With(prometheus.Labels{"category": pbrc.ReleaseMetadata_Category_name[cat]}).Set(float64(val))
 	}
+
+	for _, cat := range []string{"PRE_HIGH_SCHOOL", "PRE_IN_COLLECTION", "UNLISTENED"} {
+		if _, ok := config.ScoreCount[pbrc.ReleaseMetadata_Category_value[cat]]; !ok {
+			scoreCount.With(prometheus.Labels{"category": cat}).Set(0)
+		}
+	}
 }
 
 // Server main server type
