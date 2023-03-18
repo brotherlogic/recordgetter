@@ -42,11 +42,19 @@ var (
 		Name: "recordgetter_valids",
 		Help: "The number of running queues",
 	})
+
+	scoreCount = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "recordgetter_scorecount",
+	}, []string{"category"})
 )
 
 func (s *Server) metrics(config *pbrg.State) {
 	sevens.Set(float64(config.GetSevenCount()))
 	valids.Set(float64(config.GetValidCount()))
+
+	for cat, val := range config.ScoreCount {
+		scoreCount.With(prometheus.Labels{"category": pbrc.ReleaseMetadata_Category_name[cat]}).Set(float64(val))
+	}
 }
 
 // Server main server type
@@ -329,6 +337,22 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 
 func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t time.Time, digitalOnly bool) (*pbrc.Record, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
+
+	if state.ScoreCount[int32(pbrc.ReleaseMetadata_UNLISTENED.Number())] == 0 {
+		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state)
+		if (err != nil || rec != nil) && s.validate(rec, state) {
+			s.CtxLog(ctx, "PICKED FIRST UL")
+			return rec, err
+		}
+	}
+
+	if state.ScoreCount[int32(pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL.Number())] == 0 {
+		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state)
+		if (err != nil || rec != nil) && s.validate(rec, state) {
+			s.CtxLog(ctx, "PICKED FIRST PHS")
+			return rec, err
+		}
+	}
 
 	if state.ScoreCount[int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number())] == 0 {
 		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state)
