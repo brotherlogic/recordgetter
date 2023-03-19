@@ -187,7 +187,6 @@ func (p *prodGetter) getAuditionRelease(ctx context.Context) (*pbrc.Record, erro
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(ids.InstanceIds), func(i, j int) { ids.InstanceIds[i], ids.InstanceIds[j] = ids.InstanceIds[j], ids.InstanceIds[i] })
 
-	p.Log(ctx, fmt.Sprintf("Searching through %v records to find audition", len(ids.InstanceIds)))
 	for _, id := range ids.InstanceIds {
 		rec, err := p.getRelease(ctx, id)
 		if err != nil {
@@ -403,16 +402,12 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	if (err != nil || rec != nil) && s.validate(rec, state) {
 		s.CtxLog(ctx, "PICKED PV")
 		return rec, err
-	} else {
-		s.CtxLog(ctx, fmt.Sprintf("SKIPPING PV: %v, %v, %v", err, rec, s.validate(rec, state)))
 	}
 
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state)
 	if (err != nil || rec != nil) && s.validate(rec, state) {
 		s.CtxLog(ctx, "PICKED PIC")
 		return rec, err
-	} else {
-		s.CtxLog(ctx, fmt.Sprintf("SKIPPING PIC: %v, %v, %v", err, rec, s.validate(rec, state)))
 	}
 
 	rec, err = s.getInFolderWithCategory(ctx, t, int32(812802), pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, digitalOnly, false)
