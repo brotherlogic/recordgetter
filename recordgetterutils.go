@@ -25,7 +25,7 @@ func (s *Server) countSeven(t time.Time, state *pb.State) bool {
 }
 
 func isLegit(rec *pbrc.Record) bool {
-	return rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_12_INCH || rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD
+	return rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_12_INCH || rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD || rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_7_INCH
 }
 
 func isTwelve(rec *pbrc.Record) bool {
