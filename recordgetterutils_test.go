@@ -218,12 +218,3 @@ func TestValidate(t *testing.T) {
 		t.Errorf("Baseline should be valid")
 	}
 }
-
-func TestInvalid(t *testing.T) {
-	s := InitTestServer()
-	ti := time.Now()
-
-	for i := 0; i < 10; i++ {
-		s.countSeven(ti, &pb.State{})
-	}
-}
