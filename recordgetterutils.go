@@ -13,28 +13,18 @@ import (
 	pbro "github.com/brotherlogic/recordsorganiser/proto"
 )
 
-func (s *Server) countSeven(t time.Time, state *pb.State) bool {
-	if t.YearDay() == int(state.GetSevenDay()) {
-		state.SevenCount++
-		return state.SevenCount <= 6
-	}
-
-	state.SevenDay = int32(t.YearDay())
-	state.SevenCount = 1
-	return true
-}
-
 func isLegit(rec *pbrc.Record) bool {
-	return rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_12_INCH || rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD || rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_7_INCH
-}
-
-func isTwelve(rec *pbrc.Record) bool {
-	return true
+	return rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_12_INCH ||
+		rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD ||
+		rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_7_INCH
 }
 
 func (s *Server) validate(rec *pbrc.Record, state *pb.State) bool {
 	// Records should be in the listening pile
-	return rec.GetRelease().GetFolderId() == 812802 && (rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_12_INCH || rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD)
+	return rec.GetRelease().GetFolderId() == 812802 &&
+		(rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_12_INCH ||
+			rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD ||
+			rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_7_INCH)
 }
 
 func (s *Server) isFilable(rc *pbrc.Record) bool {
