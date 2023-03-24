@@ -318,6 +318,10 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 		return true
 	}
 
+	if rc.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL {
+		return false
+	}
+
 	// Don't listen to in box record
 	if rc.GetMetadata().GetBoxState() != pbrc.ReleaseMetadata_BOX_UNKNOWN &&
 		rc.GetMetadata().GetBoxState() != pbrc.ReleaseMetadata_OUT_OF_BOX {
