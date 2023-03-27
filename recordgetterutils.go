@@ -62,7 +62,7 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 	return nil, nil
 }
 
-func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folder int32, cat pbrc.ReleaseMetadata_Category, state *pb.State, dig bool, filable bool) (*pbrc.Record, error) {
+func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folder int32, cat pbrc.ReleaseMetadata_Category, state *pb.State, digitalOnly bool, filable bool) (*pbrc.Record, error) {
 	recs, err := s.rGetter.getRecordsInFolder(ctx, folder)
 	if err != nil {
 		return nil, err
@@ -70,6 +70,10 @@ func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folde
 
 	for _, id := range recs {
 		r, err := s.rGetter.getRelease(ctx, id)
+		if (digitalOnly && r.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_DIGITAL) ||
+			(!digitalOnly && r.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL) {
+			continue
+		}
 		if err == nil {
 			if r.GetMetadata().GetCategory() == cat && r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() && r.GetMetadata().SetRating == 0 {
 				if s.dateFine(r, t, state) && !s.needsRip(r) {
