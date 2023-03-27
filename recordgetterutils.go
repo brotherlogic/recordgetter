@@ -35,6 +35,7 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 
 	for _, id := range recs {
 		rc, err := s.rGetter.getRelease(ctx, id)
+		s.CtxLog(ctx, fmt.Sprintf("SKIP %v-> %v and %v", id, digitalOnly, rc.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL))
 		if (digitalOnly && rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_DIGITAL) ||
 			(!digitalOnly && rc.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL) {
 			continue
