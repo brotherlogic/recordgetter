@@ -14,7 +14,7 @@ import (
 	rwpb "github.com/brotherlogic/recordwants/proto"
 )
 
-//GetRecord gets a record
+// GetRecord gets a record
 func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.GetRecordResponse, error) {
 	state, err := s.loadState(ctx)
 	if err != nil {
@@ -148,7 +148,7 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 	return &pb.GetRecordResponse{Record: rec, NumListens: getNumListens(rec), Disk: disk}, s.saveState(ctx, state)
 }
 
-//Listened marks a record as Listened
+// Listened marks a record as Listened
 func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, error) {
 	state, err := s.loadState(ctx)
 	if err != nil {
@@ -238,7 +238,7 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 	return &pb.Empty{}, s.saveState(ctx, state)
 }
 
-//Force forces a repick
+// Force forces a repick
 func (s *Server) Force(ctx context.Context, in *pb.ForceRequest) (*pb.Empty, error) {
 	state, err := s.loadState(ctx)
 	if err != nil {
@@ -247,6 +247,8 @@ func (s *Server) Force(ctx context.Context, in *pb.ForceRequest) (*pb.Empty, err
 	switch in.GetType() {
 	case pb.RequestType_AUDITION:
 		state.AuditionPick = -1
+	case pb.RequestType_DIGITAL:
+		state.CurrentDigitalPick = -1
 	}
 	state.CurrentPick = nil
 	s.saveState(ctx, state)
