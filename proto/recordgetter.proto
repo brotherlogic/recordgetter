@@ -46,6 +46,7 @@ enum RequestType {
 message GetRecordRequest {
   bool refresh = 1;
   RequestType type = 2;
+  recordcollection.ReleaseMetadata.FileSize filling = 3;
 }
 
 message GetRecordResponse {
