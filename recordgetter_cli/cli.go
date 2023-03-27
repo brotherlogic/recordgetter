@@ -212,6 +212,8 @@ func main() {
 				clear(ctx, pbrg.RequestType_AUDITION)
 			case "main":
 				clear(ctx, pbrg.RequestType_DEFAULT)
+			case "digital":
+				clear(ctx, pbrg.RequestType_DIGITAL)
 			}
 		case "get":
 			get(ctx)
