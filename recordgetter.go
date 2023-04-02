@@ -421,28 +421,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	//Update the wait time
 	waiting.With(prometheus.Labels{"wait": "want"}).Set(float64(state.GetLastWant()))
 
-	// If it's been 6 hours since our last one, pull a want from the list
-	if time.Now().Sub(time.Unix(state.GetLastWant(), 0)) > time.Hour*6 && !digitalOnly {
-		wants, err := s.wants.getWants(ctx)
-		if err != nil {
-			s.CtxLog(ctx, "PICKED WANT")
-			return rec, err
-		}
-		for _, want := range wants {
-			if want.Level == rwpb.MasterWant_UNKNOWN {
-				rec, err := s.rGetter.getPlainRecord(ctx, want.GetRelease().GetId())
-				if err == nil {
-					return rec, err
-				}
-
-				code := status.Convert(err)
-				if code.Code() != codes.Canceled {
-					s.RaiseIssue("GetRecordError", fmt.Sprintf("Weird response back from record: %v", err))
-				}
-			}
-		}
-	}
-
 	return nil, status.Errorf(codes.FailedPrecondition, "Unable to locate record to listen to")
 }
 
