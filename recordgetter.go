@@ -376,12 +376,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		return rec, err
 	}
 
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, digitalOnly)
-	if (err != nil || rec != nil) && s.validate(rec, state) {
-		s.CtxLog(ctx, "PICKED UL")
-		return rec, err
-	}
-
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state, digitalOnly)
 	s.CtxLog(ctx, fmt.Sprintf("SKIP %v %v", rec, err))
 	if (err != nil || rec != nil) && s.validate(rec, state) {
@@ -398,6 +392,12 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, digitalOnly)
 	if (err != nil || rec != nil) && s.validate(rec, state) {
 		s.CtxLog(ctx, "PICKED PHS")
+		return rec, err
+	}
+
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, digitalOnly)
+	if (err != nil || rec != nil) && s.validate(rec, state) {
+		s.CtxLog(ctx, "PICKED UL")
 		return rec, err
 	}
 
