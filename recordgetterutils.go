@@ -15,7 +15,8 @@ import (
 
 func (s *Server) validate(rec *pbrc.Record, state *pb.State) bool {
 	// Records should be in the listening pile
-	return rec.GetRelease().GetFolderId() == 812802
+	return rec.GetRelease().GetFolderId() == 812802 &&
+		(rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD || rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL)
 }
 
 func (s *Server) isFilable(rc *pbrc.Record) bool {
