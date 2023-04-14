@@ -54,7 +54,7 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 					s.CtxLog(ctx, fmt.Sprintf("Date is not fine for %v", id))
 				}
 			} else {
-				s.CtxLog(ctx, fmt.Sprintf("Did not pass go %v -> %v: %v, %v, %v", id, pDate, rc.GetRelease().GetRating(), rc.GetMetadata().GetDirty(), rc.GetMetadata().GetSetRating()))
+				s.CtxLog(ctx, fmt.Sprintf("Did not pass go %v -> %v: %v (%v), %v, %v", id, pDate, newRec.GetRelease().GetInstanceId(), rc.GetRelease().GetRating(), rc.GetMetadata().GetDirty(), rc.GetMetadata().GetSetRating()))
 			}
 		}
 	}
