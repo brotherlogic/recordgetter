@@ -13,7 +13,7 @@ import (
 	pbro "github.com/brotherlogic/recordsorganiser/proto"
 )
 
-func (s *Server) validate(rec *pbrc.Record, state *pb.State) bool {
+func (s *Server) validate(rec *pbrc.Record) bool {
 	// Records should be in the listening pile
 	return rec.GetRelease().GetFolderId() == 812802 &&
 		(rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD || rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL)
@@ -41,6 +41,12 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 			(!digitalOnly && rc.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL) {
 			continue
 		}
+
+		if !s.validate(rc) {
+			s.CtxLog(ctx, fmt.Sprintf("SKIP %v -> does not validate", id))
+			continue
+		}
+
 		s.CtxLog(ctx, fmt.Sprintf("Evaluating %v from %v", rc.GetRelease().GetTitle(), c))
 		if err == nil && rc != nil {
 			if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) &&

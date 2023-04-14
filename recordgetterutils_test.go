@@ -88,7 +88,7 @@ func TestNumberListens(t *testing.T) {
 
 func TestGetPreFreshamanOnCategoryGet(t *testing.T) {
 	s := InitTestServer()
-	s.rGetter = &testGetter{records: []*pbrc.Record{&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{CdPath: "blah", FiledUnder: pbrc.ReleaseMetadata_FILE_12_INCH}, Release: &pbgd.Release{InstanceId: 1}}}}
+	s.rGetter = &testGetter{records: []*pbrc.Record{&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, CdPath: "blah", FiledUnder: pbrc.ReleaseMetadata_FILE_CD}, Release: &pbgd.Release{FolderId: 812802, InstanceId: 1}}}}
 
 	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{}, false)
 	if err != nil {
@@ -213,7 +213,7 @@ func TestRemoveSeven(t *testing.T) {
 func TestValidate(t *testing.T) {
 	s := InitTestServer()
 
-	valid := s.validate(&pbrc.Record{Release: &pbgd.Release{Formats: []*pbgd.Format{&pbgd.Format{Descriptions: []string{"7\""}}}}}, &pb.State{})
+	valid := s.validate(&pbrc.Record{Release: &pbgd.Release{Formats: []*pbgd.Format{&pbgd.Format{Descriptions: []string{"7\""}}}}})
 	if valid {
 		t.Errorf("Baseline should be valid")
 	}
