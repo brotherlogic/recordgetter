@@ -43,7 +43,10 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 		}
 		s.CtxLog(ctx, fmt.Sprintf("Evaluating %v from %v", rc.GetRelease().GetTitle(), c))
 		if err == nil && rc != nil {
-			if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) && rc.GetRelease().Rating == 0 && !rc.GetMetadata().GetDirty() && rc.GetMetadata().SetRating == 0 {
+			if (pDate == 0 || rc.GetMetadata().DateAdded < pDate) &&
+				rc.GetRelease().Rating == 0 &&
+				!rc.GetMetadata().GetDirty() &&
+				rc.GetMetadata().SetRating == 0 {
 				if s.dateFine(rc, t, state) && !s.needsRip(rc) {
 					pDate = rc.GetMetadata().DateAdded
 					newRec = rc
@@ -51,7 +54,7 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 					s.CtxLog(ctx, fmt.Sprintf("Date is not fine for %v", id))
 				}
 			} else {
-				s.CtxLog(ctx, fmt.Sprintf("Did not pass go %v", id))
+				s.CtxLog(ctx, fmt.Sprintf("Did not pass go %v -> %v: %v, %v, %v", id, pDate, rc.GetRelease().GetRating(), rc.GetMetadata().GetDirty(), rc.GetMetadata().GetSetRating()))
 			}
 		}
 	}
