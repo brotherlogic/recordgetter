@@ -347,7 +347,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 
 	if state.ScoreCount[int32(pbrc.ReleaseMetadata_UNLISTENED.Number())] == 0 {
 		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, digitalOnly)
-		if (err != nil || rec != nil) && s.validate(rec, state) {
+		if (err != nil || rec != nil) && s.validate(rec) {
 			s.CtxLog(ctx, "PICKED FIRST UL")
 			return rec, err
 		}
@@ -355,7 +355,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 
 	if state.ScoreCount[int32(pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL.Number())] == 0 {
 		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, digitalOnly)
-		if (err != nil || rec != nil) && s.validate(rec, state) {
+		if (err != nil || rec != nil) && s.validate(rec) {
 			s.CtxLog(ctx, "PICKED FIRST PHS")
 			return rec, err
 		}
@@ -363,7 +363,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 
 	if state.ScoreCount[int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number())] == 0 {
 		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, digitalOnly)
-		if (err != nil || rec != nil) && s.validate(rec, state) {
+		if (err != nil || rec != nil) && s.validate(rec) {
 			s.CtxLog(ctx, "PICKED FIST PIC")
 			return rec, err
 		}
@@ -371,26 +371,26 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 
 	//Look for a record staged to sell
 	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, digitalOnly)
-	if (err != nil || rec != nil) && s.validate(rec, state) {
+	if (err != nil || rec != nil) && s.validate(rec) {
 		s.CtxLog(ctx, "PICKED STS")
 		return rec, err
 	}
 
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state, digitalOnly)
 	s.CtxLog(ctx, fmt.Sprintf("SKIP %v %v", rec, err))
-	if (err != nil || rec != nil) && s.validate(rec, state) {
+	if (err != nil || rec != nil) && s.validate(rec) {
 		s.CtxLog(ctx, "PICKED PV")
 		return rec, err
 	}
 
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, digitalOnly)
-	if (err != nil || rec != nil) && s.validate(rec, state) {
+	if (err != nil || rec != nil) && s.validate(rec) {
 		s.CtxLog(ctx, "PICKED PIC")
 		return rec, err
 	}
 
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, digitalOnly)
-	if (err != nil || rec != nil) && s.validate(rec, state) {
+	if (err != nil || rec != nil) && s.validate(rec) {
 		s.CtxLog(ctx, "PICKED PHS")
 		return rec, err
 	}
