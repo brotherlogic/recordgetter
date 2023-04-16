@@ -518,9 +518,9 @@ func main() {
 			found.Close()
 			cancel()
 			if server.visitors {
-				foundPrinter.Set(float64(1))
-			} else {
 				foundPrinter.Set(float64(0))
+			} else {
+				foundPrinter.Set(float64(1))
 			}
 			time.Sleep(time.Hour)
 		}
