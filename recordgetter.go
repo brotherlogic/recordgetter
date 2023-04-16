@@ -46,6 +46,11 @@ var (
 	scoreCount = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "recordgetter_scorecount",
 	}, []string{"category"})
+
+	foundPrinter = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "recordgetter_found_printer",
+		Help: "The number of running queues",
+	})
 )
 
 func (s *Server) metrics(config *pbrg.State) {
@@ -512,6 +517,11 @@ func main() {
 			}
 			found.Close()
 			cancel()
+			if server.visitors {
+				foundPrinter.Set(float64(1))
+			} else {
+				foundPrinter.Set(float64(0))
+			}
 			time.Sleep(time.Hour)
 		}
 	}()
