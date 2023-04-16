@@ -75,6 +75,7 @@ type Server struct {
 	lastPre    time.Time
 	org        org
 	wants      wants
+	visitors   bool
 }
 
 const (
@@ -499,6 +500,21 @@ func main() {
 	if err != nil {
 		return
 	}
+
+	go func() {
+		for {
+			ctx, cancel := utils.ManualContext("recordgetter-dial", time.Minute)
+			found, err := server.FDialServer(ctx, "printer")
+			if err == nil {
+				server.visitors = false
+			} else {
+				server.visitors = true
+			}
+			found.Close()
+			cancel()
+			time.Sleep(time.Hour)
+		}
+	}()
 
 	go func() {
 		// Try to  update in play folders - best effort
