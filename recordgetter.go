@@ -401,6 +401,12 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		return rec, err
 	}
 
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, digitalOnly)
+	if (err != nil || rec != nil) && s.validate(rec) {
+		s.CtxLog(ctx, "PICKED UL LSAT")
+		return rec, err
+	}
+
 	//Update the wait time
 	waiting.With(prometheus.Labels{"wait": "want"}).Set(float64(state.GetLastWant()))
 
