@@ -95,7 +95,7 @@ func TestGetPreFreshamanOnCategoryGet(t *testing.T) {
 		t.Errorf("Did not fail: %v", err)
 	}
 
-	if rec == nil {
+	if rec != nil {
 		t.Errorf("No record returned")
 	}
 }
