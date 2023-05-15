@@ -14,6 +14,10 @@ import (
 )
 
 func (s *Server) validate(rec *pbrc.Record) bool {
+	if rec.GetMetadata().GetDateArrived() == 0 {
+		return false
+	}
+
 	// Records should be in the listening pile
 	if s.visitors {
 		return rec.GetRelease().GetFolderId() == 812802 &&
