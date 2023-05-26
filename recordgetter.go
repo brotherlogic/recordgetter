@@ -283,7 +283,7 @@ func (p *prodUpdater) update(ctx context.Context, config *pb.State, id, rating i
 		config.ValidCount++
 	}
 
-	if rec.GetRecord().GetMetadata().GetCategory() == pbrc.ReleaseMetadata_UNLISTENED {
+	if rec.GetRecord().GetMetadata().GetCategory() == pbrc.ReleaseMetadata_UNLISTENED && rec.GetRecord().GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_12_INCH {
 		config.UnlistenedCount++
 	}
 
@@ -395,10 +395,12 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		return rec, err
 	}
 
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, digitalOnly)
-	if (err != nil || rec != nil) && s.validate(rec) {
-		s.CtxLog(ctx, "PICKED UL LSAT")
-		return rec, err
+	if state.GetUnlistenedCount() == 0 {
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, digitalOnly)
+		if (err != nil || rec != nil) && s.validate(rec) {
+			s.CtxLog(ctx, "PICKED UL LSAT")
+			return rec, err
+		}
 	}
 
 	//P-V is for funsies
