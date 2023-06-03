@@ -522,10 +522,11 @@ func main() {
 			found, err := server.FDialServer(ctx, "printer")
 			if err == nil {
 				server.visitors = false
+				found.Close()
 			} else {
 				server.visitors = true
 			}
-			found.Close()
+
 			cancel()
 			if server.visitors {
 				foundPrinter.Set(float64(0))
