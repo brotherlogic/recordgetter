@@ -142,7 +142,7 @@ func TestGetInFolderWithCategoryEmpty(t *testing.T) {
 
 func TestGetInFolder(t *testing.T) {
 	s := InitTestServer()
-	s.rGetter = &testGetter{records: []*pbrc.Record{&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{CdPath: "blah", Category: pbrc.ReleaseMetadata_PRE_FRESHMAN, FiledUnder: pbrc.ReleaseMetadata_FILE_7_INCH}, Release: &pbgd.Release{InstanceId: 1}}}}
+	s.rGetter = &testGetter{records: []*pbrc.Record{&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{CdPath: "blah", Category: pbrc.ReleaseMetadata_PRE_FRESHMAN, FiledUnder: pbrc.ReleaseMetadata_FILE_12_INCH}, Release: &pbgd.Release{InstanceId: 1}}}}
 
 	rec, err := s.getInFolders(context.Background(), time.Now(), []int32{12}, &pb.State{}, false)
 	if err != nil {
