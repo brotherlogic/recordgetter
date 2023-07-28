@@ -322,6 +322,10 @@ func (p *prodUpdater) audition(ctx context.Context, id, rating int32) error {
 }
 
 func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool {
+	if time.Now().Weekday() == time.Friday && rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_7_INCH {
+		return false
+	}
+
 	if rc.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_STAGED_TO_SELL {
 		return true
 	}
