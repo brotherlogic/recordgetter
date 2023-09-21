@@ -533,7 +533,7 @@ func main() {
 			} else {
 				foundPrinter.Set(float64(1))
 			}
-			time.Sleep(time.Hour)
+			time.Sleep(time.Minute)
 		}
 	}()
 
