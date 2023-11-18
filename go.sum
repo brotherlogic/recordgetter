@@ -3946,8 +3946,8 @@ github.com/brotherlogic/recordwants v0.0.0-20231027115423-2c216ca0bd30/go.mod h1
 github.com/brotherlogic/recordwants v0.0.0-20231027141611-404adc2ea0b5/go.mod h1:Ha/ItsLZU4R0E8JN5sN11iR5rvS+6gbbQy821M2qVh8=
 github.com/brotherlogic/recordwants v0.0.0-20231103170853-ff13ca4800dd/go.mod h1:AB19oAzdlJCpTkM6vQGzFTZBpR5MZy596ZRovVxPeLs=
 github.com/brotherlogic/recordwants v0.0.0-20231110204636-f158d7b7a918/go.mod h1:0bEvL2iw5LJrNFoN4bFx1tHfelQiQw7pYCtT/Pgi+JY=
-github.com/brotherlogic/recordwants v0.0.0-20231118185256-c7f4c924770a h1:KqINZBYqZQEkb/5hRY32xRajgQgBJM2fp1sYdskF9yY=
-github.com/brotherlogic/recordwants v0.0.0-20231118185256-c7f4c924770a/go.mod h1:fIT96wuY7HgLNIZyV3awZ7XTyHg7M0eqvQbxUvQoXSc=
+github.com/brotherlogic/recordwants v0.0.0-20231118212107-e54701e5db3b h1:o9F0H6sZBRh2rLs6oGsaB9zbuWGze73A8nTNQiNDMt4=
+github.com/brotherlogic/recordwants v0.0.0-20231118212107-e54701e5db3b/go.mod h1:kechgh3pNT+kn/XAavzrTYjUEgav2DyAlT0gYSIyZ7o=
 github.com/brotherlogic/rstore v0.31.0/go.mod h1:OvTUW9id/7lcCxTnh/0ZcvcGFLjIlHP3WQ0AdxnJyLg=
 github.com/brotherlogic/temp v0.0.0-20210923034957-a5d1be22449e/go.mod h1:XeQMMOzb07ycXzBCbs76Ez5oMsywgNigfanPFpHf/lU=
 github.com/brotherlogic/temp v0.0.0-20211004140433-87d556b5a0c3/go.mod h1:UNltWEmymg8cmq27siHaPt+rrsAKTyKZnV9o5dSgiMs=
@@ -4094,6 +4094,7 @@ github.com/brotherlogic/versiontracker v0.0.0-20231118125321-f5354982a003/go.mod
 github.com/brotherlogic/versiontracker v0.0.0-20231118135330-2e0572dfcfd2/go.mod h1:hWhGM9GgF+7xRfAH00ndBL1rVqIM5eQHykr40ctu/vc=
 github.com/brotherlogic/versiontracker v0.0.0-20231118152634-52acb8d39e3f/go.mod h1:eev11kEmfdM6PcUVGjzFjwCQKOcG1DcJPVxujkdnE+k=
 github.com/brotherlogic/versiontracker v0.0.0-20231118160906-abe9c299c76d/go.mod h1:ftieQ2ULmY65S2/rDKXT51JmIQhNa2+zBFAbrZ4hH5w=
+github.com/brotherlogic/versiontracker v0.0.0-20231118195948-28bd93fe3355/go.mod h1:oh09S5IViK5eMKkggZRIiH622C1qtlK0cd7SkRKw/c4=
 github.com/bsm/ginkgo/v2 v2.5.0/go.mod h1:AiKlXPm7ItEHNc/2+OkrNG4E0ITzojb9/xWzvQ9XZ9w=
 github.com/bsm/gomega v1.20.0/go.mod h1:JifAceMQ4crZIWYUKrlGcmbN3bqHogVTADMD2ATsbwk=
 github.com/buger/jsonparser v1.1.1/go.mod h1:6RYKKt7H4d4+iWqouImQ9R2FZql3VbhNgx27UK13J/0=
