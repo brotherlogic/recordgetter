@@ -47,6 +47,11 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 		rc, err := s.rGetter.getRelease(ctx, id)
 		isDigital := rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_12_INCH &&
 			rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_7_INCH
+
+		// Include CDs in sale determinations at home
+		if c == pbrc.ReleaseMetadata_STAGED_TO_SELL {
+			isDigital = isDigital && rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_CD
+		}
 		s.CtxLog(ctx, fmt.Sprintf("SKIP %v-> %v and %v", id, digitalOnly, rc.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL))
 		if (digitalOnly && !isDigital) ||
 			(!digitalOnly && isDigital) {
