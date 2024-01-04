@@ -359,7 +359,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		return rec, err
 	}
 
-	if state.ScoreCount[int32(pbrc.ReleaseMetadata_UNLISTENED.Number())] == 0 || digitalOnly {
+	if state.ScoreCount[int32(pbrc.ReleaseMetadata_UNLISTENED.Number())] == 0 {
 		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, digitalOnly)
 		if (err != nil || rec != nil) && s.validate(rec) {
 			s.CtxLog(ctx, "PICKED FIRST UL")
@@ -382,7 +382,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 			return rec, err
 		}
 	}
-	if state.GetUnlistenedCount() == 0 {
+	if state.GetUnlistenedCount() == 0 || digitalOnly {
 		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, digitalOnly)
 		if (err != nil || rec != nil) && s.validate(rec) {
 			s.CtxLog(ctx, "PICKED UL LSAT")
