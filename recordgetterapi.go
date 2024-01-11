@@ -20,6 +20,7 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 	if err != nil {
 		return nil, err
 	}
+	s.CtxLog(ctx, fmt.Sprintf("SC: %v", state.ScoreCount))
 
 	if in.GetType() == pb.RequestType_AUDITION {
 		if state.AuditionPick > 0 {
