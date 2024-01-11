@@ -287,9 +287,7 @@ func (p *prodUpdater) update(ctx context.Context, config *pb.State, id, rating i
 		config.UnlistenedCount++
 	}
 
-	if rec.GetRecord().GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_DIGITAL {
-		config.ScoreCount[int32(rec.GetRecord().GetMetadata().GetCategory())]++
-	}
+	config.ScoreCount[int32(rec.GetRecord().GetMetadata().GetCategory())]++
 
 	_, err = client.UpdateRecord(ctx, &pbrc.UpdateRecordRequest{Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: id}, Metadata: &pbrc.ReleaseMetadata{SetRating: rating}}, Reason: "RecordScore from Getter"})
 	if err != nil {
