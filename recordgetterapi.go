@@ -80,7 +80,7 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 			return &pb.GetRecordResponse{Record: rec,
 				Disk: disk}, nil
 		}
-	} else {
+	} else if in.GetType() == pb.RequestType_DEFAULT {
 		if state.CurrentPick != nil && state.CurrentPick.GetRelease().GetId() > 0 {
 			if in.GetRefresh() {
 				rec, err := s.rGetter.getRelease(ctx, state.CurrentPick.Release.InstanceId)
@@ -101,13 +101,33 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 		}
 	}
 
+	if in.GetType() == pb.RequestType_CD_FOCUS {
+		if state.CurrentCdPick > 0 {
+			rec, err := s.rGetter.getRelease(ctx, state.CurrentCdPick)
+
+			if err != nil {
+				return nil, err
+			}
+			disk := int32(1)
+			for _, score := range state.Scores {
+				if score.InstanceId == state.CurrentCdPick {
+					if score.DiskNumber >= disk {
+						disk = score.DiskNumber + 1
+					}
+				}
+			}
+			return &pb.GetRecordResponse{Record: rec,
+				Disk: disk}, nil
+		}
+	}
+
 	key, err := s.RunLockingElection(ctx, "recordgetter", "Locking to pick record to get")
 	if err != nil {
 		return nil, err
 	}
 	defer s.ReleaseLockingElection(ctx, "recordgetter", key)
 
-	rec, err := s.getReleaseFromPile(ctx, state, time.Now(), in.GetType() == pb.RequestType_DIGITAL)
+	rec, err := s.getReleaseFromPile(ctx, state, time.Now(), in.GetType())
 	if err != nil {
 		return nil, err
 	}
@@ -125,6 +145,8 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 
 	if in.GetType() == pb.RequestType_DIGITAL {
 		state.CurrentDigitalPick = rec.Release.GetInstanceId()
+	} else if in.GetType() == pb.RequestType_CD_FOCUS {
+		state.CurrentCdPick = rec.GetRelease().GetInstanceId()
 	} else {
 		state.CurrentPick = rec
 		state.CatCount[pbrc.ReleaseMetadata_Category_value[rec.GetMetadata().GetCategory().String()]]++

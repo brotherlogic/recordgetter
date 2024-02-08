@@ -33,6 +33,40 @@ func clear(ctx context.Context, t pbrg.RequestType) {
 	fmt.Printf("%v and %v", r, err)
 }
 
+func cd(ctx context.Context) {
+	conn, err := utils.LFDialServer(ctx, "recordgetter")
+	if err != nil {
+		log.Fatalf("Can't dial getter: %v", err)
+	}
+	defer conn.Close()
+	client := pbrg.NewRecordGetterClient(conn)
+
+	r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Type: pbrg.RequestType_CD_FOCUS})
+	if err != nil {
+		log.Fatalf("Error on get: %v", err)
+	}
+	if len(r.GetRecord().GetRelease().GetArtists()) > 0 {
+		fmt.Printf("%v - %v [%v] (%v/%v) {%v,%v}\n",
+			r.GetRecord().GetRelease().GetArtists()[0].GetName(),
+			r.GetRecord().GetRelease().GetTitle(),
+			r.GetRecord().GetMetadata().GetCategory(),
+			r.GetDisk(),
+			r.GetRecord().GetRelease().GetFormatQuantity(),
+			r.GetRecord().GetRelease().GetId(),
+			r.GetRecord().GetRelease().GetInstanceId(),
+		)
+	} else {
+		fmt.Printf("UnknownArtist - %v [%v] (%v/%v) {%v,%v}\n",
+			r.GetRecord().GetRelease().GetTitle(),
+			r.GetRecord().GetMetadata().GetCategory(),
+			r.GetDisk(),
+			r.GetRecord().GetRelease().GetFormatQuantity(),
+			r.GetRecord().GetRelease().GetId(),
+			r.GetRecord().GetRelease().GetInstanceId(),
+		)
+	}
+}
+
 func digital(ctx context.Context) {
 	conn, err := utils.LFDialServer(ctx, "recordgetter")
 	if err != nil {
@@ -179,6 +213,28 @@ func scoreDigital(ctx context.Context, value int32) {
 	}
 }
 
+func scoreCD(ctx context.Context, value int32) {
+	conn, err := utils.LFDialServer(ctx, "recordgetter")
+	if err != nil {
+		log.Fatalf("Can't dial getter: %v", err)
+	}
+	defer conn.Close()
+	client := pbrg.NewRecordGetterClient(conn)
+
+	r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Type: pbrg.RequestType_DIGITAL})
+	if err != nil {
+		log.Fatalf("Error in scoring: %v", err)
+	}
+	if r.GetRecord().GetMetadata() == nil {
+		r.GetRecord().Metadata = &pbrc.ReleaseMetadata{}
+	}
+	r.GetRecord().GetMetadata().SetRating = value
+	_, err = client.Listened(ctx, r.GetRecord())
+	if err != nil {
+		fmt.Printf("%v", err)
+	}
+}
+
 func scoreAudition(ctx context.Context, score int32) {
 	conn, err := utils.LFDialServer(ctx, "recordgetter")
 	if err != nil {
@@ -240,11 +296,22 @@ func main() {
 				log.Fatalf("Error parsing num: %v", err)
 			}
 			scoreDigital(ctx, int32(val))
+		case "scorecd":
+			val, err := strconv.ParseInt(os.Args[2], 10, 32)
+			if err != nil {
+				log.Fatalf("Error parsing num: %v", err)
+			}
+			scoreCD(ctx, int32(val))
 		case "digital":
 			ctx, cancel = utils.ManualContext(fmt.Sprintf("recordgetter_cli-%v", os.Args[1]), time.Minute*30)
 			defer cancel()
 
 			digital(ctx)
+		case "cd":
+			ctx, cancel = utils.ManualContext(fmt.Sprintf("recordgetter_cli-%v", os.Args[1]), time.Minute*30)
+			defer cancel()
+
+			cd(ctx)
 		default:
 			fmt.Printf("Unknown command: %v\n", os.Args[1])
 		}

@@ -28,6 +28,7 @@ message State {
 
   int32 audition_pick = 8;
   int32 current_digital_pick = 9;
+  int32 current_cd_pick = 15;
 
   int32 curr_date = 10;
   int32 valid_count = 11;
@@ -41,6 +42,7 @@ enum RequestType {
     DEFAULT = 0;
     AUDITION = 1;
     DIGITAL = 2;
+    CD_FOCUS = 3;
   }
 
 message GetRecordRequest {
