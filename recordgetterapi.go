@@ -256,7 +256,15 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 			}
 			state.AuditionPick = 0
 		}
-	}
+	} else if state.GetCurrentCdPick() == in.GetRelease().GetInstanceId() {
+		score := s.getScore(ctx, in, state)
+		if score >= 0 {
+			err := s.updater.update(ctx, state, in.GetRelease().GetInstanceId(), score)
+			if err != nil && status.Convert(err).Code() != codes.OutOfRange {
+				return &pb.Empty{}, err
+			}
+		}
+		state.CurrentCdPick = 0
 
 	return &pb.Empty{}, s.saveState(ctx, state)
 }
