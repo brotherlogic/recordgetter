@@ -13,8 +13,17 @@ import (
 	pbro "github.com/brotherlogic/recordsorganiser/proto"
 )
 
-func (s *Server) validate(rec *pbrc.Record) bool {
+func (s *Server) validate(rec *pbrc.Record, typ pb.RequestType) bool {
 	if rec.GetMetadata().GetDateArrived() == 0 {
+		return false
+	}
+
+	// Check the type
+	if typ == pb.RequestType_CD_FOCUS && rec.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_CD {
+		return false
+	}
+
+	if typ == pb.RequestType_DIGITAL && rec.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_DIGITAL {
 		return false
 	}
 
@@ -32,7 +41,7 @@ func (s *Server) isFilable(rc *pbrc.Record) bool {
 	return rc.GetMetadata().GetGoalFolder() == 242017 && rc.GetRelease().GetFormatQuantity() <= 3
 }
 
-func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.ReleaseMetadata_Category, state *pb.State, digitalOnly bool) (*pbrc.Record, error) {
+func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.ReleaseMetadata_Category, state *pb.State, typ pb.RequestType) (*pbrc.Record, error) {
 	pDate := int64(0)
 	var newRec *pbrc.Record
 	newRec = nil
@@ -52,13 +61,13 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 		if c == pbrc.ReleaseMetadata_STAGED_TO_SELL {
 			isDigital = isDigital && rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_CD
 		}
-		s.CtxLog(ctx, fmt.Sprintf("SKIP %v-> %v and %v", id, digitalOnly, rc.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL))
-		if (digitalOnly && !isDigital) ||
-			(!digitalOnly && isDigital) {
+		s.CtxLog(ctx, fmt.Sprintf("SKIP %v-> %v and %v", id, typ, rc.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL))
+		if ((typ == pb.RequestType_CD_FOCUS || typ == pb.RequestType_DIGITAL) && !isDigital) ||
+			(!(typ == pb.RequestType_CD_FOCUS || typ == pb.RequestType_DIGITAL) && isDigital) {
 			continue
 		}
 
-		if !s.validate(rc) {
+		if !s.validate(rc, typ) {
 			s.CtxLog(ctx, fmt.Sprintf("SKIP %v -> does not validate", id))
 			continue
 		}
