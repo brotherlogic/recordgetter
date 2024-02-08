@@ -265,6 +265,7 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 			}
 		}
 		state.CurrentCdPick = 0
+	}
 
 	return &pb.Empty{}, s.saveState(ctx, state)
 }
