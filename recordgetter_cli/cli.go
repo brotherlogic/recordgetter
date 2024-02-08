@@ -229,7 +229,6 @@ func scoreCD(ctx context.Context, value int32) {
 		r.GetRecord().Metadata = &pbrc.ReleaseMetadata{}
 	}
 	r.GetRecord().GetMetadata().SetRating = value
-	log.Printf("HERE %v", r)
 	_, err = client.Listened(ctx, r.GetRecord())
 	if err != nil {
 		fmt.Printf("%v", err)
