@@ -106,6 +106,10 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 			rec, err := s.rGetter.getRelease(ctx, state.CurrentCdPick)
 
 			if err != nil {
+				if status.Code(err) == codes.OutOfRange {
+					state.CurrentCdPick = 0
+					return &pb.GetRecordResponse{}, s.saveState(ctx, state)
+				}
 				return nil, err
 			}
 			disk := int32(1)
