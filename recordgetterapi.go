@@ -124,7 +124,7 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 				Disk: disk}, nil
 		}
 	}
-	lkey := fmt.Sprintf("recordgetter-%v", in.GetType)
+	lkey := fmt.Sprintf("recordgetter-%v", in.GetType())
 	key, err := s.RunLockingElection(ctx, lkey, "Locking to pick record to get")
 	if err != nil {
 		return nil, err
