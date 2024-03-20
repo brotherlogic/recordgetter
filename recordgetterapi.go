@@ -124,12 +124,12 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 				Disk: disk}, nil
 		}
 	}
-
-	key, err := s.RunLockingElection(ctx, "recordgetter", "Locking to pick record to get")
+	lkey := fmt.Sprintf("recordgetter-%v", in.GetType())
+	key, err := s.RunLockingElection(ctx, lkey, "Locking to pick record to get")
 	if err != nil {
 		return nil, err
 	}
-	defer s.ReleaseLockingElection(ctx, "recordgetter", key)
+	defer s.ReleaseLockingElection(ctx, lkey, key)
 
 	rec, err := s.getReleaseFromPile(ctx, state, time.Now(), in.GetType())
 	if err != nil {
