@@ -20,8 +20,10 @@ func (s *Server) validate(rec *pbrc.Record, typ pb.RequestType) bool {
 
 	// Check the type
 	if typ == pb.RequestType_CD_FOCUS && rec.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_CD {
+		if rec.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_TAPE {
 		return false
 	}
+}
 
 	if typ == pb.RequestType_DIGITAL && rec.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_DIGITAL {
 		return false
