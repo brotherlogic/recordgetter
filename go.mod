@@ -10,7 +10,7 @@ require (
 	github.com/brotherlogic/recordsorganiser v0.0.0-20240128011725-fdf975c6776b
 	github.com/brotherlogic/recordwants v0.0.0-20240129091655-2772c21f0a2b
 	github.com/prometheus/client_golang v1.18.0
-	golang.org/x/net v0.20.0
+	golang.org/x/net v0.23.0
 	google.golang.org/grpc v1.61.0
 	google.golang.org/protobuf v1.33.0
 )
@@ -34,7 +34,7 @@ require (
 	github.com/prometheus/common v0.46.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/struCoder/pidusage v0.2.1 // indirect
-	golang.org/x/sys v0.16.0 // indirect
+	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240125205218-1f4bbc51befe // indirect
 )
