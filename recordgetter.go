@@ -412,7 +412,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	//Update the wait time
 	waiting.With(prometheus.Labels{"wait": "want"}).Set(float64(state.GetLastWant()))
 
-	return nil, status.Errorf(codes.FailedPrecondition, "Unable to locate record to listen to")
+	return nil, status.Errorf(codes.FailedPrecondition, "Unable to locate record to listen to (visitors = %v)", s.visitors)
 }
 
 // Init a record getter
