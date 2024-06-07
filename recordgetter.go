@@ -380,13 +380,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 			return rec, err
 		}
 	}
-	if state.GetUnlistenedCount() == 0 || typ != pb.RequestType_CD_FOCUS {
-		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ)
-		if (err != nil || rec != nil) && s.validate(rec, typ) {
-			s.CtxLog(ctx, "PICKED UL LSAT")
-			return rec, err
-		}
-	}
 
 	//P-V is for funsies
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state, typ)
