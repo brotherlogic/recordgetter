@@ -2,20 +2,26 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/brotherlogic/goserver"
+	"github.com/golang/protobuf/proto"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
 	pbgd "github.com/brotherlogic/godiscogs/proto"
 	pbg "github.com/brotherlogic/goserver/proto"
 	"github.com/brotherlogic/goserver/utils"
+	pbgb "github.com/brotherlogic/gramophile/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pb "github.com/brotherlogic/recordgetter/proto"
 	pbrg "github.com/brotherlogic/recordgetter/proto"
@@ -266,14 +272,50 @@ type prodUpdater struct {
 	log  func(ctx context.Context, log string)
 }
 
+func buildContext(ctx context.Context) (context.Context, context.CancelFunc, error) {
+	dirname, err := os.UserHomeDir()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	text, err := ioutil.ReadFile(fmt.Sprintf("%v/.gramophile", dirname))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	user := &pbgb.GramophileAuth{}
+	err = proto.UnmarshalText(string(text), user)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	mContext := metadata.AppendToOutgoingContext(ctx, "auth-token", user.GetToken())
+	ctx, cancel := context.WithTimeout(mContext, time.Minute)
+	return ctx, cancel, nil
+}
+
 func (p *prodUpdater) update(ctx context.Context, config *pb.State, id, rating int32) error {
-	conn, err := p.dial(ctx, "recordcollection")
+	// Dial gram
+	conn, err := grpc.Dial("gramophile-grpc.brotherlogic-backend.com:80", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	gclient := pbgb.NewGramophileEServiceClient(conn)
+	nctx, cancel, gerr := buildContext(ctx)
+	if gerr != nil {
+		return gerr
+	}
+	defer cancel()
+
+	conn2, err := p.dial(ctx, "recordcollection")
 	if err != nil {
 		return err
 	}
 
 	defer conn.Close()
-	client := pbrc.NewRecordCollectionServiceClient(conn)
+	client := pbrc.NewRecordCollectionServiceClient(conn2)
 
 	rec, err := client.GetRecord(ctx, &pbrc.GetRecordRequest{InstanceId: id})
 	if err != nil {
@@ -289,12 +331,10 @@ func (p *prodUpdater) update(ctx context.Context, config *pb.State, id, rating i
 
 	config.ScoreCount[int32(rec.GetRecord().GetMetadata().GetCategory())]++
 
-	_, err = client.UpdateRecord(ctx, &pbrc.UpdateRecordRequest{Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: id}, Metadata: &pbrc.ReleaseMetadata{SetRating: rating}}, Reason: "RecordScore from Getter"})
-	if err != nil {
-		return err
-	}
-
-	return nil
+	_, err = gclient.SetIntent(nctx, &pbgb.SetIntentRequest{InstanceId: int64(id), Intent: &pbgb.Intent{
+		ListenTime: time.Now().UnixNano(),
+		NewScore:   rating}})
+	return err
 }
 
 func (p *prodUpdater) audition(ctx context.Context, id, rating int32) error {
