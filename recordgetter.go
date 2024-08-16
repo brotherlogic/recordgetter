@@ -330,10 +330,12 @@ func (p *prodUpdater) update(ctx context.Context, config *pb.State, id, rating i
 	}
 
 	config.ScoreCount[int32(rec.GetRecord().GetMetadata().GetCategory())]++
-
-	_, err = gclient.SetIntent(nctx, &pbgb.SetIntentRequest{InstanceId: int64(id), Intent: &pbgb.Intent{
+	intent := &pbgb.SetIntentRequest{InstanceId: int64(id), Intent: &pbgb.Intent{
 		ListenTime: time.Now().UnixNano(),
-		NewScore:   rating}})
+		NewScore:   rating}}
+
+	p.log(ctx, fmt.Sprintf("Setting: %v", intent))
+	_, err = gclient.SetIntent(nctx, intent)
 	return err
 }
 
