@@ -14,6 +14,25 @@ import (
 	rwpb "github.com/brotherlogic/recordwants/proto"
 )
 
+func (s *Server) ClientUpdate(ctx context.Context, req *pbrc.ClientUpdateRequest) (*pbrc.ClientUpdateResponse, error) {
+	state, err := s.loadState(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if state.GetCurrentPick().GetRelease().GetInstanceId() == req.GetInstanceId() {
+		rec, err := s.rGetter.getRelease(ctx, req.GetInstanceId())
+		if err != nil {
+			return nil, err
+		}
+		if rec.GetRelease().GetRating() > 0 {
+			state.CurrentPick = nil
+		}
+	}
+
+	return &pbrc.ClientUpdateResponse{}, nil
+}
+
 // GetRecord gets a record
 func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.GetRecordResponse, error) {
 	state, err := s.loadState(ctx)
