@@ -28,6 +28,8 @@ func (s *Server) ClientUpdate(ctx context.Context, req *pbrc.ClientUpdateRequest
 		if rec.GetRelease().GetRating() > 0 {
 			state.CurrentPick = nil
 		}
+
+		return &pbrc.ClientUpdateResponse{}, s.saveState(ctx, state)
 	}
 
 	return &pbrc.ClientUpdateResponse{}, nil
