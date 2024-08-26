@@ -20,12 +20,13 @@ func (s *Server) ClientUpdate(ctx context.Context, req *pbrc.ClientUpdateRequest
 		return nil, err
 	}
 
-	s.CtxLog(ctx, fmt.Sprintf("Comparing %v with %v", state.GetCurrentPick().GetRelease().GetInstanceId(), req.GetInstanceId()))
+	s.CtxLog(ctx, fmt.Sprintf("Comparing %v with %v (%v)", state.GetCurrentPick().GetRelease().GetInstanceId(), req.GetInstanceId()))
 	if state.GetCurrentPick().GetRelease().GetInstanceId() == req.GetInstanceId() {
 		rec, err := s.rGetter.getRelease(ctx, req.GetInstanceId())
 		if err != nil {
 			return nil, err
 		}
+		s.CtxLog(ctx, fmt.Sprintf("Found rating %v", rec.GetRelease().GetRating()))
 		if rec.GetRelease().GetRating() > 0 {
 			state.CurrentPick = nil
 		}
