@@ -18,6 +18,11 @@ func (s *Server) validate(rec *pbrc.Record, typ pb.RequestType) bool {
 		return false
 	}
 
+	// Wait for pending updates
+	if rec.GetMetadata().GetNeedsGramUpdate() {
+		return false
+	}
+
 	// Check the type
 	if typ == pb.RequestType_CD_FOCUS && rec.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_CD {
 		//if rec.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_TAPE {
