@@ -81,7 +81,7 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 
 		s.CtxLog(ctx, fmt.Sprintf("Evaluating %v from %v", rc.GetRelease().GetTitle(), c))
 		if err == nil && rc != nil {
-			if (pDate == 0 || (rc.GetMetadata().DateAdded < pDate && time.Since(time.Unix(rc.GetMetadata().GetDateAdded(), 0)) < time.Hour*24*365)) &&
+			if (pDate == 0 || (rc.GetMetadata().DateAdded < pDate && (rc.GetMetadata().GetCategory() != pbrc.ReleaseMetadata_UNLISTENED || time.Since(time.Unix(rc.GetMetadata().GetDateAdded(), 0)) < time.Hour*24*365))) &&
 				rc.GetRelease().Rating == 0 &&
 				!rc.GetMetadata().GetDirty() &&
 				rc.GetMetadata().SetRating == 0 {
