@@ -40,7 +40,7 @@ func (s *Server) validate(rec *pbrc.Record, typ pb.RequestType) bool {
 			(rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD ||
 				rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL)
 	} else {
-		return rec.GetRelease().GetFolderId() == 812802 || rec.GetRelease().GetFolderId() == 7651472 || rec.GetRelease().GetFolderId() == 7664293
+		return rec.GetRelease().GetFolderId() == 812802 || rec.GetRelease().GetFolderId() == 7651472 || rec.GetRelease().GetFolderId() == 7664293 || rec.GetRelease().GetFolderId() == 7665013
 	}
 }
 
