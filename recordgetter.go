@@ -532,6 +532,7 @@ func (s *Server) loadState(ctx context.Context) (*pbrg.State, error) {
 		state.UnlistenedCount = 0
 		state.CatCount = make(map[int32]int32)
 		state.ScoreCount = make(map[int32]int32)
+		state.CattypeCount = make(map[string]int32)
 	}
 
 	s.metrics(state)
