@@ -434,8 +434,10 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ)
 	s.CtxLog(ctx, fmt.Sprintf("FOUND UL: %v -> %v", rec.GetRelease().GetInstanceId(), s.validate(rec, typ)))
 	if (err != nil || rec != nil) && s.validate(rec, typ) {
-		s.CtxLog(ctx, "PICKED REMAINDER UL")
-		return rec, err
+		if rec.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_12_INCH || state.GetCattypeCount()["UNLISTENEDFILE_12_INCH"] == 0 {
+			s.CtxLog(ctx, "PICKED REMAINDER UL")
+			return rec, err
+		}
 	}
 
 	//P-V is for funsies
@@ -514,6 +516,10 @@ func (s *Server) loadState(ctx context.Context) (*pbrg.State, error) {
 	}
 	if state.GetScoreCount() == nil {
 		state.ScoreCount = make(map[int32]int32)
+	}
+
+	if state.GetCattypeCount() == nil {
+		state.CattypeCount = make(map[string]int32)
 	}
 
 	//Update the wait time
