@@ -392,14 +392,6 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t time.Time, typ pb.RequestType) (*pbrc.Record, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	//Look for a record staged to sell
-	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ)
-	s.CtxLog(ctx, fmt.Sprintf("Found %v -> %v", rec, err))
-	if (err != nil || rec != nil) && s.validate(rec, typ) {
-		s.CtxLog(ctx, "PICKED STS")
-		return rec, err
-	}
-
 	if state.ScoreCount[int32(pbrc.ReleaseMetadata_UNLISTENED.Number())] == 0 {
 		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
@@ -422,6 +414,14 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 			s.CtxLog(ctx, "PICKED FIST PIC")
 			return rec, err
 		}
+	}
+
+	//Look for a record staged to sell
+	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ)
+	s.CtxLog(ctx, fmt.Sprintf("Found %v -> %v", rec, err))
+	if (err != nil || rec != nil) && s.validate(rec, typ) {
+		s.CtxLog(ctx, "PICKED STS")
+		return rec, err
 	}
 
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ)
