@@ -392,6 +392,14 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t time.Time, typ pb.RequestType) (*pbrc.Record, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
+	if state.ScoreCount[int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number())] < 5 {
+		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ)
+		if (err != nil || rec != nil) && s.validate(rec, typ) {
+			s.CtxLog(ctx, "PICKED FIST PIC")
+			return rec, err
+		}
+	}
+
 	if state.ScoreCount[int32(pbrc.ReleaseMetadata_UNLISTENED.Number())] == 0 {
 		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
