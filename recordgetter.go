@@ -393,10 +393,28 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	if state.ScoreCount[int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number())] < 5 {
+		if state.GetIssue() == 0 {
+			issue, err := s.ImmediateIssue(ctx, "Listen to 5 PIC", "Please", false, false)
+			if err != nil {
+				return nil, err
+			}
+			state.Issue = issue.GetNumber()
+			err = s.saveState(ctx, state)
+			if err != nil {
+				return nil, err
+			}
+		}
 		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
 			s.CtxLog(ctx, "PICKED FIST PIC")
 			return rec, err
+		}
+	}
+
+	if state.GetIssue() > 0 {
+		err := s.DeleteIssue(ctx, state.GetIssue())
+		if err != nil {
+			return nil, err
 		}
 	}
 
