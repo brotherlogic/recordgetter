@@ -37,6 +37,8 @@ message State {
   map<int32, int32> cat_count = 12;
   map<int32, int32> score_count = 14;
   map<string,int32> cattype_count = 16;
+
+  int32 issue = 17;
 }
 
 enum RequestType {
