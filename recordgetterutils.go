@@ -13,34 +13,34 @@ import (
 	pbro "github.com/brotherlogic/recordsorganiser/proto"
 )
 
-func (s *Server) validate(rec *pbrc.Record, typ pb.RequestType) bool {
+func (s *Server) validate(rec *pbrc.Record, typ pb.RequestType) (bool, string) {
 	if rec.GetMetadata().GetDateArrived() == 0 {
-		return false
+		return false, "arrived"
 	}
 
 	// Wait for pending updates
 	if rec.GetMetadata().GetNeedsGramUpdate() {
-		return false
+		return false, "gram"
 	}
 
 	// Check the type
 	if typ == pb.RequestType_CD_FOCUS && rec.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_CD {
 		//if rec.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_TAPE {
-		return false
+		return false, "focus"
 		//}
 	}
 
 	if typ == pb.RequestType_DIGITAL && rec.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_DIGITAL {
-		return false
+		return false, "focus"
 	}
 
 	// Records should be in the listening pile
 	if s.visitors {
 		return (rec.GetRelease().GetFolderId() == 812802 || rec.GetRelease().GetFolderId() == 7651472 || rec.GetRelease().GetFolderId() == 7665013 || rec.GetRelease().GetFolderId() == 7664293) &&
 			(rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD ||
-				rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL)
+				rec.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL), "folder"
 	} else {
-		return rec.GetRelease().GetFolderId() == 812802 || rec.GetRelease().GetFolderId() == 7651472 || rec.GetRelease().GetFolderId() == 7664293 || rec.GetRelease().GetFolderId() == 7665013
+		return rec.GetRelease().GetFolderId() == 812802 || rec.GetRelease().GetFolderId() == 7651472 || rec.GetRelease().GetFolderId() == 7664293 || rec.GetRelease().GetFolderId() == 7665013, "folder"
 	}
 }
 
@@ -74,8 +74,9 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 			continue
 		}
 
-		if !s.validate(rc, typ) {
-			s.CtxLog(ctx, fmt.Sprintf("SKIP %v -> does not validate", id))
+		val, r := s.validate(rc, typ)
+		if !val {
+			s.CtxLog(ctx, fmt.Sprintf("SKIP %v -> does not validate (%v)", id, r))
 			continue
 		}
 
