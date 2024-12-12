@@ -39,6 +39,7 @@ message State {
   map<string,int32> cattype_count = 16;
 
   int32 issue = 17;
+  int32 work = 18;
 }
 
 enum RequestType {

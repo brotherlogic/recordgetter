@@ -329,6 +329,11 @@ func (p *prodUpdater) update(ctx context.Context, config *pb.State, id, rating i
 		config.UnlistenedCount++
 	}
 
+	if rec.GetRecord().GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_IN_COLLECTION &&
+		rec.GetRecord().GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_12_INCH {
+		config.Work--
+	}
+
 	config.ScoreCount[int32(rec.GetRecord().GetMetadata().GetCategory())]++
 	intent := &pbgb.SetIntentRequest{InstanceId: int64(id), Intent: &pbgb.Intent{
 		ListenTime: time.Now().UnixNano(),
@@ -392,7 +397,7 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t time.Time, typ pb.RequestType) (*pbrc.Record, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	if state.ScoreCount[int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number())] < 5 {
+	if state.Work > 0 && typ == pb.RequestType_DEFAULT {
 		if state.GetIssue() == 0 {
 			issue, err := s.ImmediateIssue(ctx, "Listen to 5 PIC", "Please", false, false)
 			if err != nil {
@@ -411,7 +416,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		}
 	}
 
-	if state.GetIssue() > 0 {
+	if typ == pb.RequestType_DEFAULT && state.Work <= 0 && state.GetIssue() > 0 {
 		err := s.DeleteIssue(ctx, state.GetIssue())
 		if err != nil {
 			return nil, err
@@ -554,6 +559,7 @@ func (s *Server) loadState(ctx context.Context) (*pbrg.State, error) {
 		state.CurrDate = int32(time.Now().YearDay())
 		state.ValidCount = 0
 		state.UnlistenedCount = 0
+		state.Work = 3
 		state.CatCount = make(map[int32]int32)
 		state.ScoreCount = make(map[int32]int32)
 		state.CattypeCount = make(map[string]int32)
