@@ -397,6 +397,8 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t time.Time, typ pb.RequestType) (*pbrc.Record, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
+	s.CtxLog(ctx, fmt.Sprintf("HERE %v and %v", state.Work, typ))
+
 	if state.Work > 0 && typ == pb.RequestType_DEFAULT {
 		if state.GetIssue() == 0 {
 			issue, err := s.ImmediateIssue(ctx, "Listen to 5 PIC", "Please", false, false)
