@@ -26,12 +26,12 @@ github.com/brotherlogic/keystore v0.0.0-20240508161349-814b3200b126 h1:6e12Cl80V
 github.com/brotherlogic/keystore v0.0.0-20240508161349-814b3200b126/go.mod h1:2JK2kJhI5ler7e7M1WtIpIkiNGG2qy8V6X7VZLCsd5k=
 github.com/brotherlogic/lock v0.0.0-20241227204649-875aeaf939a4 h1:tdhZvuKD7GybYy/8L9FEhWhQSMUjFJks3dUeRfBbYrg=
 github.com/brotherlogic/lock v0.0.0-20241227204649-875aeaf939a4/go.mod h1:1Nc6t2JKHQdT1qpo/1BEQzIvbkRBbR1/a/8wUtnUgl8=
-github.com/brotherlogic/logging v0.0.0-20241227214420-ade34ffcd216 h1:pZ9R+aGBpUbyjoqOHvBT5rax0KvgoohNwSXZuHnSLNs=
-github.com/brotherlogic/logging v0.0.0-20241227214420-ade34ffcd216/go.mod h1:IuCzzoBWjOpSP6b6gtscYQDqnLMXQkViLitI6WSIVBY=
+github.com/brotherlogic/logging v0.0.0-20241227220606-2a69636e8bbe h1:e+GybEfLGCnZaBgYNJ7FqNFtxvBsDhtfegyhEoP+a6w=
+github.com/brotherlogic/logging v0.0.0-20241227220606-2a69636e8bbe/go.mod h1:sZHs2yQi3qTBekSlFFuvVsFpRGSYkldzuLvqksMdSSI=
 github.com/brotherlogic/monitor v0.0.0-20221025152653-c10877c5f9e6 h1:hxu2T9JspE76sL3XAx/CNtA9bOO6QCEJkyG9rBXFEVA=
 github.com/brotherlogic/monitor v0.0.0-20221025152653-c10877c5f9e6/go.mod h1:babny4VO2GqFwjXqhJsP4a6la4XJeMT6f4BgLBPq4G8=
-github.com/brotherlogic/recordcollection v0.0.0-20241227184117-daf6f02732a6 h1:xC9YLtPUMQXeSPmvLBjUTl2mrCQaRRmJ2DRXaZnP2Kk=
-github.com/brotherlogic/recordcollection v0.0.0-20241227184117-daf6f02732a6/go.mod h1:pYpkLzsYWdhDh0LIF8CEGSnjid3mBQWf3AyfRMZSsHQ=
+github.com/brotherlogic/recordcollection v0.0.0-20241227224504-bf73a1ea591f h1:oC7L/wm9TFMf82eADWJqmuyJkW0JBwPJddA2bvsfwMI=
+github.com/brotherlogic/recordcollection v0.0.0-20241227224504-bf73a1ea591f/go.mod h1:uRcy/q9XoMOm4RBm3buJ1Z1jb76FYKG5Zf5TPm1Yf7I=
 github.com/brotherlogic/recordsorganiser v0.0.0-20241227163952-38b328041573 h1:sbxZppz3YlOR75QUPpdo0um3+P7twfcp4cCPgFFpoZk=
 github.com/brotherlogic/recordsorganiser v0.0.0-20241227163952-38b328041573/go.mod h1:Yw+eZBYAOVMFcipjjLY6LSwyBHHiNKCzS9LBD/vTRqI=
 github.com/brotherlogic/recordwants v0.0.0-20241227204350-c28c58aec2ac h1:/C+WHbs4D1uyaDpY/xNWjicnm5zNrKecxadhTFZ2XMY=
