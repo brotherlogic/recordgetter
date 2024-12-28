@@ -40,6 +40,8 @@ message State {
 
   int32 issue = 17;
   int32 work = 18;
+
+  int32 sales = 19;
 }
 
 enum RequestType {
