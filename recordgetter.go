@@ -57,6 +57,10 @@ var (
 		Name: "recordgetter_found_printer",
 		Help: "The number of running queues",
 	})
+	numSales = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "recordgetter_num_sales",
+		Help: "The number of running queues",
+	})
 )
 
 func (s *Server) metrics(config *pbrg.State) {
@@ -72,6 +76,8 @@ func (s *Server) metrics(config *pbrg.State) {
 			scoreCount.With(prometheus.Labels{"category": cat}).Set(0)
 		}
 	}
+
+	numSales.Set(float64(config.GetSales()))
 }
 
 // Server main server type
