@@ -456,12 +456,14 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		return rec, err
 	}
 
-	//Look for a record staged to sell
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ)
-	s.CtxLog(ctx, fmt.Sprintf("Found %v -> %v", rec, err))
-	if (err != nil || rec != nil) && s.validate(rec, typ) {
-		s.CtxLog(ctx, "PICKED STS")
-		return rec, err
+	//Look for a record staged to sell if we haven't done two sales today
+	if state.Sales < 2 {
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ)
+		s.CtxLog(ctx, fmt.Sprintf("Found %v -> %v", rec, err))
+		if (err != nil || rec != nil) && s.validate(rec, typ) {
+			s.CtxLog(ctx, "PICKED STS")
+			return rec, err
+		}
 	}
 
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ)
@@ -476,6 +478,13 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	s.CtxLog(ctx, fmt.Sprintf("SKIP %v %v", rec, err))
 	if (err != nil || rec != nil) && s.validate(rec, typ) {
 		s.CtxLog(ctx, "PICKED PV")
+		return rec, err
+	}
+
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ)
+	s.CtxLog(ctx, fmt.Sprintf("Found %v -> %v", rec, err))
+	if (err != nil || rec != nil) && s.validate(rec, typ) {
+		s.CtxLog(ctx, "PICKED STS")
 		return rec, err
 	}
 
@@ -565,6 +574,7 @@ func (s *Server) loadState(ctx context.Context) (*pbrg.State, error) {
 		state.CatCount = make(map[int32]int32)
 		state.ScoreCount = make(map[int32]int32)
 		state.CattypeCount = make(map[string]int32)
+		state.Sales = 0
 	}
 
 	s.metrics(state)

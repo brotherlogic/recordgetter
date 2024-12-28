@@ -253,6 +253,13 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 		}
 
 		score := s.getScore(ctx, in, state)
+
+		if score <= 3 && score > 0 &&
+			record.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_12_INCH &&
+			record.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_STAGED_TO_SELL {
+			state.Sales++
+		}
+
 		// Immediate score on sale items
 		if record.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_STAGED_TO_SELL {
 			score = in.GetMetadata().GetSetRating()
