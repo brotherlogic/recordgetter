@@ -254,6 +254,7 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 
 		score := s.getScore(ctx, in, state)
 
+		s.CtxLog(ctx, fmt.Sprintf("Scoring %v %v %v", score, record.GetMetadata().GetFiledUnder(), record.GetMetadata().GetCategory()))
 		if score <= 3 && score > 0 &&
 			record.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_12_INCH &&
 			record.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_STAGED_TO_SELL {
