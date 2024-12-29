@@ -7,9 +7,9 @@ require (
 	github.com/brotherlogic/goserver v0.0.0-20240826215223-fccbac46b3d4
 	github.com/brotherlogic/gramophile v0.1088.0
 	github.com/brotherlogic/keystore v0.0.0-20240508161349-814b3200b126
-	github.com/brotherlogic/recordcollection v0.0.0-20241229010758-2cbf014024b1
-	github.com/brotherlogic/recordsorganiser v0.0.0-20241229020812-484b72b06e6f
-	github.com/brotherlogic/recordwants v0.0.0-20241229011410-e39297631276
+	github.com/brotherlogic/recordcollection v0.0.0-20241229041403-38a7d39c969b
+	github.com/brotherlogic/recordsorganiser v0.0.0-20241229051905-990164eab093
+	github.com/brotherlogic/recordwants v0.0.0-20241229051502-50ffe4a3a051
 	github.com/golang/protobuf v1.5.4
 	github.com/prometheus/client_golang v1.20.5
 	golang.org/x/net v0.33.0
@@ -23,12 +23,12 @@ require (
 	github.com/brotherlogic/datastore v0.0.0-20241220230045-434035a99d2b // indirect
 	github.com/brotherlogic/discogs v0.0.0-20241205225822-b84cda670aa7 // indirect
 	github.com/brotherlogic/discovery v0.0.0-20241109204028-02908558af09 // indirect
-	github.com/brotherlogic/dstore v0.0.0-20241229011506-5b8c397b4b3b // indirect
-	github.com/brotherlogic/githubcard v0.0.0-20241229001020-5d4c23e2f4a4 // indirect
+	github.com/brotherlogic/dstore v0.0.0-20241229041506-9dc9a1ae66a7 // indirect
+	github.com/brotherlogic/githubcard v0.0.0-20241229051608-6543cf07acfb // indirect
 	github.com/brotherlogic/githubridge v0.2824.0 // indirect
 	github.com/brotherlogic/gobuildslave v0.0.0-20241111085829-8d4e5069a7fd // indirect
-	github.com/brotherlogic/lock v0.0.0-20241229020736-32adb31f9553 // indirect
-	github.com/brotherlogic/logging v0.0.0-20241229020658-649543e7e6a5 // indirect
+	github.com/brotherlogic/lock v0.0.0-20241229051807-cde95106350c // indirect
+	github.com/brotherlogic/logging v0.0.0-20241229052423-e368d3cfd03c // indirect
 	github.com/brotherlogic/monitor v0.0.0-20221025152653-c10877c5f9e6 // indirect
 	github.com/brotherlogic/versionserver v0.0.0-20221025154054-c9bcd41be2f2 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
