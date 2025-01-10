@@ -405,29 +405,13 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 
 	s.CtxLog(ctx, fmt.Sprintf("HERE %v and %v and %v", state.Work, typ, state.GetIssue()))
 
-	if state.Work > 0 && typ == pb.RequestType_DEFAULT {
-		if state.GetIssue() == 0 {
-			issue, err := s.ImmediateIssue(ctx, "Listen to 5 PIC", "Please", false, false)
-			if err != nil {
-				return nil, err
-			}
-			state.Issue = issue.GetNumber()
-			err = s.saveState(ctx, state)
-			if err != nil {
-				return nil, err
-			}
-		}
-		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ)
+	//Look for a record staged to sell if we haven't done two sales today
+	if state.Sales < 2 {
+		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ)
+		s.CtxLog(ctx, fmt.Sprintf("Found %v -> %v", rec, err))
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
-			s.CtxLog(ctx, "PICKED FIST PIC")
+			s.CtxLog(ctx, "PICKED STS")
 			return rec, err
-		}
-	}
-
-	if typ == pb.RequestType_DEFAULT && state.Work <= 0 && state.GetIssue() > 0 {
-		err := s.DeleteIssue(ctx, state.GetIssue())
-		if err != nil {
-			return nil, err
 		}
 	}
 
@@ -460,16 +444,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	if (err != nil || rec != nil) && s.validate(rec, typ) {
 		s.CtxLog(ctx, "PICKED REMAINDER UL")
 		return rec, err
-	}
-
-	//Look for a record staged to sell if we haven't done two sales today
-	if state.Sales < 2 {
-		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ)
-		s.CtxLog(ctx, fmt.Sprintf("Found %v -> %v", rec, err))
-		if (err != nil || rec != nil) && s.validate(rec, typ) {
-			s.CtxLog(ctx, "PICKED STS")
-			return rec, err
-		}
 	}
 
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ)
