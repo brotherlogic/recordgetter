@@ -274,7 +274,8 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 		}
 		state.CurrentPick = nil
 	} else if state.GetCurrentDigitalPick() == in.GetRelease().GetInstanceId() {
-		score := s.getScore(ctx, in, state)
+		score := in.GetMetadata().GetSetRating()
+
 		if score >= 0 {
 			err := s.updater.update(ctx, state, in.GetRelease().GetInstanceId(), score)
 			if err != nil && status.Convert(err).Code() != codes.OutOfRange {
