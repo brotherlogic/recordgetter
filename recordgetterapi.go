@@ -261,7 +261,8 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 			state.Sales++
 		}
 
-		if record.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL {
+		if record.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL &&
+			record.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_12_INCH {
 			state.TwelvePhs++
 		}
 
