@@ -48,7 +48,7 @@ func (s *Server) isFilable(rc *pbrc.Record) bool {
 	return rc.GetMetadata().GetGoalFolder() == 242017 && rc.GetRelease().GetFormatQuantity() <= 3
 }
 
-func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.ReleaseMetadata_Category, state *pb.State, typ pb.RequestType) (*pbrc.Record, error) {
+func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.ReleaseMetadata_Category, state *pb.State, typ pb.RequestType, force12 bool) (*pbrc.Record, error) {
 	pDate := int64(0)
 	var newRec *pbrc.Record
 	newRec = nil
@@ -61,6 +61,11 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 
 	for _, id := range recs {
 		rc, err := s.rGetter.getRelease(ctx, id)
+
+		if force12 && rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_12_INCH {
+			continue
+		}
+
 		isDigital := rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_12_INCH &&
 			rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_7_INCH
 
