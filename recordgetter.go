@@ -556,6 +556,7 @@ func (s *Server) loadState(ctx context.Context) (*pbrg.State, error) {
 		state.ScoreCount = make(map[int32]int32)
 		state.CattypeCount = make(map[string]int32)
 		state.Sales = 0
+		state.TwelvePhs = 0
 	}
 
 	s.metrics(state)
