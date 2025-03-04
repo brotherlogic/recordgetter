@@ -426,7 +426,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	if typ == pb.RequestType_DEFAULT && state.TwelvePhs <= 0 {
 		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, typ, true)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
-			s.CtxLog(ctx, "PICKED FIRST PHS")
+			s.CtxLog(ctx, "PICKED FIRST PHS 12")
 			return rec, err
 		}
 	}
@@ -434,7 +434,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	if state.ScoreCount[int32(pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL.Number())] == 0 {
 		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, typ, false)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
-			s.CtxLog(ctx, "PICKED FIRST PHS")
+			s.CtxLog(ctx, "PICKED FIRST PHS Non 12")
 			return rec, err
 		}
 	}
