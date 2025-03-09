@@ -476,6 +476,14 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		return rec, err
 	}
 
+	//Do PHS id we have nothing else
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, typ, false)
+	s.CtxLog(ctx, fmt.Sprintf("SKIP %v %v", rec, err))
+	if (err != nil || rec != nil) && s.validate(rec, typ) {
+		s.CtxLog(ctx, "PICKED Final PHS")
+		return rec, err
+	}
+
 	//Update the wait time
 	waiting.With(prometheus.Labels{"wait": "want"}).Set(float64(state.GetLastWant()))
 
