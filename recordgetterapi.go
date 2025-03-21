@@ -264,7 +264,7 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 		if record.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL &&
 			record.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_12_INCH {
 			if time.Since(time.Unix(record.GetMetadata().DateArrived, 0)) < time.Hour*24*30*2 {
-				s.CtxLog(ctx, fmt.Sprintf("Updating %v", time.Since(time.Unix(record.Metadata.GetDateArrived(), 0))))
+				s.CtxLog(ctx, fmt.Sprintf("Updating %v vs %v", time.Since(time.Unix(record.Metadata.GetDateArrived(), 0)), time.Hour*24*30*2))
 				state.TwelvePhs++
 			}
 		}
