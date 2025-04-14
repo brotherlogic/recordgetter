@@ -347,6 +347,13 @@ func (p *prodUpdater) update(ctx context.Context, config *pb.State, id, rating i
 
 	p.log(ctx, fmt.Sprintf("Setting: %v", intent))
 	_, err = gclient.SetIntent(nctx, intent)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = client.UpdateRecord(ctx, &pbrc.UpdateRecordRequest{Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: id}, Metadata: &pbrc.ReleaseMetadata{NeedsGramUpdate: true}}})
+
 	return err
 }
 
