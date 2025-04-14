@@ -352,7 +352,7 @@ func (p *prodUpdater) update(ctx context.Context, config *pb.State, id, rating i
 		return err
 	}
 
-	_, err = client.UpdateRecord(ctx, &pbrc.UpdateRecordRequest{Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: id}, Metadata: &pbrc.ReleaseMetadata{NeedsGramUpdate: true}}})
+	_, err = client.UpdateRecord(ctx, &pbrc.UpdateRecordRequest{Reason: "Triggering G update", Update: &pbrc.Record{Release: &pbgd.Release{InstanceId: id}, Metadata: &pbrc.ReleaseMetadata{NeedsGramUpdate: true}}})
 
 	return err
 }
