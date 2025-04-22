@@ -61,6 +61,9 @@ var (
 		Name: "recordgetter_num_sales",
 		Help: "The number of running queues",
 	})
+	pic = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "recordgetter_pic",
+		Help: "The number of pics done today"})
 )
 
 func (s *Server) metrics(config *pbrg.State) {
@@ -78,6 +81,7 @@ func (s *Server) metrics(config *pbrg.State) {
 	}
 
 	numSales.Set(float64(config.GetSales()))
+	pic.Set(float64(config.GetTwlevePic()))
 }
 
 // Server main server type
