@@ -269,6 +269,13 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 			}
 		}
 
+		if record.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_IN_COLLECTION &&
+			record.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_12_INCH {
+			s.CtxLog(ctx, fmt.Sprintf("Updating %v vs %v", time.Since(time.Unix(record.Metadata.GetDateArrived(), 0)), time.Hour*24*30*2))
+			state.TwlevePic++
+
+		}
+
 		// Immediate score on sale items or digital records
 		if record.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_STAGED_TO_SELL || record.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL {
 			score = in.GetMetadata().GetSetRating()

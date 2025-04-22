@@ -43,6 +43,7 @@ message State {
 
   int32 sales = 19;
   int32 twelve_phs = 20;
+  int32 twleve_pic = 21;
 }
 
 enum RequestType {
