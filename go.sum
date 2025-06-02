@@ -30,12 +30,12 @@ github.com/brotherlogic/logging v0.0.0-20250602201702-a1889c06861b h1:Pea15VLMQF
 github.com/brotherlogic/logging v0.0.0-20250602201702-a1889c06861b/go.mod h1:L1TMFakuB/Fe0BEz7aYdLtroYgMttt7D4+W0rqIl1OY=
 github.com/brotherlogic/monitor v0.0.0-20221025152653-c10877c5f9e6 h1:hxu2T9JspE76sL3XAx/CNtA9bOO6QCEJkyG9rBXFEVA=
 github.com/brotherlogic/monitor v0.0.0-20221025152653-c10877c5f9e6/go.mod h1:babny4VO2GqFwjXqhJsP4a6la4XJeMT6f4BgLBPq4G8=
-github.com/brotherlogic/recordcollection v0.0.0-20250602225401-22ba20307a3c h1:nEJJW0obh2KqiV+TOeUMFGu+hlI6RVFUYTD9OqRadvY=
-github.com/brotherlogic/recordcollection v0.0.0-20250602225401-22ba20307a3c/go.mod h1:jba1sRre63p1pfJaiKTUqFwsnMGfHqv9fOSECXaj3Q8=
+github.com/brotherlogic/recordcollection v0.0.0-20250602232049-fb175c8d2a50 h1:e7BcBMISCzG398PgJBvok3uNDKugkdjAaWVwkr97mQ8=
+github.com/brotherlogic/recordcollection v0.0.0-20250602232049-fb175c8d2a50/go.mod h1:SMKT97l5Nq56j4TWRw9KHr8NOFPNgNR32J5oOXAasZc=
 github.com/brotherlogic/recordsorganiser v0.0.0-20250522071341-e94f0b2c7f87 h1:MaoO45JEaytt1R7CqToyC+yAb7mAJHb0DvaahA86IyU=
 github.com/brotherlogic/recordsorganiser v0.0.0-20250522071341-e94f0b2c7f87/go.mod h1:AlpcX1TsbhMbZNnVzUCl//zrkLH9KITc9cd4PFqypp8=
-github.com/brotherlogic/recordwants v0.0.0-20250602225304-e46c36aeb36c h1:nD6vEY+6VXAavhAd/t2njPjRZr8ZEj/2tD5fVdxl/9k=
-github.com/brotherlogic/recordwants v0.0.0-20250602225304-e46c36aeb36c/go.mod h1:8muJRd3b6xKUNVKbNPNQhqeEt11VgtWKnczl187ldus=
+github.com/brotherlogic/recordwants v0.0.0-20250602231402-0cbe9c46ddbc h1:phK37apEWX1xuehNpv6IjkZBAgEt/2W4CifUrgsdzOY=
+github.com/brotherlogic/recordwants v0.0.0-20250602231402-0cbe9c46ddbc/go.mod h1:++C7hb7vMl36EEYFAlt0kRn2vSStQNaHt6LuLE0l1x4=
 github.com/brotherlogic/versionserver v0.0.0-20221025154054-c9bcd41be2f2 h1:YjFE4Sa+wwbl4yJwJaMQVeA4CMzLIDbbIuSMdsEp5/w=
 github.com/brotherlogic/versionserver v0.0.0-20221025154054-c9bcd41be2f2/go.mod h1:ODrbMDhG+yOp2vie9vE4oaKsKhILDralZMr7PJ4HrJY=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
