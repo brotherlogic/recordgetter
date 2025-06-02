@@ -7,7 +7,7 @@ require (
 	github.com/brotherlogic/goserver v0.0.0-20250123145056-95c6fbb2310a
 	github.com/brotherlogic/gramophile v0.1208.0
 	github.com/brotherlogic/keystore v0.0.0-20240508161349-814b3200b126
-	github.com/brotherlogic/recordcollection v0.0.0-20250602232049-fb175c8d2a50
+	github.com/brotherlogic/recordcollection v0.0.0-20250602233201-8836e790a68d
 	github.com/brotherlogic/recordsorganiser v0.0.0-20250522071341-e94f0b2c7f87
 	github.com/brotherlogic/recordwants v0.0.0-20250602231402-0cbe9c46ddbc
 	github.com/golang/protobuf v1.5.4
@@ -20,7 +20,7 @@ require (
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/brotherlogic/buildserver v0.0.0-20250602201412-6457418ba6bb // indirect
-	github.com/brotherlogic/datastore v0.0.0-20250602212255-2d2f69cb6a7e // indirect
+	github.com/brotherlogic/datastore v0.0.0-20250602233011-81c7d9a4e23e // indirect
 	github.com/brotherlogic/discogs v0.0.0-20250516174159-fe8652bd9b78 // indirect
 	github.com/brotherlogic/discovery v0.0.0-20250510023052-d0207340fd9e // indirect
 	github.com/brotherlogic/dstore v0.0.0-20250602202242-3f2600c6f58a // indirect
