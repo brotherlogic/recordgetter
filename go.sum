@@ -16,6 +16,8 @@ github.com/brotherlogic/discovery v0.0.0-20241109204028-02908558af09 h1:/G6RM6m/
 github.com/brotherlogic/discovery v0.0.0-20241109204028-02908558af09/go.mod h1:ih6YWeSvJfqZHdtPujz/mbs2fdnLD9HKVnPYplvriEY=
 github.com/brotherlogic/discovery v0.0.0-20250510023052-d0207340fd9e h1:Z0p9Cn4FMlW0CiQXteZv/cKFEgbBFmHfjHmL69Ys31g=
 github.com/brotherlogic/discovery v0.0.0-20250510023052-d0207340fd9e/go.mod h1:u89Xw08pjAQpA1AYozRypoWRpeqfCbNPcRpwEyUHuV4=
+github.com/brotherlogic/discovery v0.0.0-20250608201506-e686efc28446 h1:+bXS5PIUsAtQq/oNw/AqZWcSyNzPqZTjlR3x1TLBLK8=
+github.com/brotherlogic/discovery v0.0.0-20250608201506-e686efc28446/go.mod h1:u89Xw08pjAQpA1AYozRypoWRpeqfCbNPcRpwEyUHuV4=
 github.com/brotherlogic/dstore v0.0.0-20250418222254-6bb8cca22722 h1:WjpyYf+UV3Z/QcqFBgbbodKHFLC0DWJ3+4jVYQP4cxE=
 github.com/brotherlogic/dstore v0.0.0-20250418222254-6bb8cca22722/go.mod h1:60nJUW9hh/fwKfrqUIym78muPjeev9xRGqO/elPov3U=
 github.com/brotherlogic/dstore v0.0.0-20250603040842-d5f4d5395a61 h1:EaLk5AmdTmNIE792VYPt5iS3sgvmNA8A1wjlmgzofeA=
@@ -32,6 +34,8 @@ github.com/brotherlogic/gobuildslave v0.0.0-20250418184627-bbb8bc944f50 h1:4Scha
 github.com/brotherlogic/gobuildslave v0.0.0-20250418184627-bbb8bc944f50/go.mod h1:1MIbpKleDYXe2kMfEqyZ5K3ZMb8/olzVYiJsCB1tFpI=
 github.com/brotherlogic/gobuildslave v0.0.0-20250608175835-f64830b83998 h1:0gcZkZxD7/Py0/Y4d9oOYQA5hqYJBx02SOyp1DZJVjo=
 github.com/brotherlogic/gobuildslave v0.0.0-20250608175835-f64830b83998/go.mod h1:gnYHFf38virThOCitfX6S5tG/un4vdF8dUISOkRG73M=
+github.com/brotherlogic/gobuildslave v0.0.0-20250608213200-63fb4e93aff7 h1:PE0DSNAQZwc7uMvkK1lMfQ6tVnI8V1dxq25iv6rHEfc=
+github.com/brotherlogic/gobuildslave v0.0.0-20250608213200-63fb4e93aff7/go.mod h1:gnYHFf38virThOCitfX6S5tG/un4vdF8dUISOkRG73M=
 github.com/brotherlogic/godiscogs v0.0.0-20250327133544-6e4c3d175e8c h1:lIqmGW8T1zW+Zb3vZvqHtBkwYNbSbl6V0sqiYkKmf/I=
 github.com/brotherlogic/godiscogs v0.0.0-20250327133544-6e4c3d175e8c/go.mod h1:4wYe3uogEJqP77td2b2j69c+TLcSDrqgd5pqj7vlb6U=
 github.com/brotherlogic/godiscogs v0.0.0-20250429182651-404c7473edf8 h1:A520v1rgl5+aFLI4jkARcBiRE29tEL4lUx/HIOsEaTc=
@@ -44,6 +48,8 @@ github.com/brotherlogic/gramophile v0.1140.0 h1:hsjlDNeumIKM+hwHRKD2cXmy342kAhE1
 github.com/brotherlogic/gramophile v0.1140.0/go.mod h1:d/EMwYAvmuJKNKNUGoVUarewCp+ELvSnnltPww74oUo=
 github.com/brotherlogic/gramophile v0.1214.0 h1:1EF+7W2BraGqRLhrqAER454HJ9VDkpOADOjpHlvK4PI=
 github.com/brotherlogic/gramophile v0.1214.0/go.mod h1:vVn1VLaDm04U48LNXyz8pEjq2HfY8v5x+R3MnZK518s=
+github.com/brotherlogic/gramophile v0.1215.0 h1:6a9pw9cERZdcdvBdRcXrS3NvxzOpPmfa3e74D10yE6Q=
+github.com/brotherlogic/gramophile v0.1215.0/go.mod h1:vVn1VLaDm04U48LNXyz8pEjq2HfY8v5x+R3MnZK518s=
 github.com/brotherlogic/keystore v0.0.0-20240508161349-814b3200b126 h1:6e12Cl80VtMghgEyTyx1tZB1mUSSBHeLhKvikwb7kIQ=
 github.com/brotherlogic/keystore v0.0.0-20240508161349-814b3200b126/go.mod h1:2JK2kJhI5ler7e7M1WtIpIkiNGG2qy8V6X7VZLCsd5k=
 github.com/brotherlogic/lock v0.0.0-20250418233357-e5f190fc5c9d h1:a02ebjmf66peRJW7kibLOelQR/lLzFyTEti69GcZNnA=
@@ -54,6 +60,8 @@ github.com/brotherlogic/logging v0.0.0-20250418184437-13962b9ed340 h1:odZ1HqY4Nm
 github.com/brotherlogic/logging v0.0.0-20250418184437-13962b9ed340/go.mod h1:zZOj53b5DWTTlXH+rajsNcqsHgo3K2qDv+r4D9S9TKQ=
 github.com/brotherlogic/logging v0.0.0-20250602201702-a1889c06861b h1:Pea15VLMQF1LLGCuPU3+GFULHhN3pID+0dJINx0SDaM=
 github.com/brotherlogic/logging v0.0.0-20250602201702-a1889c06861b/go.mod h1:L1TMFakuB/Fe0BEz7aYdLtroYgMttt7D4+W0rqIl1OY=
+github.com/brotherlogic/logging v0.0.0-20250609203035-01dc3cbb8be0 h1:K8aLIJeUtgXwwOFCDn4578Qkgs39CGa8rJ7jC44Sr/8=
+github.com/brotherlogic/logging v0.0.0-20250609203035-01dc3cbb8be0/go.mod h1:B8SGqQuszCCOcOyaGnFFE5x37oYV/UlxK8F2WJIHjFA=
 github.com/brotherlogic/monitor v0.0.0-20221025152653-c10877c5f9e6 h1:hxu2T9JspE76sL3XAx/CNtA9bOO6QCEJkyG9rBXFEVA=
 github.com/brotherlogic/monitor v0.0.0-20221025152653-c10877c5f9e6/go.mod h1:babny4VO2GqFwjXqhJsP4a6la4XJeMT6f4BgLBPq4G8=
 github.com/brotherlogic/recordcollection v0.0.0-20250418000543-2afdbf1d772c h1:/HB8SF8JyZiMx/uPOlazjHJc2CtGDG0QRPOXCSr6g7g=
