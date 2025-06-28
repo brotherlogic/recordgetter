@@ -458,17 +458,17 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		}
 	}
 
-	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ, false)
-	s.CtxLog(ctx, fmt.Sprintf("FOUND UL: %v -> %v", rec.GetRelease().GetInstanceId(), s.validate(rec, typ)))
-	if (err != nil || rec != nil) && s.validate(rec, typ) {
-		s.CtxLog(ctx, "PICKED REMAINDER UL")
-		return rec, err
-	}
-
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, false)
+	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, false)
 	s.CtxLog(ctx, fmt.Sprintf("Found %v -> %v", rec, err))
 	if (err != nil || rec != nil) && s.validate(rec, typ) {
 		s.CtxLog(ctx, "PICKED STS")
+		return rec, err
+	}
+
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ, false)
+	s.CtxLog(ctx, fmt.Sprintf("FOUND UL: %v -> %v", rec.GetRelease().GetInstanceId(), s.validate(rec, typ)))
+	if (err != nil || rec != nil) && s.validate(rec, typ) {
+		s.CtxLog(ctx, "PICKED REMAINDER UL")
 		return rec, err
 	}
 
