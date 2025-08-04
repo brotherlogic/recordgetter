@@ -96,7 +96,6 @@ type Server struct {
 	lastPre    time.Time
 	org        org
 	wants      wants
-	visitors   bool
 }
 
 const (
@@ -505,7 +504,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	//Update the wait time
 	waiting.With(prometheus.Labels{"wait": "want"}).Set(float64(state.GetLastWant()))
 
-	return nil, status.Errorf(codes.FailedPrecondition, "Unable to locate record to listen to (visitors = %v)", s.visitors)
+	return nil, status.Errorf(codes.FailedPrecondition, "Unable to locate record to listen to")
 }
 
 // Init a record getter
@@ -616,27 +615,6 @@ func main() {
 	if err != nil {
 		return
 	}
-
-	go func() {
-		for {
-			ctx, cancel := utils.ManualContext("recordgetter-dial", time.Minute)
-			found, err := server.FDialServer(ctx, "printer")
-			if err == nil {
-				server.visitors = false
-				found.Close()
-			} else {
-				server.visitors = true
-			}
-
-			cancel()
-			if server.visitors {
-				foundPrinter.Set(float64(0))
-			} else {
-				foundPrinter.Set(float64(1))
-			}
-			time.Sleep(time.Minute)
-		}
-	}()
 
 	go func() {
 		// Try to  update in play folders - best effort
