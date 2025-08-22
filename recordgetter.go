@@ -96,7 +96,6 @@ type Server struct {
 	lastPre    time.Time
 	org        org
 	wants      wants
-	visitors   bool
 }
 
 const (
@@ -458,17 +457,17 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		}
 	}
 
-	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ, false)
-	s.CtxLog(ctx, fmt.Sprintf("FOUND UL: %v -> %v", rec.GetRelease().GetInstanceId(), s.validate(rec, typ)))
-	if (err != nil || rec != nil) && s.validate(rec, typ) {
-		s.CtxLog(ctx, "PICKED REMAINDER UL")
-		return rec, err
-	}
-
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, false)
+	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, false)
 	s.CtxLog(ctx, fmt.Sprintf("Found %v -> %v", rec, err))
 	if (err != nil || rec != nil) && s.validate(rec, typ) {
 		s.CtxLog(ctx, "PICKED STS")
+		return rec, err
+	}
+
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ, false)
+	s.CtxLog(ctx, fmt.Sprintf("FOUND UL: %v -> %v", rec.GetRelease().GetInstanceId(), s.validate(rec, typ)))
+	if (err != nil || rec != nil) && s.validate(rec, typ) {
+		s.CtxLog(ctx, "PICKED REMAINDER UL")
 		return rec, err
 	}
 
@@ -476,6 +475,13 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	s.CtxLog(ctx, fmt.Sprintf("FOUND PIC -> %v,%v", rec, err))
 	if (err != nil || rec != nil) && s.validate(rec, typ) {
 		s.CtxLog(ctx, "PICKED PIC")
+		return rec, err
+	}
+
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ, false)
+	s.CtxLog(ctx, fmt.Sprintf("FOUND PIC -> %v,%v", rec, err))
+	if (err != nil || rec != nil) && s.validate(rec, typ) {
+		s.CtxLog(ctx, "PICKED Bottom PIC")
 		return rec, err
 	}
 
@@ -495,17 +501,10 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		return rec, err
 	}
 
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ, false)
-	s.CtxLog(ctx, fmt.Sprintf("FOUND PIC -> %v,%v", rec, err))
-	if (err != nil || rec != nil) && s.validate(rec, typ) {
-		s.CtxLog(ctx, "PICKED Bottom PIC")
-		return rec, err
-	}
-
 	//Update the wait time
 	waiting.With(prometheus.Labels{"wait": "want"}).Set(float64(state.GetLastWant()))
 
-	return nil, status.Errorf(codes.FailedPrecondition, "Unable to locate record to listen to (visitors = %v)", s.visitors)
+	return nil, status.Errorf(codes.FailedPrecondition, "Unable to locate record to listen to")
 }
 
 // Init a record getter
@@ -616,27 +615,6 @@ func main() {
 	if err != nil {
 		return
 	}
-
-	go func() {
-		for {
-			ctx, cancel := utils.ManualContext("recordgetter-dial", time.Minute)
-			found, err := server.FDialServer(ctx, "printer")
-			if err == nil {
-				server.visitors = false
-				found.Close()
-			} else {
-				server.visitors = true
-			}
-
-			cancel()
-			if server.visitors {
-				foundPrinter.Set(float64(0))
-			} else {
-				foundPrinter.Set(float64(1))
-			}
-			time.Sleep(time.Minute)
-		}
-	}()
 
 	go func() {
 		// Try to  update in play folders - best effort

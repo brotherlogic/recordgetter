@@ -286,6 +286,9 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 			if err != nil && status.Convert(err).Code() != codes.OutOfRange {
 				return &pb.Empty{}, err
 			}
+			if record.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_7_INCH && record.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_PRE_IN_COLLECTION {
+				s.RaiseIssue("Add a 7 Inch Record", "You've just put one in the collection")
+			}
 		}
 		state.CurrentPick = nil
 	} else if state.GetCurrentDigitalPick() == in.GetRelease().GetInstanceId() {
@@ -316,6 +319,7 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 				return &pb.Empty{}, err
 			}
 		}
+
 		state.CurrentCdPick = 0
 	}
 
