@@ -5,7 +5,7 @@ go 1.24.6
 require (
 	github.com/brotherlogic/godiscogs v0.0.0-20250429182651-404c7473edf8
 	github.com/brotherlogic/goserver v0.0.0-20250608182006-4ace595931a5
-	github.com/brotherlogic/gramophile v0.1317.0
+	github.com/brotherlogic/gramophile v0.1322.0
 	github.com/brotherlogic/keystore v0.0.0-20240508161349-814b3200b126
 	github.com/brotherlogic/recordcollection v0.0.0-20250722141022-d09a67a16bb5
 	github.com/brotherlogic/recordsorganiser v0.0.0-20250522071341-e94f0b2c7f87
