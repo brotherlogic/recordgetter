@@ -7,8 +7,8 @@ require (
 	github.com/brotherlogic/goserver v0.0.0-20250608182006-4ace595931a5
 	github.com/brotherlogic/gramophile v0.1322.0
 	github.com/brotherlogic/keystore v0.0.0-20240508161349-814b3200b126
-	github.com/brotherlogic/recordcollection v0.0.0-20250722141022-d09a67a16bb5
-	github.com/brotherlogic/recordsorganiser v0.0.0-20250522071341-e94f0b2c7f87
+	github.com/brotherlogic/recordcollection v0.0.0-20250929215930-1c40d4c60ebc
+	github.com/brotherlogic/recordsorganiser v0.0.0-20250927154056-f40bc9bb89f2
 	github.com/brotherlogic/recordwants v0.0.0-20250809013054-02adead3c61b
 	github.com/golang/protobuf v1.5.4
 	github.com/prometheus/client_golang v1.23.2
@@ -42,5 +42,5 @@ require (
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250922171735-9219d122eba9 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250929231259-57b25ae835d4 // indirect
 )
