@@ -8,7 +8,7 @@ require (
 	github.com/brotherlogic/gramophile v0.1322.0
 	github.com/brotherlogic/keystore v0.0.0-20240508161349-814b3200b126
 	github.com/brotherlogic/recordcollection v0.0.0-20250929215930-1c40d4c60ebc
-	github.com/brotherlogic/recordsorganiser v0.0.0-20250927154056-f40bc9bb89f2
+	github.com/brotherlogic/recordsorganiser v0.0.0-20251014035335-075ed86e7627
 	github.com/brotherlogic/recordwants v0.0.0-20250809013054-02adead3c61b
 	github.com/golang/protobuf v1.5.4
 	github.com/prometheus/client_golang v1.23.2
