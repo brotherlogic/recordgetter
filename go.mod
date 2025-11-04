@@ -8,7 +8,7 @@ require (
 	github.com/brotherlogic/gramophile v0.1326.0
 	github.com/brotherlogic/keystore v0.0.0-20240508161349-814b3200b126
 	github.com/brotherlogic/recordcollection v0.0.0-20251015143532-3776574ed3ee
-	github.com/brotherlogic/recordsorganiser v0.0.0-20251021045816-372c96ceaf79
+	github.com/brotherlogic/recordsorganiser v0.0.0-20251104054056-a93540457106
 	github.com/brotherlogic/recordwants v0.0.0-20250809013054-02adead3c61b
 	github.com/golang/protobuf v1.5.4
 	github.com/prometheus/client_golang v1.23.2
@@ -26,7 +26,7 @@ require (
 	github.com/brotherlogic/dstore v0.0.0-20250613140516-5b29ccb83705 // indirect
 	github.com/brotherlogic/githubcard v0.0.0-20250809015258-b7eb47354a1b // indirect
 	github.com/brotherlogic/githubridge v0.2872.0 // indirect
-	github.com/brotherlogic/gobuildslave v0.0.0-20251022051839-019cab550c80 // indirect
+	github.com/brotherlogic/gobuildslave v0.0.0-20251029055205-64c5444822e8 // indirect
 	github.com/brotherlogic/lock v0.0.0-20250809014217-ec6d59d5f63a // indirect
 	github.com/brotherlogic/logging v0.0.0-20250809013256-00b27467c7fd // indirect
 	github.com/brotherlogic/monitor v0.0.0-20221025152653-c10877c5f9e6 // indirect
@@ -35,11 +35,11 @@ require (
 	github.com/mitchellh/go-ps v1.0.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
-	github.com/prometheus/common v0.67.1 // indirect
-	github.com/prometheus/procfs v0.19.1 // indirect
+	github.com/prometheus/common v0.67.2 // indirect
+	github.com/prometheus/procfs v0.19.2 // indirect
 	github.com/struCoder/pidusage v0.2.1 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	golang.org/x/sys v0.37.0 // indirect
 	golang.org/x/text v0.30.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20251022142026-3a174f9686a8 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20251103181224-f26f9409b101 // indirect
 )
