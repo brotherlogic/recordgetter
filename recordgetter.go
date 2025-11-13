@@ -415,9 +415,17 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 
 	s.CtxLog(ctx, fmt.Sprintf("HERE %v and %v and %v", state.Work, typ, state.GetIssue()))
 
+	//P-V is for funsies
+	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state, typ, false, true)
+	s.CtxLog(ctx, fmt.Sprintf("SKIP %v %v", rec, err))
+	if (err != nil || rec != nil) && s.validate(rec, typ) {
+		s.CtxLog(ctx, "PICKED PV")
+		return rec, err
+	}
+
 	//Look for a record staged to sell if we haven't done two sales today
 	if state.Sales < 1 {
-		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, false)
+		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, false, false)
 		s.CtxLog(ctx, fmt.Sprintf("Found %v -> %v", rec, err))
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
 			s.CtxLog(ctx, "PICKED STS")
@@ -426,7 +434,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	}
 
 	if state.ScoreCount[int32(pbrc.ReleaseMetadata_UNLISTENED.Number())] == 0 {
-		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ, false)
+		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ, false, false)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
 			s.CtxLog(ctx, "PICKED FIRST UL")
 			return rec, err
@@ -434,7 +442,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	}
 
 	if state.ScoreCount[int32(pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL.Number())] == 0 {
-		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, typ, true)
+		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, typ, true, false)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
 			s.CtxLog(ctx, "PICKED FIRST PHS Non 12")
 			return rec, err
@@ -442,7 +450,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	}
 
 	if state.ScoreCount[int32(pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL.Number())] == 0 {
-		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, typ, false)
+		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, typ, false, false)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
 			s.CtxLog(ctx, "PICKED FIRST PHS Non 12")
 			return rec, err
@@ -450,7 +458,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	}
 
 	if state.ScoreCount[int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number())] == 0 {
-		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ, true)
+		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ, true, false)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
 			s.CtxLog(ctx, "PICKED FIST PIC 12")
 			return rec, err
@@ -458,35 +466,35 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	}
 
 	if state.ScoreCount[int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number())] == 0 {
-		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ, false)
+		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ, false, false)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
 			s.CtxLog(ctx, "PICKED FIST PIC")
 			return rec, err
 		}
 	}
 
-	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, false)
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, false, false)
 	s.CtxLog(ctx, fmt.Sprintf("Found %v -> %v", rec, err))
 	if (err != nil || rec != nil) && s.validate(rec, typ) {
 		s.CtxLog(ctx, "PICKED STS")
 		return rec, err
 	}
 
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ, false)
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ, false, false)
 	s.CtxLog(ctx, fmt.Sprintf("FOUND UL: %v -> %v", rec.GetRelease().GetInstanceId(), s.validate(rec, typ)))
 	if (err != nil || rec != nil) && s.validate(rec, typ) {
 		s.CtxLog(ctx, "PICKED REMAINDER UL")
 		return rec, err
 	}
 
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ, true)
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ, true, false)
 	s.CtxLog(ctx, fmt.Sprintf("FOUND PIC -> %v,%v", rec, err))
 	if (err != nil || rec != nil) && s.validate(rec, typ) {
 		s.CtxLog(ctx, "PICKED PIC")
 		return rec, err
 	}
 
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ, false)
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ, false, false)
 	s.CtxLog(ctx, fmt.Sprintf("FOUND PIC -> %v,%v", rec, err))
 	if (err != nil || rec != nil) && s.validate(rec, typ) {
 		s.CtxLog(ctx, "PICKED Bottom PIC")
@@ -494,7 +502,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	}
 
 	//P-V is for funsies
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state, typ, false)
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state, typ, false, false)
 	s.CtxLog(ctx, fmt.Sprintf("SKIP %v %v", rec, err))
 	if (err != nil || rec != nil) && s.validate(rec, typ) {
 		s.CtxLog(ctx, "PICKED PV")
@@ -502,7 +510,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	}
 
 	//Do 12 inch PHS first
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, typ, true)
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, typ, true, false)
 	s.CtxLog(ctx, fmt.Sprintf("SKIP %v %v", rec, err))
 	if (err != nil || rec != nil) && s.validate(rec, typ) {
 		s.CtxLog(ctx, "PICKED Final 12 inch true PHS")
@@ -510,7 +518,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	}
 
 	//Do PHS id we have nothing else
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, typ, false)
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, typ, false, false)
 	s.CtxLog(ctx, fmt.Sprintf("SKIP %v %v", rec, err))
 	if (err != nil || rec != nil) && s.validate(rec, typ) {
 		s.CtxLog(ctx, "PICKED Final true PHS")
