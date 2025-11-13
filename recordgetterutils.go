@@ -41,7 +41,7 @@ func (s *Server) isFilable(rc *pbrc.Record) bool {
 	return rc.GetMetadata().GetGoalFolder() == 242017 && rc.GetRelease().GetFormatQuantity() <= 3
 }
 
-func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.ReleaseMetadata_Category, state *pb.State, typ pb.RequestType, force12 bool) (*pbrc.Record, error) {
+func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.ReleaseMetadata_Category, state *pb.State, typ pb.RequestType, force12 bool, old bool) (*pbrc.Record, error) {
 	pDate := int64(0)
 	var newRec *pbrc.Record
 	newRec = nil
@@ -84,8 +84,10 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 				!rc.GetMetadata().GetDirty() &&
 				rc.GetMetadata().SetRating == 0 {
 				if s.dateFine(rc, t, state) && !s.needsRip(rc) {
-					pDate = rc.GetMetadata().DateAdded
-					newRec = rc
+					if !old || time.Since(time.Unix(rc.GetMetadata().LastListenTime, 0)) > time.Hour*24*365*4 {
+						pDate = rc.GetMetadata().DateAdded
+						newRec = rc
+					}
 				} else {
 					s.CtxLog(ctx, fmt.Sprintf("Date is not fine for %v", id))
 				}

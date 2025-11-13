@@ -90,7 +90,7 @@ func TestGetPreFreshamanOnCategoryGet(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{records: []*pbrc.Record{&pbrc.Record{Metadata: &pbrc.ReleaseMetadata{Category: pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, CdPath: "blah", FiledUnder: pbrc.ReleaseMetadata_FILE_CD}, Release: &pbgd.Release{FolderId: 812802, InstanceId: 1}}}}
 
-	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{}, pb.RequestType_DEFAULT, false)
+	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{}, pb.RequestType_DEFAULT, false, false)
 	if err != nil {
 		t.Errorf("Did not fail: %v", err)
 	}
@@ -104,7 +104,7 @@ func TestFailFailOnCategoryGet(t *testing.T) {
 	s := InitTestServer()
 	s.rGetter = &testGetter{failGetInCategory: true}
 
-	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{}, pb.RequestType_DEFAULT, false)
+	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{}, pb.RequestType_DEFAULT, false, false)
 	if err == nil {
 		t.Errorf("Did not fail: %v", rec)
 	}
@@ -113,7 +113,7 @@ func TestFailFailOnCategoryGet(t *testing.T) {
 func TestCategoryEmpty(t *testing.T) {
 	s := InitTestServer()
 
-	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{}, pb.RequestType_DEFAULT, false)
+	rec, err := s.getCategoryRecord(context.Background(), time.Now(), pbrc.ReleaseMetadata_PRE_FRESHMAN, &pb.State{}, pb.RequestType_DEFAULT, false, false)
 	if err != nil || rec != nil {
 		t.Errorf("Did not fail: %v -> %v", rec, err)
 	}
