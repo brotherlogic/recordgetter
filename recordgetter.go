@@ -503,7 +503,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 
 	//Do 12 inch PHS first
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, typ, true, false)
-	s.CtxLog(ctx, fmt.Sprintf("SKIP %v %v", rec, err))
+	s.CtxLog(ctx, fmt.Sprintf("SKIP PHS %v %v", rec, err))
 	if (err != nil || rec != nil) && s.validate(rec, typ) {
 		s.CtxLog(ctx, "PICKED Final 12 inch true PHS")
 		return rec, err
@@ -511,7 +511,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 
 	//Do PHS id we have nothing else
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, typ, false, false)
-	s.CtxLog(ctx, fmt.Sprintf("SKIP %v %v", rec, err))
+	s.CtxLog(ctx, fmt.Sprintf("SKIP PHS2 %v %v", rec, err))
 	if (err != nil || rec != nil) && s.validate(rec, typ) {
 		s.CtxLog(ctx, "PICKED Final true All PHS")
 		return rec, err
