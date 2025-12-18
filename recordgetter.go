@@ -26,6 +26,7 @@ import (
 	pb "github.com/brotherlogic/recordgetter/proto"
 	pbrg "github.com/brotherlogic/recordgetter/proto"
 	pbro "github.com/brotherlogic/recordsorganiser/proto"
+	pbrv "github.com/brotherlogic/recordvalidator/proto"
 	rwpb "github.com/brotherlogic/recordwants/proto"
 )
 
@@ -415,6 +416,24 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	s.CtxLog(ctx, fmt.Sprintf("HERE %v and %v and %v", state.Work, typ, state.GetIssue()))
+
+	// First look for very_old_twelves
+	conn, err := s.FDialServer(ctx, "recordvalidator")
+	if err == nil {
+		defer conn.Close()
+		client := pbrv.NewRecordValidatorServiceClient(conn)
+
+		res, err := client.GetScheme(ctx, &pbrv.GetSchemeRequest{
+			Name: "very_old_twelves",
+		})
+		if err == nil && res.GetScheme().GetCurrentPick() > 0 {
+			r, err := s.rGetter.getPlainRecord(ctx, res.GetScheme().GetCurrentPick())
+			if err == nil && s.validate(r, typ) {
+				return r, nil
+			}
+		}
+
+	}
 
 	//Look for a record staged to sell if we haven't done two sales today
 	if state.Sales < 1 {
