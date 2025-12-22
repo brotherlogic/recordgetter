@@ -451,7 +451,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	//P-V is for funsies
 	rec, err := s.getVeryOld(ctx, typ)
 	s.CtxLog(ctx, fmt.Sprintf("VERY OLD %v %v", rec, err))
-	if (err != nil || rec != nil) && s.validate(rec, typ) {
+	if (err != nil || rec != nil) && s.validate(rec, typ) && s.dateFine(rec, t, state) {
 		s.CtxLog(ctx, "PICKED VERY OLD")
 		return rec, err
 	}
