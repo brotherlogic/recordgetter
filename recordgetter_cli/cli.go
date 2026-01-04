@@ -41,7 +41,7 @@ func clean(ctx context.Context, iid int32) {
 	defer conn.Close()
 
 	client := pbrg.NewRecordGetterClient(conn)
-	r, err := client.Clear(ctx, &pbrg.ClearRequest{InstanceId: iid})
+	r, err := client.Clear(ctx, &pbrg.ClearRequest{Iid: iid})
 	fmt.Printf("%v and %v", r, err)
 }
 
