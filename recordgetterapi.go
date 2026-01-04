@@ -45,7 +45,7 @@ func (s *Server) Clear(ctx context.Context, req *pb.ClearRequest) (*pb.ClearResp
 
 	var ns []*pb.DiskScore
 	for _, score := range config.GetScores() {
-		if score.GetInstanceId() != req.GetInstanceId() {
+		if score.GetInstanceId() != req.GetIid() {
 			ns = append(ns, score)
 		}
 	}
