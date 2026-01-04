@@ -37,6 +37,23 @@ func (s *Server) ClientUpdate(ctx context.Context, req *pbrc.ClientUpdateRequest
 	return &pbrc.ClientUpdateResponse{}, nil
 }
 
+func (s *Server) Clear(ctx context.Context, req *pb.ClearRequest) (*pb.ClearResponse, error) {
+	config, err := s.loadState(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var ns []*pb.DiskScore
+	for _, score := range config.GetScores() {
+		if score.GetInstanceId() != req.GetInstanceId() {
+			ns = append(ns, score)
+		}
+	}
+	config.Scores = ns
+
+	return &pb.ClearResponse{}, s.saveState(ctx, config)
+}
+
 // GetRecord gets a record
 func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.GetRecordResponse, error) {
 	state, err := s.loadState(ctx)
