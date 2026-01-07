@@ -293,8 +293,8 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 
 		}
 
-		// Immediate score on sale items or digital records
-		if record.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_STAGED_TO_SELL || record.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL {
+		// Immediate score on digital records
+		if record.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL {
 			score = in.GetMetadata().GetSetRating()
 		}
 
