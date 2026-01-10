@@ -38,6 +38,23 @@ func (s *Server) ClientUpdate(ctx context.Context, req *pbrc.ClientUpdateRequest
 	return &pbrc.ClientUpdateResponse{}, nil
 }
 
+func (s *Server) Clear(ctx context.Context, req *pb.ClearRequest) (*pb.ClearResponse, error) {
+	config, err := s.loadState(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var ns []*pb.DiskScore
+	for _, score := range config.GetScores() {
+		if score.GetInstanceId() != req.GetIid() {
+			ns = append(ns, score)
+		}
+	}
+	config.Scores = ns
+
+	return &pb.ClearResponse{}, s.saveState(ctx, config)
+}
+
 // GetRecord gets a record
 func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.GetRecordResponse, error) {
 	state, err := s.loadState(ctx)
@@ -291,8 +308,8 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 
 		}
 
-		// Immediate score on sale items or digital records
-		if record.GetMetadata().GetCategory() == pbrc.ReleaseMetadata_STAGED_TO_SELL || record.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL {
+		// Immediate score on digital records
+		if record.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_DIGITAL {
 			score = in.GetMetadata().GetSetRating()
 		}
 

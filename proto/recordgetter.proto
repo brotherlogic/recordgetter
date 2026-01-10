@@ -69,8 +69,15 @@ message ForceRequest{
   RequestType type = 1;
 }
 
+message ClearRequest {
+  int32 iid = 1;
+}
+
+message ClearResponse {}
+
 service RecordGetter {
   rpc GetRecord(GetRecordRequest) returns (GetRecordResponse);
   rpc Listened(recordcollection.Record) returns (Empty);
   rpc Force(ForceRequest) returns (Empty);
+  rpc Clear(ClearRequest) returns (ClearResponse);
 }

@@ -26,6 +26,7 @@ import (
 	pb "github.com/brotherlogic/recordgetter/proto"
 	pbrg "github.com/brotherlogic/recordgetter/proto"
 	pbro "github.com/brotherlogic/recordsorganiser/proto"
+	pbrv "github.com/brotherlogic/recordvalidator/proto"
 	rwpb "github.com/brotherlogic/recordwants/proto"
 )
 
@@ -410,21 +411,53 @@ func (s *Server) dateFine(rc *pbrc.Record, t time.Time, state *pbrg.State) bool 
 	return rc.GetRelease().GetFolderId() != 3386035
 }
 
+func (s *Server) getVeryOld(ctx context.Context, typ pb.RequestType) (*pbrc.Record, error) {
+	if typ != pb.RequestType_DEFAULT {
+		return nil, nil
+	}
+
+	conn, err := s.FDialServer(ctx, "recordvalidator")
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	client := pbrv.NewRecordValidatorServiceClient(conn)
+	scheme, err := client.GetScheme(ctx, &pbrv.GetSchemeRequest{
+		Name: "very_old_twelves",
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if scheme.GetScheme().GetCurrentPick() == 0 {
+		return nil, nil
+	}
+
+	rec, err := s.rGetter.getRelease(ctx, scheme.GetScheme().GetCurrentPick())
+	if err != nil {
+		return nil, err
+	}
+
+	return rec, nil
+}
+
 func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t time.Time, typ pb.RequestType) (*pbrc.Record, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	s.CtxLog(ctx, fmt.Sprintf("HERE %v and %v and %v", state.Work, typ, state.GetIssue()))
 
 	//P-V is for funsies
-	rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state, typ, false, true)
-	s.CtxLog(ctx, fmt.Sprintf("SKIP %v %v", rec, err))
-	if (err != nil || rec != nil) && s.validate(rec, typ) {
-		s.CtxLog(ctx, "PICKED PV")
+	rec, err := s.getVeryOld(ctx, typ)
+	s.CtxLog(ctx, fmt.Sprintf("VERY OLD %v %v", rec, err))
+	if (err != nil || rec != nil) && s.validate(rec, typ) && s.dateFine(rec, t, state) {
+		s.CtxLog(ctx, "PICKED VERY OLD")
 		return rec, err
 	}
 
 	//Look for a record staged to sell if we haven't done two sales today
-	if state.Sales < 1 {
+	if state.Sales < 1 && time.Now().Month() != time.December {
 		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, false, false)
 		s.CtxLog(ctx, fmt.Sprintf("Found %v -> %v", rec, err))
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
@@ -473,11 +506,15 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		}
 	}
 
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, false, false)
-	s.CtxLog(ctx, fmt.Sprintf("Found %v -> %v", rec, err))
-	if (err != nil || rec != nil) && s.validate(rec, typ) {
-		s.CtxLog(ctx, "PICKED STS")
-		return rec, err
+	if time.Now().Month() != time.December {
+		if state.ScoreCount[int32(pbrc.ReleaseMetadata_STAGED_TO_SELL.Number())] == 0 {
+			rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, false, false)
+			s.CtxLog(ctx, fmt.Sprintf("Found %v -> %v", rec, err))
+			if (err != nil || rec != nil) && s.validate(rec, typ) {
+				s.CtxLog(ctx, "PICKED STS")
+				return rec, err
+			}
+		}
 	}
 
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ, false, false)
@@ -498,6 +535,14 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	s.CtxLog(ctx, fmt.Sprintf("FOUND PIC -> %v,%v", rec, err))
 	if (err != nil || rec != nil) && s.validate(rec, typ) {
 		s.CtxLog(ctx, "PICKED Bottom PIC")
+		return rec, err
+	}
+
+	// Do sales before P_I_C
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, false, false)
+	s.CtxLog(ctx, fmt.Sprintf("Found %v -> %v", rec, err))
+	if (err != nil || rec != nil) && s.validate(rec, typ) {
+		s.CtxLog(ctx, "PICKED STS")
 		return rec, err
 	}
 

@@ -33,6 +33,18 @@ func clear(ctx context.Context, t pbrg.RequestType) {
 	fmt.Printf("%v and %v", r, err)
 }
 
+func clean(ctx context.Context, iid int32) {
+	conn, err := utils.LFDialServer(ctx, "recordgetter")
+	if err != nil {
+		log.Fatalf("Can't dial getter: %v", err)
+	}
+	defer conn.Close()
+
+	client := pbrg.NewRecordGetterClient(conn)
+	r, err := client.Clear(ctx, &pbrg.ClearRequest{Iid: iid})
+	fmt.Printf("%v and %v", r, err)
+}
+
 func cd(ctx context.Context) {
 	conn, err := utils.LFDialServer(ctx, "recordgetter")
 	if err != nil {
@@ -312,6 +324,12 @@ func main() {
 			defer cancel()
 
 			cd(ctx)
+		case "clean":
+			val, err := strconv.ParseInt(os.Args[2], 10, 32)
+			if err != nil {
+				log.Fatalf("Error parsing num: %v", err)
+			}
+			clean(ctx, int32(val))
 		default:
 			fmt.Printf("Unknown command: %v\n", os.Args[1])
 		}
