@@ -457,7 +457,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	}
 
 	//Look for a record staged to sell if we haven't done two sales today
-	if state.Sales < 1 && time.Now().Month() != time.December {
+	if state.ScoreCount[int32(pbrc.ReleaseMetadata_STAGED_TO_SELL.Number())] == 0 && time.Now().Month() != time.December {
 		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, false, false)
 		s.CtxLog(ctx, fmt.Sprintf("Found %v -> %v", rec, err))
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
