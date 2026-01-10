@@ -1,20 +1,21 @@
 module github.com/brotherlogic/recordgetter
 
-go 1.24.6
+go 1.25.5
 
 require (
 	github.com/brotherlogic/godiscogs v0.0.0-20250429182651-404c7473edf8
 	github.com/brotherlogic/goserver v0.0.0-20250608182006-4ace595931a5
 	github.com/brotherlogic/gramophile v0.1328.0
 	github.com/brotherlogic/keystore v0.0.0-20240508161349-814b3200b126
-	github.com/brotherlogic/recordcollection v0.0.0-20251015143532-3776574ed3ee
+	github.com/brotherlogic/recordcollection v0.0.0-20251202041941-4dfa3d81ab89
+	github.com/brotherlogic/recorder v0.0.0-20260109235109-a40d51686e21
 	github.com/brotherlogic/recordsorganiser v0.0.0-20251111055750-f931793f7488
 	github.com/brotherlogic/recordwants v0.0.0-20250809013054-02adead3c61b
 	github.com/golang/protobuf v1.5.4
 	github.com/prometheus/client_golang v1.23.2
-	golang.org/x/net v0.46.0
-	google.golang.org/grpc v1.76.0
-	google.golang.org/protobuf v1.36.10
+	golang.org/x/net v0.48.0
+	google.golang.org/grpc v1.78.0
+	google.golang.org/protobuf v1.36.11
 )
 
 require (
@@ -39,7 +40,7 @@ require (
 	github.com/prometheus/procfs v0.19.2 // indirect
 	github.com/struCoder/pidusage v0.2.1 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
-	golang.org/x/sys v0.38.0 // indirect
-	golang.org/x/text v0.30.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20251110190251-83f479183930 // indirect
+	golang.org/x/sys v0.39.0 // indirect
+	golang.org/x/text v0.32.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20251222181119-0a764e51fe1b // indirect
 )
