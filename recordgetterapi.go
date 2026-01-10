@@ -10,6 +10,7 @@ import (
 
 	"github.com/brotherlogic/goserver/utils"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
+	pbr "github.com/brotherlogic/recorder/proto"
 	pb "github.com/brotherlogic/recordgetter/proto"
 	rwpb "github.com/brotherlogic/recordwants/proto"
 )
@@ -213,6 +214,20 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 		}
 	}
 	defer f()
+
+	f2 := func() {
+		ctx, cancel := utils.ManualContext("recorder-ping", time.Minute)
+		defer cancel()
+		c, err := s.FDial("recorder.home:8080")
+		if err == nil {
+			defer c.Close()
+			rc := pbr.NewRecordGetterClient(c)
+			_, err = rc.NewRecord(ctx, &pbr.NewRecordRequest{})
+			s.CtxLog(ctx, fmt.Sprintf("Error: %v", err))
+		}
+	}
+	defer f2()
+
 	return &pb.GetRecordResponse{Record: rec, NumListens: getNumListens(rec), Disk: disk}, s.saveState(ctx, state)
 }
 
