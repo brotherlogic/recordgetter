@@ -60,7 +60,7 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 		}
 
 		isDigital := rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_12_INCH &&
-			rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_7_INCH
+			rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_7_INCH && rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_TAPE
 
 		// Include CDs in sale determinations at home
 		if c == pbrc.ReleaseMetadata_STAGED_TO_SELL {
