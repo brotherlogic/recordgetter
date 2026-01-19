@@ -34,7 +34,7 @@ func (s *Server) validate(rec *pbrc.Record, typ pb.RequestType) bool {
 		return false
 	}
 
-	return rec.GetRelease().GetFolderId() == 812802 || rec.GetRelease().GetFolderId() == 7651472 || rec.GetRelease().GetFolderId() == 7664293 || rec.GetRelease().GetFolderId() == 7665013
+	return rec.GetRelease().GetFolderId() == 9120719 || rec.GetRelease().GetFolderId() == 812802 || rec.GetRelease().GetFolderId() == 7651472 || rec.GetRelease().GetFolderId() == 7664293 || rec.GetRelease().GetFolderId() == 7665013
 }
 
 func (s *Server) isFilable(rc *pbrc.Record) bool {
