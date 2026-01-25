@@ -218,7 +218,7 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 	f2 := func() {
 		ctx, cancel := utils.ManualContext("recorder-ping", time.Minute)
 		defer cancel()
-		c, err := s.FDial("recorder.home:8080")
+		c, err := s.FDial("recorder:8080")
 		if err == nil {
 			defer c.Close()
 			rc := pbr.NewRecordGetterClient(c)
