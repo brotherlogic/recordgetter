@@ -538,7 +538,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, false, false)
 	s.CtxLog(ctx, fmt.Sprintf("Found %v -> %v", rec, err))
 	if (err != nil || rec != nil) && s.validate(rec, typ) {
-		s.CtxLog(ctx, "PICKED STS")
+		s.CtxLog(ctx, "PICKED Final STS")
 		return rec, err
 	}
 
