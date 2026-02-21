@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"golang.org/x/net/context"
@@ -173,7 +172,7 @@ func (s *Server) GetRecord(ctx context.Context, in *pb.GetRecordRequest) (*pb.Ge
 	}
 	defer func() {
 		t := time.Now()
-		ctx, cancel := utils.ManualContext(fmt.Sprintf("recordgetter_cli-%v", os.Args[1]), time.Minute*5)
+		ctx, cancel := utils.ManualContext("recordgetter-release-lock", time.Minute*5)
 		defer cancel()
 		err := fmt.Errorf("Bad error")
 		for err != nil && time.Since(t) < time.Minute*5 {
