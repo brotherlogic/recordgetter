@@ -147,7 +147,7 @@ func audition(ctx context.Context) {
 	}
 }
 
-func get(ctx context.Context) {
+func get(ctx context.Context, clean bool) {
 	conn, err := utils.LFDialServer(ctx, "recordgetter")
 	if err != nil {
 		log.Fatalf("Can't dial getter: %v", err)
@@ -159,6 +159,12 @@ func get(ctx context.Context) {
 	if err != nil {
 		log.Fatalf("Error on get: %v", err)
 	}
+
+	if clean {
+		fmt.Printf("%v\n", r.GetRecord().GetRelease().GetId())
+		return
+	}
+
 	if len(r.GetRecord().GetRelease().GetArtists()) > 0 {
 		fmt.Printf("%v - %v [%v] (%v/%v) {%v,%v}\n",
 			r.GetRecord().GetRelease().GetArtists()[0].GetName(),
@@ -271,7 +277,7 @@ func main() {
 	defer cancel()
 
 	if len(os.Args) == 1 {
-		get(ctx)
+		get(ctx, false)
 	} else {
 		switch os.Args[1] {
 		case "clear":
@@ -284,7 +290,9 @@ func main() {
 				clear(ctx, pbrg.RequestType_DIGITAL)
 			}
 		case "get":
-			get(ctx)
+			get(ctx, false)
+				case "getc":
+			get(ctx, true)
 		case "score":
 			val, err := strconv.ParseInt(os.Args[2], 10, 32)
 			if err != nil {
