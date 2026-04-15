@@ -469,6 +469,14 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		return rec, err
 	}
 
+	if typ != pb.RequestType_DEFAULT {
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ, false, false)
+		if (err != nil || rec != nil) && s.validate(rec, typ) {
+			s.CtxLog(ctx, "PICKED FIRST NON 12 UL")
+			return rec, err
+		}
+	}
+
 	if state.ScoreCount[int32(pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL.Number())] == 0 {
 		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, typ, true, false)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
