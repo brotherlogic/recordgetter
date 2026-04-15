@@ -462,12 +462,11 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		}
 	}
 
-	if state.ScoreCount[int32(pbrc.ReleaseMetadata_UNLISTENED.Number())] == 0 {
-		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ, true, false)
-		if (err != nil || rec != nil) && s.validate(rec, typ) {
-			s.CtxLog(ctx, "PICKED FIRST UL")
-			return rec, err
-		}
+	// Always pull an unlistened record
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ, true, false)
+	if (err != nil || rec != nil) && s.validate(rec, typ) {
+		s.CtxLog(ctx, "PICKED FIRST UL")
+		return rec, err
 	}
 
 	if state.ScoreCount[int32(pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL.Number())] == 0 {
@@ -486,7 +485,7 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		}
 	}
 
-		// Do sales before P_I_C
+	// Do sales before P_I_C
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, true, false)
 	s.CtxLog(ctx, fmt.Sprintf("Found %v -> %v", rec, err))
 	if (err != nil || rec != nil) && s.validate(rec, typ) {
@@ -494,14 +493,13 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		return rec, err
 	}
 
-		if state.ScoreCount[int32(pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL.Number())] == 0 {
+	if state.ScoreCount[int32(pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL.Number())] == 0 {
 		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, typ, false, false)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
 			s.CtxLog(ctx, "PICKED FIRST PHS Non 12")
 			return rec, err
 		}
 	}
-
 
 	if state.ScoreCount[int32(pbrc.ReleaseMetadata_PRE_IN_COLLECTION.Number())] == 0 {
 		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ, false, false)
