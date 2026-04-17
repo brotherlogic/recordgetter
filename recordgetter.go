@@ -452,8 +452,16 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		return rec, err
 	}
 
+	
+	// Always pull an unlistened record
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ, true, false)
+	if (err != nil || rec != nil) && s.validate(rec, typ) {
+		s.CtxLog(ctx, "PICKED FIRST UL")
+		return rec, err
+	}
+
 	//Look for a record staged to sell if we haven't done two sales today
-	if state.ScoreCount[int32(pbrc.ReleaseMetadata_STAGED_TO_SELL.Number())] == 0 && time.Now().Month() != time.December {
+	if time.Now().Month() != time.December {
 		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, true, false)
 		s.CtxLog(ctx, fmt.Sprintf("Found %v -> %v", rec, err))
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
@@ -462,12 +470,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		}
 	}
 
-	// Always pull an unlistened record
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ, true, false)
-	if (err != nil || rec != nil) && s.validate(rec, typ) {
-		s.CtxLog(ctx, "PICKED FIRST UL")
-		return rec, err
-	}
 
 	if typ != pb.RequestType_DEFAULT {
 		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ, false, false)
