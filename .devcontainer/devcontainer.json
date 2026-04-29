@@ -39,6 +39,7 @@
 			"target": "/home/vscode/.ssh", // Adjust "vscode" to your container's non-root user (e.g., "node", "user")
 			"type": "bind",
 			"options": "readonly" // Optional: makes keys read-only in container
-		}
+		},
+	    		    		"source=${localEnv:HOME}/.gemini,target=/home/vscode/.gemini,type=bind"
 	]
 }
