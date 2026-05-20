@@ -187,6 +187,101 @@ func TestGetFromDigital(t *testing.T) {
 	}
 }
 
+func makeCDRecord(id int32, category pbrc.ReleaseMetadata_Category) *pbrc.Record {
+	return &pbrc.Record{
+		Release: &pbgd.Release{
+			InstanceId: id,
+			FolderId:   812802,
+			Rating:     0,
+		},
+		Metadata: &pbrc.ReleaseMetadata{
+			DateArrived:     100,
+			NeedsGramUpdate: false,
+			FiledUnder:      pbrc.ReleaseMetadata_FILE_CD,
+			Category:        category,
+			Dirty:           false,
+			SetRating:       0,
+			GoalFolder:      268147,
+			BoxState:        pbrc.ReleaseMetadata_BOX_UNKNOWN,
+			DateAdded:       1000,
+		},
+	}
+}
+
+func TestGetFromCD(t *testing.T) {
+	s := InitTestServer()
+
+	recUnlistened := makeCDRecord(1, pbrc.ReleaseMetadata_UNLISTENED)
+	recStagedToSell := makeCDRecord(2, pbrc.ReleaseMetadata_STAGED_TO_SELL)
+	recPreInCollection := makeCDRecord(3, pbrc.ReleaseMetadata_PRE_IN_COLLECTION)
+	recPreHighSchool := makeCDRecord(4, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL)
+
+	records := map[int32]*pbrc.Record{
+		1: recUnlistened,
+		2: recStagedToSell,
+		3: recPreInCollection,
+		4: recPreHighSchool,
+	}
+
+	categoryIDs := map[pbrc.ReleaseMetadata_Category][]int32{
+		pbrc.ReleaseMetadata_UNLISTENED:        {1},
+		pbrc.ReleaseMetadata_STAGED_TO_SELL:    {2},
+		pbrc.ReleaseMetadata_PRE_IN_COLLECTION: {3},
+		pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL:   {4},
+	}
+
+	s.rGetter = &priorityTestGetter{
+		records:     records,
+		categoryIDs: categoryIDs,
+	}
+
+	// 1. All categories are available. Should prioritize UNLISTENED (ID 1).
+	rec, err := s.getReleaseFromPile(context.Background(), &pb.State{}, time.Now(), pb.RequestType_CD_FOCUS)
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	if rec == nil || rec.GetRelease().GetInstanceId() != 1 {
+		t.Errorf("Expected UNLISTENED record (ID 1) to be prioritized, got: %v", rec)
+	}
+
+	// 2. UNLISTENED is not available. Should prioritize STAGED_TO_SELL (ID 2).
+	s.rGetter.(*priorityTestGetter).categoryIDs[pbrc.ReleaseMetadata_UNLISTENED] = []int32{}
+	rec, err = s.getReleaseFromPile(context.Background(), &pb.State{}, time.Now(), pb.RequestType_CD_FOCUS)
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	if rec == nil || rec.GetRelease().GetInstanceId() != 2 {
+		t.Errorf("Expected STAGED_TO_SELL record (ID 2) to be prioritized, got: %v", rec)
+	}
+
+	// 3. UNLISTENED and STAGED_TO_SELL are not available. Should prioritize PRE_IN_COLLECTION (ID 3).
+	s.rGetter.(*priorityTestGetter).categoryIDs[pbrc.ReleaseMetadata_STAGED_TO_SELL] = []int32{}
+	rec, err = s.getReleaseFromPile(context.Background(), &pb.State{}, time.Now(), pb.RequestType_CD_FOCUS)
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	if rec == nil || rec.GetRelease().GetInstanceId() != 3 {
+		t.Errorf("Expected PRE_IN_COLLECTION record (ID 3) to be prioritized, got: %v", rec)
+	}
+
+	// 4. Only PRE_HIGH_SCHOOL is available. Should pick PRE_HIGH_SCHOOL (ID 4).
+	s.rGetter.(*priorityTestGetter).categoryIDs[pbrc.ReleaseMetadata_PRE_IN_COLLECTION] = []int32{}
+	rec, err = s.getReleaseFromPile(context.Background(), &pb.State{}, time.Now(), pb.RequestType_CD_FOCUS)
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	if rec == nil || rec.GetRelease().GetInstanceId() != 4 {
+		t.Errorf("Expected PRE_HIGH_SCHOOL record (ID 4) to be prioritized, got: %v", rec)
+	}
+
+	// 5. None are available. Should return an error.
+	s.rGetter.(*priorityTestGetter).categoryIDs[pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL] = []int32{}
+	rec, err = s.getReleaseFromPile(context.Background(), &pb.State{}, time.Now(), pb.RequestType_CD_FOCUS)
+	if err == nil {
+		t.Errorf("Expected error when no CD records are available, but got: %v", rec)
+	}
+}
+
 func TestForce(t *testing.T) {
 	s := InitTestServer()
 
