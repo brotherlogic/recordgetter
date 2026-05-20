@@ -13,3 +13,6 @@ tic -x ghostty.terminfo
 
 # Install tmux and emacs
 sudo apt-get update && sudo apt-get install -y tmux emacs
+
+# Install antigravity cli
+curl -fsSL https://antigravity.google/cli/install.sh | bash
