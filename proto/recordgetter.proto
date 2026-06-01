@@ -9,7 +9,7 @@ option go_package = "github.com/brotherlogic/recordgetter/proto";
 message Empty {}
 
 message DiskScore {
-  int32 instance_id = 1;
+  int64 instance_id = 1;
   int32 disk_number = 2;
   int64 score_date = 3;
   int32 score = 4;
@@ -26,9 +26,9 @@ message State {
   // The time we pulled a want rather than an existing record
   int64 last_want = 7;
 
-  int32 audition_pick = 8;
-  int32 current_digital_pick = 9;
-  int32 current_cd_pick = 15;
+  int64 audition_pick = 8;
+  int64 current_digital_pick = 9;
+  int64 current_cd_pick = 15;
 
   int32 curr_date = 10;
   int32 valid_count = 11;
@@ -70,7 +70,7 @@ message ForceRequest{
 }
 
 message ClearRequest {
-  int32 iid = 1;
+  int64 iid = 1;
 }
 
 message ClearResponse {}

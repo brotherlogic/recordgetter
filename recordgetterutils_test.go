@@ -203,7 +203,7 @@ func TestAddFoldersFail(t *testing.T) {
 func TestRemoveSeven(t *testing.T) {
 	s := InitTestServer()
 
-	res := s.removeSeven([]int32{267116, 12}, &pb.State{})
+	res := s.removeSeven([]int64{267116, 12}, &pb.State{})
 
 	if len(res) != 1 {
 		t.Errorf("Bad remove: %v", res)
