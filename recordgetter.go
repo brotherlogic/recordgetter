@@ -166,9 +166,9 @@ func (p *prodOrg) getLocations(ctx context.Context) ([]*pbro.Location, error) {
 }
 
 type getter interface {
-	getRelease(ctx context.Context, instanceID int32) (*pbrc.Record, error)
-	getRecordsInCategory(ctx context.Context, category pbrc.ReleaseMetadata_Category) ([]int32, error)
-	getRecordsInFolder(ctx context.Context, folder int32) ([]int32, error)
+	getRelease(ctx context.Context, instanceID int64) (*pbrc.Record, error)
+	getRecordsInCategory(ctx context.Context, category pbrc.ReleaseMetadata_Category) ([]int64, error)
+	getRecordsInFolder(ctx context.Context, folder int32) ([]int64, error)
 	getPlainRecord(ctx context.Context, id int32) (*pbrc.Record, error)
 	getAuditionRelease(ctx context.Context) (*pbrc.Record, error)
 }
@@ -178,7 +178,7 @@ type prodGetter struct {
 	Log  func(ctx context.Context, s string)
 }
 
-func (p *prodGetter) getRecordsInCategory(ctx context.Context, category pbrc.ReleaseMetadata_Category) ([]int32, error) {
+func (p *prodGetter) getRecordsInCategory(ctx context.Context, category pbrc.ReleaseMetadata_Category) ([]int64, error) {
 	conn, err := p.dial(ctx, "recordcollection")
 	if err != nil {
 		return nil, err
@@ -190,7 +190,7 @@ func (p *prodGetter) getRecordsInCategory(ctx context.Context, category pbrc.Rel
 	if err == nil {
 		return r.GetInstanceIds(), err
 	}
-	return []int32{}, err
+	return []int64{}, err
 }
 
 func (p *prodGetter) getAuditionRelease(ctx context.Context) (*pbrc.Record, error) {
@@ -226,7 +226,7 @@ func (p *prodGetter) getAuditionRelease(ctx context.Context) (*pbrc.Record, erro
 	return nil, status.Errorf(codes.ResourceExhausted, "No record found")
 }
 
-func (p *prodGetter) getRecordsInFolder(ctx context.Context, folder int32) ([]int32, error) {
+func (p *prodGetter) getRecordsInFolder(ctx context.Context, folder int32) ([]int64, error) {
 	conn, err := p.dial(ctx, "recordcollection")
 	if err != nil {
 		return nil, err
@@ -239,10 +239,10 @@ func (p *prodGetter) getRecordsInFolder(ctx context.Context, folder int32) ([]in
 		rand.Shuffle(len(r.InstanceIds), func(i, j int) { r.InstanceIds[i], r.InstanceIds[j] = r.InstanceIds[j], r.InstanceIds[i] })
 		return r.GetInstanceIds(), err
 	}
-	return []int32{}, err
+	return []int64{}, err
 }
 
-func (p *prodGetter) getRelease(ctx context.Context, instance int32) (*pbrc.Record, error) {
+func (p *prodGetter) getRelease(ctx context.Context, instance int64) (*pbrc.Record, error) {
 	conn, err := p.dial(ctx, "recordcollection")
 	if err != nil {
 		return nil, err
@@ -273,8 +273,8 @@ func (p *prodGetter) getPlainRecord(ctx context.Context, id int32) (*pbrc.Record
 }
 
 type updater interface {
-	update(ctx context.Context, config *pb.State, id, rating int32) error
-	audition(ctx context.Context, id, rating int32) error
+	update(ctx context.Context, config *pb.State, id int64, rating int32) error
+	audition(ctx context.Context, id int64, rating int32) error
 }
 
 type prodUpdater struct {
@@ -304,7 +304,7 @@ func buildContext(ctx context.Context) (context.Context, context.CancelFunc, err
 	return ctx, cancel, nil
 }
 
-func (p *prodUpdater) update(ctx context.Context, config *pb.State, id, rating int32) error {
+func (p *prodUpdater) update(ctx context.Context, config *pb.State, id int64, rating int32) error {
 	// Dial gram
 	conn, err := grpc.Dial("gramophile-grpc.brotherlogic-backend.com:80", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -361,7 +361,7 @@ func (p *prodUpdater) update(ctx context.Context, config *pb.State, id, rating i
 	return err
 }
 
-func (p *prodUpdater) audition(ctx context.Context, id, rating int32) error {
+func (p *prodUpdater) audition(ctx context.Context, id int64, rating int32) error {
 	conn, err := p.dial(ctx, "recordcollection")
 	if err != nil {
 		return err
@@ -431,7 +431,7 @@ func (s *Server) getVeryOld(ctx context.Context, typ pb.RequestType) (*pbrc.Reco
 		return nil, nil
 	}
 
-	rec, err := s.rGetter.getRelease(ctx, scheme.GetScheme().GetCurrentPick())
+	rec, err := s.rGetter.getRelease(ctx, int64(scheme.GetScheme().GetCurrentPick()))
 	if err != nil {
 		return nil, err
 	}

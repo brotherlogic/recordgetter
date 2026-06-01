@@ -130,8 +130,8 @@ func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folde
 	return nil, nil
 }
 
-func (s *Server) removeSeven(allrecs []int32, state *pb.State) []int32 {
-	new := []int32{}
+func (s *Server) removeSeven(allrecs []int64, state *pb.State) []int64 {
+	new := []int64{}
 	for _, val := range allrecs {
 		if time.Now().Sub(time.Unix(state.LastSeven, 0)) < time.Hour*2 || val != 267116 {
 			new = append(new, val)
@@ -147,7 +147,7 @@ func (s *Server) setTime(r *pbrc.Record, state *pb.State) {
 }
 
 func (s *Server) getInFolders(ctx context.Context, t time.Time, folders []int32, state *pb.State, dig bool) (*pbrc.Record, error) {
-	allrecs := make([]int32, 0)
+	allrecs := make([]int64, 0)
 	for _, folder := range folders {
 		recs, err := s.rGetter.getRecordsInFolder(ctx, folder)
 		if err != nil {
@@ -192,7 +192,7 @@ func (s *Server) needsRip(r *pbrc.Record) bool {
 	return false
 }
 
-func (s *Server) clearScores(instanceID int32, state *pb.State) {
+func (s *Server) clearScores(instanceID int64, state *pb.State) {
 	i := 0
 	for i < len(state.Scores) {
 		if state.Scores[i].InstanceId == instanceID {
