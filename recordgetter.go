@@ -562,6 +562,13 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 			return rec, err
 		}
 
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ, true, false)
+	if (err != nil || rec != nil) && s.validate(rec, typ) {
+		s.CtxLog(ctx, "PICKED PIC 12")
+		return rec, err
+	}
+
+
 		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, false, false)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
 			s.CtxLog(ctx, "PICKED Final STS")
