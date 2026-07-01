@@ -452,10 +452,10 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 			return rec, err
 		}
 
-		// 2. STAGED_TO_SELL
-		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, false, false)
+		// 2. PRE_HIGH_SCHOOL
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, typ, false, false)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
-			s.CtxLog(ctx, "PICKED DIGITAL STAGED_TO_SELL")
+			s.CtxLog(ctx, "PICKED DIGITAL PRE_HIGH_SCHOOL")
 			return rec, err
 		}
 
@@ -466,10 +466,17 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 			return rec, err
 		}
 
-		// 4. PRE_HIGH_SCHOOL
-		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, typ, false, false)
+		// 4. STAGED_TO_SELL
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, false, false)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
-			s.CtxLog(ctx, "PICKED DIGITAL PRE_HIGH_SCHOOL")
+			s.CtxLog(ctx, "PICKED DIGITAL STAGED_TO_SELL")
+			return rec, err
+		}
+
+		// 5. PRE_VALIDATE
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state, typ, false, false)
+		if (err != nil || rec != nil) && s.validate(rec, typ) {
+			s.CtxLog(ctx, "PICKED DIGITAL PRE_VALIDATE")
 			return rec, err
 		}
 
