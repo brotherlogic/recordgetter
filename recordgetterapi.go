@@ -332,7 +332,14 @@ func (s *Server) Listened(ctx context.Context, in *pbrc.Record) (*pb.Empty, erro
 		}
 		state.CurrentPick = nil
 	} else if state.GetCurrentDigitalPick() == in.GetRelease().GetInstanceId() {
+		record, err := s.rGetter.getRelease(ctx, in.GetRelease().GetInstanceId())
+		if err != nil {
+			return nil, err
+		}
 		score := in.GetMetadata().GetSetRating()
+		if record.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_CD {
+			score = s.getScore(ctx, in, state)
+		}
 
 		if score >= 0 {
 			err := s.updater.update(ctx, state, in.GetRelease().GetInstanceId(), score)
