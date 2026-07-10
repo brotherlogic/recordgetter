@@ -59,6 +59,10 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 			continue
 		}
 
+		if !force12 && rc.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_7_INCH {
+		   continue
+		   }
+
 		isDigital := rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_12_INCH &&
 			rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_7_INCH && rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_TAPE
 
