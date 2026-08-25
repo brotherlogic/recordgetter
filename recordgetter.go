@@ -439,12 +439,67 @@ func (s *Server) getVeryOld(ctx context.Context, typ pb.RequestType) (*pbrc.Reco
 	return rec, nil
 }
 
+func (s *Server) getForSaleCD(ctx context.Context, t time.Time, c pbrc.ReleaseMetadata_Category, state *pbrg.State) (*pbrc.Record, error) {
+	pDate := int64(0)
+	var newRec *pbrc.Record
+
+	recs, err := s.rGetter.getRecordsInCategory(ctx, c)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, id := range recs {
+		rc, err := s.rGetter.getRelease(ctx, id)
+		if err != nil || rc == nil {
+			continue
+		}
+
+		if rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_CD {
+			continue
+		}
+
+		if rc.GetMetadata().GetSaleState() != pbgd.SaleState_FOR_SALE {
+			continue
+		}
+
+		if !s.validate(rc, pb.RequestType_DIGITAL) {
+			continue
+		}
+
+		if (pDate == 0 || (rc.GetMetadata().DateAdded < pDate && (rc.GetMetadata().GetCategory() != pbrc.ReleaseMetadata_UNLISTENED || time.Since(time.Unix(rc.GetMetadata().GetDateAdded(), 0)) < time.Hour*24*365))) &&
+			rc.GetRelease().Rating == 0 &&
+			!rc.GetMetadata().GetDirty() &&
+			rc.GetMetadata().SetRating == 0 {
+			if s.dateFine(rc, t, state) && !s.needsRip(rc) {
+				pDate = rc.GetMetadata().DateAdded
+				newRec = rc
+			}
+		}
+	}
+
+	return newRec, nil
+}
+
 func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t time.Time, typ pb.RequestType) (*pbrc.Record, error) {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	s.CtxLog(ctx, fmt.Sprintf("HERE %v and %v and %v", state.Work, typ, state.GetIssue()))
 
 	if typ == pb.RequestType_DIGITAL {
+		for _, cat := range []pbrc.ReleaseMetadata_Category{
+			pbrc.ReleaseMetadata_UNLISTENED,
+			pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL,
+			pbrc.ReleaseMetadata_PRE_IN_COLLECTION,
+			pbrc.ReleaseMetadata_STAGED_TO_SELL,
+			pbrc.ReleaseMetadata_PRE_VALIDATE,
+		} {
+			rec, err := s.getForSaleCD(ctx, t, cat, state)
+			if (err != nil || rec != nil) && s.validate(rec, typ) {
+				s.CtxLog(ctx, "PICKED DIGITAL FOR_SALE CD")
+				return rec, err
+			}
+		}
+
 		// 1. UNLISTENED
 		rec, err := s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ, false, false)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {

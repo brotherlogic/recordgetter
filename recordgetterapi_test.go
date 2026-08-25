@@ -231,6 +231,42 @@ func TestGetFromDigitalWithCD(t *testing.T) {
 	}
 }
 
+func TestGetFromDigitalPrioritizesForSaleCD(t *testing.T) {
+	s := InitTestServer()
+
+	// 1. Create a regular digital record in UNLISTENED (usually prioritized first)
+	recDigital := makeDigitalRecord(2, pbrc.ReleaseMetadata_UNLISTENED)
+
+	// 2. Create a CD record in PRE_HIGH_SCHOOL (a category usually checked later)
+	// but make it FOR_SALE
+	recCD := makeCDRecord(1, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL)
+	recCD.Metadata.SaleState = pbgd.SaleState_FOR_SALE
+
+	records := map[int64]*pbrc.Record{
+		1: recCD,
+		2: recDigital,
+	}
+
+	categoryIDs := map[pbrc.ReleaseMetadata_Category][]int64{
+		pbrc.ReleaseMetadata_UNLISTENED:      {2},
+		pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL: {1},
+	}
+
+	s.rGetter = &priorityTestGetter{
+		records:     records,
+		categoryIDs: categoryIDs,
+	}
+
+	// We should pick the FOR_SALE CD (ID 1) even though there is an UNLISTENED digital record (ID 2).
+	rec, err := s.getReleaseFromPile(context.Background(), &pb.State{}, time.Now(), pb.RequestType_DIGITAL)
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	if rec == nil || rec.GetRelease().GetInstanceId() != 1 {
+		t.Errorf("Expected FOR_SALE CD (ID 1) to be prioritized, got: %v", rec)
+	}
+}
+
 
 func makeCDRecord(id int64, category pbrc.ReleaseMetadata_Category) *pbrc.Record {
 	return &pbrc.Record{
