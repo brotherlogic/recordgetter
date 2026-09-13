@@ -97,6 +97,7 @@ type Server struct {
 	lastPre    time.Time
 	org        org
 	wants      wants
+	val        val
 }
 
 const (
@@ -140,6 +141,27 @@ func (p *prodWants) updateWant(ctx context.Context, id int32, level rwpb.MasterW
 	client := rwpb.NewWantServiceClient(conn)
 	_, err = client.Update(ctx, &rwpb.UpdateRequest{Reason: "from recordgetter", Want: &pbgd.Release{Id: id}, Level: level})
 	return err
+}
+
+type val interface {
+	getScheme(ctx context.Context, name string) (*pbrv.GetSchemeResponse, error)
+}
+
+type prodVal struct {
+	dial func(ctx context.Context, server string) (*grpc.ClientConn, error)
+}
+
+func (p *prodVal) getScheme(ctx context.Context, name string) (*pbrv.GetSchemeResponse, error) {
+	conn, err := p.dial(ctx, "recordvalidator")
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	client := pbrv.NewRecordValidatorServiceClient(conn)
+	return client.GetScheme(ctx, &pbrv.GetSchemeRequest{
+		Name: name,
+	})
 }
 
 type org interface {
@@ -412,17 +434,7 @@ func (s *Server) getVeryOld(ctx context.Context, typ pb.RequestType) (*pbrc.Reco
 		return nil, nil
 	}
 
-	conn, err := s.FDialServer(ctx, "recordvalidator")
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close()
-
-	client := pbrv.NewRecordValidatorServiceClient(conn)
-	scheme, err := client.GetScheme(ctx, &pbrv.GetSchemeRequest{
-		Name: "very_old_twelves",
-	})
-
+	scheme, err := s.val.getScheme(ctx, "very_old_twelves")
 	if err != nil {
 		return nil, err
 	}
@@ -593,26 +605,10 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		}
 
 
-	if state.CattypeCount[fmt.Sprintf("%v%v", pbrc.ReleaseMetadata_PRE_VALIDATE, pbrc.ReleaseMetadata_FILE_12_INCH)] == 0 {
-		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state, typ, true, false)
-		if (err != nil || rec != nil) && s.validate(rec, typ) {
-			s.CtxLog(ctx, "PICKED FIRST PV 12")
-			return rec, err
-		}
-	}
-
 	if state.CattypeCount[fmt.Sprintf("%v%v", pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, pbrc.ReleaseMetadata_FILE_12_INCH)] == 0 {
 		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, typ, true, false)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
 			s.CtxLog(ctx, "PICKED FIRST PHS 12")
-			return rec, err
-		}
-	}
-
-	if state.CattypeCount[fmt.Sprintf("%v%v", pbrc.ReleaseMetadata_PRE_IN_COLLECTION, pbrc.ReleaseMetadata_FILE_12_INCH)] == 0 {
-		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ, true, false)
-		if (err != nil || rec != nil) && s.validate(rec, typ) {
-			s.CtxLog(ctx, "PICKED FIRST PIC 12")
 			return rec, err
 		}
 	}
@@ -625,6 +621,14 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		}
 	}
 
+	if state.CattypeCount[fmt.Sprintf("%v%v", pbrc.ReleaseMetadata_PRE_IN_COLLECTION, pbrc.ReleaseMetadata_FILE_12_INCH)] == 0 {
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ, true, false)
+		if (err != nil || rec != nil) && s.validate(rec, typ) {
+			s.CtxLog(ctx, "PICKED FIRST PIC 12")
+			return rec, err
+		}
+	}
+
 	if state.CattypeCount[fmt.Sprintf("%v%v", pbrc.ReleaseMetadata_PRE_IN_COLLECTION, pbrc.ReleaseMetadata_FILE_7_INCH)] == 0 {
 		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, state, typ, false, false)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
@@ -633,7 +637,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 		}
 	}
 
-
 	if time.Now().Month() != time.December {
 		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, true, false)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
@@ -641,18 +644,22 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 			return rec, err
 		}
 
-		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state, typ, true, false)
+		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_STAGED_TO_SELL, state, typ, false, false)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
-			s.CtxLog(ctx, "PICKED SECOND PV 12")
+			s.CtxLog(ctx, "PICKED Final 7 inch STS")
 			return rec, err
 		}
 	}
 
-
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state, typ, true, false)
+	if (err != nil || rec != nil) && s.validate(rec, typ) {
+		s.CtxLog(ctx, "PICKED PV 12")
+		return rec, err
+	}
 
 	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_VALIDATE, state, typ, false, false)
 	if (err != nil || rec != nil) && s.validate(rec, typ) {
-		s.CtxLog(ctx, "PICKED PV")
+		s.CtxLog(ctx, "PICKED PV 7")
 		return rec, err
 	}
 
@@ -673,6 +680,7 @@ func Init() *Server {
 	s.rGetter = &prodGetter{s.FDialServer, s.CtxLog}
 	s.org = &prodOrg{s.FDialServer}
 	s.wants = &prodWants{s.FDialServer}
+	s.val = &prodVal{s.FDialServer}
 	s.Register = s
 
 	return s

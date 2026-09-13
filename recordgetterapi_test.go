@@ -363,6 +363,126 @@ func TestGetFromCD(t *testing.T) {
 	}
 }
 
+func makeVinylRecord(id int64, category pbrc.ReleaseMetadata_Category, filedUnder pbrc.ReleaseMetadata_FileSize) *pbrc.Record {
+	return &pbrc.Record{
+		Release: &pbgd.Release{
+			InstanceId: id,
+			FolderId:   812802,
+			Rating:     0,
+		},
+		Metadata: &pbrc.ReleaseMetadata{
+			DateArrived:     100,
+			NeedsGramUpdate: false,
+			FiledUnder:      filedUnder,
+			Category:        category,
+			Dirty:           false,
+			SetRating:       0,
+			GoalFolder:      242017,
+			BoxState:        pbrc.ReleaseMetadata_BOX_UNKNOWN,
+			DateAdded:       1000,
+		},
+	}
+}
+
+func TestGetFromDefaultPriorityOrder(t *testing.T) {
+	s := InitTestServer()
+
+	records := map[int64]*pbrc.Record{
+		1:  makeVinylRecord(1, pbrc.ReleaseMetadata_UNLISTENED, pbrc.ReleaseMetadata_FILE_12_INCH),
+		2:  makeVinylRecord(2, pbrc.ReleaseMetadata_UNLISTENED, pbrc.ReleaseMetadata_FILE_7_INCH),
+		3:  makeVinylRecord(3, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, pbrc.ReleaseMetadata_FILE_12_INCH),
+		4:  makeVinylRecord(4, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, pbrc.ReleaseMetadata_FILE_7_INCH),
+		5:  makeVinylRecord(5, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, pbrc.ReleaseMetadata_FILE_12_INCH),
+		6:  makeVinylRecord(6, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, pbrc.ReleaseMetadata_FILE_7_INCH),
+		7:  makeVinylRecord(7, pbrc.ReleaseMetadata_STAGED_TO_SELL, pbrc.ReleaseMetadata_FILE_12_INCH),
+		8:  makeVinylRecord(8, pbrc.ReleaseMetadata_STAGED_TO_SELL, pbrc.ReleaseMetadata_FILE_7_INCH),
+		9:  makeVinylRecord(9, pbrc.ReleaseMetadata_PRE_VALIDATE, pbrc.ReleaseMetadata_FILE_12_INCH),
+		10: makeVinylRecord(10, pbrc.ReleaseMetadata_PRE_VALIDATE, pbrc.ReleaseMetadata_FILE_7_INCH),
+	}
+
+	categoryIDs := map[pbrc.ReleaseMetadata_Category][]int64{
+		pbrc.ReleaseMetadata_UNLISTENED:        {1, 2},
+		pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL:   {3, 4},
+		pbrc.ReleaseMetadata_PRE_IN_COLLECTION: {5, 6},
+		pbrc.ReleaseMetadata_STAGED_TO_SELL:    {7, 8},
+		pbrc.ReleaseMetadata_PRE_VALIDATE:      {9, 10},
+	}
+
+	s.rGetter = &priorityTestGetter{
+		records:     records,
+		categoryIDs: categoryIDs,
+	}
+
+	expectedOrder := []int64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	state := &pb.State{CattypeCount: make(map[string]int32)}
+
+	// Ensure time is set to a non-December month for testing STAGED_TO_SELL
+	testTime := time.Date(2026, time.June, 1, 12, 0, 0, 0, time.UTC)
+
+	for _, expectedID := range expectedOrder {
+		rec, err := s.getReleaseFromPile(context.Background(), state, testTime, pb.RequestType_DEFAULT)
+		if err != nil {
+			t.Fatalf("Unexpected error picking record (expected ID %d): %v", expectedID, err)
+		}
+		if rec == nil || rec.GetRelease().GetInstanceId() != expectedID {
+			t.Fatalf("Expected record ID %d, got: %v", expectedID, rec)
+		}
+
+		// Remove the picked record from category list
+		cat := records[expectedID].GetMetadata().GetCategory()
+		var remaining []int64
+		for _, id := range s.rGetter.(*priorityTestGetter).categoryIDs[cat] {
+			if id != expectedID {
+				remaining = append(remaining, id)
+			}
+		}
+		s.rGetter.(*priorityTestGetter).categoryIDs[cat] = remaining
+	}
+}
+
+func TestGetFromDefaultWithCattypeCount(t *testing.T) {
+	s := InitTestServer()
+
+	// Provide records for PHS (12" & 7"), PIC (12" & 7"), STS (12"), PV (12")
+	records := map[int64]*pbrc.Record{
+		3: makeVinylRecord(3, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, pbrc.ReleaseMetadata_FILE_12_INCH),
+		4: makeVinylRecord(4, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, pbrc.ReleaseMetadata_FILE_7_INCH),
+		5: makeVinylRecord(5, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, pbrc.ReleaseMetadata_FILE_12_INCH),
+		6: makeVinylRecord(6, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, pbrc.ReleaseMetadata_FILE_7_INCH),
+		7: makeVinylRecord(7, pbrc.ReleaseMetadata_STAGED_TO_SELL, pbrc.ReleaseMetadata_FILE_12_INCH),
+	}
+
+	categoryIDs := map[pbrc.ReleaseMetadata_Category][]int64{
+		pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL:   {3, 4},
+		pbrc.ReleaseMetadata_PRE_IN_COLLECTION: {5, 6},
+		pbrc.ReleaseMetadata_STAGED_TO_SELL:    {7},
+	}
+
+	s.rGetter = &priorityTestGetter{
+		records:     records,
+		categoryIDs: categoryIDs,
+	}
+
+	// State already has 1 PHS 12" and 1 PIC 12" today
+	state := &pb.State{
+		CattypeCount: map[string]int32{
+			fmt.Sprintf("%v%v", pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, pbrc.ReleaseMetadata_FILE_12_INCH):   1,
+			fmt.Sprintf("%v%v", pbrc.ReleaseMetadata_PRE_IN_COLLECTION, pbrc.ReleaseMetadata_FILE_12_INCH): 1,
+		},
+	}
+
+	testTime := time.Date(2026, time.June, 1, 12, 0, 0, 0, time.UTC)
+
+	// Since PHS 12" count is > 0, should pick PHS 7" (ID 4)
+	rec, err := s.getReleaseFromPile(context.Background(), state, testTime, pb.RequestType_DEFAULT)
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	if rec == nil || rec.GetRelease().GetInstanceId() != 4 {
+		t.Fatalf("Expected PHS 7\" (ID 4), got: %v", rec)
+	}
+}
+
 func TestForce(t *testing.T) {
 	s := InitTestServer()
 
