@@ -12,7 +12,19 @@ import (
 	pbgd "github.com/brotherlogic/godiscogs/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pbro "github.com/brotherlogic/recordsorganiser/proto"
+	pbrv "github.com/brotherlogic/recordvalidator/proto"
 )
+
+type testVal struct {
+	scheme *pbrv.GetSchemeResponse
+}
+
+func (t *testVal) getScheme(ctx context.Context, name string) (*pbrv.GetSchemeResponse, error) {
+	if t.scheme != nil {
+		return t.scheme, nil
+	}
+	return &pbrv.GetSchemeResponse{}, nil
+}
 
 func InitTestServer() *Server {
 	s := Init()
@@ -21,6 +33,7 @@ func InitTestServer() *Server {
 	s.GoServer.KSclient.Save(context.Background(), KEY, &pb.State{})
 	s.rGetter = &testGetter{}
 	s.org = &testOrg{}
+	s.val = &testVal{}
 	return s
 }
 
