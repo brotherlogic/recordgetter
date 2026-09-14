@@ -591,20 +591,6 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 	}
 
 	
-	// Always pull an unlistened record
-	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ, true, false)
-	if (err != nil || rec != nil) && s.validate(rec, typ) {
-		s.CtxLog(ctx, "PICKED FIRST UL")
-		return rec, err
-	}
-
-		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ, false, false)
-		if (err != nil || rec != nil) && s.validate(rec, typ) {
-			s.CtxLog(ctx, "PICKED FIRST NON 12 UL")
-			return rec, err
-		}
-
-
 	if state.CattypeCount[fmt.Sprintf("%v%v", pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, pbrc.ReleaseMetadata_FILE_12_INCH)] == 0 {
 		rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, state, typ, true, false)
 		if (err != nil || rec != nil) && s.validate(rec, typ) {
@@ -635,6 +621,19 @@ func (s *Server) getReleaseFromPile(ctx context.Context, state *pbrg.State, t ti
 			s.CtxLog(ctx, "PICKED FIRST PIC 7")
 			return rec, err
 		}
+	}
+
+	// Always pull an unlistened record
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ, true, false)
+	if (err != nil || rec != nil) && s.validate(rec, typ) {
+		s.CtxLog(ctx, "PICKED FIRST UL")
+		return rec, err
+	}
+
+	rec, err = s.getCategoryRecord(ctx, t, pbrc.ReleaseMetadata_UNLISTENED, state, typ, false, false)
+	if (err != nil || rec != nil) && s.validate(rec, typ) {
+		s.CtxLog(ctx, "PICKED FIRST NON 12 UL")
+		return rec, err
 	}
 
 	if time.Now().Month() != time.December {
