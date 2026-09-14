@@ -55,13 +55,15 @@ func (s *Server) getCategoryRecord(ctx context.Context, t time.Time, c pbrc.Rele
 	for _, id := range recs {
 		rc, err := s.rGetter.getRelease(ctx, id)
 
-		if force12 && rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_12_INCH {
-			continue
-		}
+		if typ != pb.RequestType_CD_FOCUS && typ != pb.RequestType_DIGITAL {
+			if force12 && rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_12_INCH {
+				continue
+			}
 
-		if !force12 && rc.GetMetadata().GetFiledUnder() == pbrc.ReleaseMetadata_FILE_12_INCH {
-		   continue
-		   }
+			if !force12 && rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_7_INCH {
+				continue
+			}
+		}
 
 		isDigital := rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_12_INCH &&
 			rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_7_INCH && rc.GetMetadata().GetFiledUnder() != pbrc.ReleaseMetadata_FILE_TAPE

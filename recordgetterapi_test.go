@@ -580,3 +580,36 @@ func TestForce(t *testing.T) {
 	}
 
 }
+
+func TestCassetteNotPickedForSevenInch(t *testing.T) {
+	s := InitTestServer()
+
+	// Only cassette in PRE_HIGH_SCHOOL, 7" in PRE_IN_COLLECTION
+	records := map[int64]*pbrc.Record{
+		1: makeVinylRecord(1, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, pbrc.ReleaseMetadata_FILE_TAPE),
+		2: makeVinylRecord(2, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, pbrc.ReleaseMetadata_FILE_7_INCH),
+	}
+
+	categoryIDs := map[pbrc.ReleaseMetadata_Category][]int64{
+		pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL:   {1},
+		pbrc.ReleaseMetadata_PRE_IN_COLLECTION: {2},
+	}
+
+	s.rGetter = &priorityTestGetter{
+		records:     records,
+		categoryIDs: categoryIDs,
+	}
+
+	state := &pb.State{CattypeCount: make(map[string]int32)}
+	testTime := time.Date(2026, time.June, 1, 12, 0, 0, 0, time.UTC)
+
+	// Since PHS only has FILE_TAPE, PHS 12" and PHS 7" will find nothing.
+	// It should skip PHS and pick PIC 7" (ID 2).
+	rec, err := s.getReleaseFromPile(context.Background(), state, testTime, pb.RequestType_DEFAULT)
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	if rec == nil || rec.GetRelease().GetInstanceId() != 2 {
+		t.Fatalf("Expected PIC 7\" (ID 2) to be picked instead of cassette, got: %v", rec)
+	}
+}
