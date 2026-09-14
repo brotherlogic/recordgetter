@@ -413,7 +413,7 @@ func TestGetFromDefaultPriorityOrder(t *testing.T) {
 		categoryIDs: categoryIDs,
 	}
 
-	expectedOrder := []int64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	expectedOrder := []int64{3, 4, 5, 6, 1, 2, 7, 8, 9, 10}
 	state := &pb.State{CattypeCount: make(map[string]int32)}
 
 	// Ensure time is set to a non-December month for testing STAGED_TO_SELL
@@ -443,8 +443,10 @@ func TestGetFromDefaultPriorityOrder(t *testing.T) {
 func TestGetFromDefaultWithCattypeCount(t *testing.T) {
 	s := InitTestServer()
 
-	// Provide records for PHS (12" & 7"), PIC (12" & 7"), STS (12"), PV (12")
+	// Provide records for UNLISTENED (12" & 7"), PHS (12" & 7"), PIC (12" & 7"), STS (12"), PV (12")
 	records := map[int64]*pbrc.Record{
+		1: makeVinylRecord(1, pbrc.ReleaseMetadata_UNLISTENED, pbrc.ReleaseMetadata_FILE_12_INCH),
+		2: makeVinylRecord(2, pbrc.ReleaseMetadata_UNLISTENED, pbrc.ReleaseMetadata_FILE_7_INCH),
 		3: makeVinylRecord(3, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, pbrc.ReleaseMetadata_FILE_12_INCH),
 		4: makeVinylRecord(4, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, pbrc.ReleaseMetadata_FILE_7_INCH),
 		5: makeVinylRecord(5, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, pbrc.ReleaseMetadata_FILE_12_INCH),
@@ -453,6 +455,7 @@ func TestGetFromDefaultWithCattypeCount(t *testing.T) {
 	}
 
 	categoryIDs := map[pbrc.ReleaseMetadata_Category][]int64{
+		pbrc.ReleaseMetadata_UNLISTENED:        {1, 2},
 		pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL:   {3, 4},
 		pbrc.ReleaseMetadata_PRE_IN_COLLECTION: {5, 6},
 		pbrc.ReleaseMetadata_STAGED_TO_SELL:    {7},
@@ -480,6 +483,90 @@ func TestGetFromDefaultWithCattypeCount(t *testing.T) {
 	}
 	if rec == nil || rec.GetRelease().GetInstanceId() != 4 {
 		t.Fatalf("Expected PHS 7\" (ID 4), got: %v", rec)
+	}
+
+	// Now set PHS 7" count to 1 as well; since PIC 12" has count 1, it should pick PIC 7" (ID 6)
+	state.CattypeCount[fmt.Sprintf("%v%v", pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, pbrc.ReleaseMetadata_FILE_7_INCH)] = 1
+	rec, err = s.getReleaseFromPile(context.Background(), state, testTime, pb.RequestType_DEFAULT)
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	if rec == nil || rec.GetRelease().GetInstanceId() != 6 {
+		t.Fatalf("Expected PIC 7\" (ID 6), got: %v", rec)
+	}
+
+	// Now set PIC 7" count to 1 as well; now all 4 have count >= 1. It should pick UNLISTENED 12" (ID 1)
+	state.CattypeCount[fmt.Sprintf("%v%v", pbrc.ReleaseMetadata_PRE_IN_COLLECTION, pbrc.ReleaseMetadata_FILE_7_INCH)] = 1
+	rec, err = s.getReleaseFromPile(context.Background(), state, testTime, pb.RequestType_DEFAULT)
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	if rec == nil || rec.GetRelease().GetInstanceId() != 1 {
+		t.Fatalf("Expected UNLISTENED 12\" (ID 1), got: %v", rec)
+	}
+}
+
+func TestSequentialPicksCattypeFlow(t *testing.T) {
+	s := InitTestServer()
+
+	// 2 PHS 12", 2 PHS 7", 2 PIC 12", 2 PIC 7", 2 UNLISTENED 12"
+	records := map[int64]*pbrc.Record{
+		1:  makeVinylRecord(1, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, pbrc.ReleaseMetadata_FILE_12_INCH),
+		2:  makeVinylRecord(2, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, pbrc.ReleaseMetadata_FILE_12_INCH),
+		3:  makeVinylRecord(3, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, pbrc.ReleaseMetadata_FILE_7_INCH),
+		4:  makeVinylRecord(4, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL, pbrc.ReleaseMetadata_FILE_7_INCH),
+		5:  makeVinylRecord(5, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, pbrc.ReleaseMetadata_FILE_12_INCH),
+		6:  makeVinylRecord(6, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, pbrc.ReleaseMetadata_FILE_12_INCH),
+		7:  makeVinylRecord(7, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, pbrc.ReleaseMetadata_FILE_7_INCH),
+		8:  makeVinylRecord(8, pbrc.ReleaseMetadata_PRE_IN_COLLECTION, pbrc.ReleaseMetadata_FILE_7_INCH),
+		9:  makeVinylRecord(9, pbrc.ReleaseMetadata_UNLISTENED, pbrc.ReleaseMetadata_FILE_12_INCH),
+		10: makeVinylRecord(10, pbrc.ReleaseMetadata_UNLISTENED, pbrc.ReleaseMetadata_FILE_12_INCH),
+	}
+
+	categoryIDs := map[pbrc.ReleaseMetadata_Category][]int64{
+		pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL:   {1, 2, 3, 4},
+		pbrc.ReleaseMetadata_PRE_IN_COLLECTION: {5, 6, 7, 8},
+		pbrc.ReleaseMetadata_UNLISTENED:        {9, 10},
+	}
+
+	s.rGetter = &priorityTestGetter{
+		records:     records,
+		categoryIDs: categoryIDs,
+	}
+
+	state := &pb.State{CattypeCount: make(map[string]int32)}
+	testTime := time.Date(2026, time.June, 1, 12, 0, 0, 0, time.UTC)
+
+	// Expected sequence:
+	// 1. First PHS 12" (ID 1)
+	// 2. First PHS 7" (ID 3)
+	// 3. First PIC 12" (ID 5)
+	// 4. First PIC 7" (ID 7)
+	// 5. UNLISTENED 12" (ID 9)
+	// 6. UNLISTENED 12" (ID 10)
+	expectedSequence := []int64{1, 3, 5, 7, 9, 10}
+
+	for _, expectedID := range expectedSequence {
+		rec, err := s.getReleaseFromPile(context.Background(), state, testTime, pb.RequestType_DEFAULT)
+		if err != nil {
+			t.Fatalf("Unexpected error picking record (expected ID %d): %v", expectedID, err)
+		}
+		if rec == nil || rec.GetRelease().GetInstanceId() != expectedID {
+			t.Fatalf("Expected record ID %d, got: %v", expectedID, rec)
+		}
+
+		// Update CattypeCount as GetRecord would
+		state.CattypeCount[fmt.Sprintf("%v%v", rec.GetMetadata().GetCategory(), rec.GetMetadata().GetFiledUnder())]++
+
+		// Remove the picked record from category list
+		cat := records[expectedID].GetMetadata().GetCategory()
+		var remaining []int64
+		for _, id := range s.rGetter.(*priorityTestGetter).categoryIDs[cat] {
+			if id != expectedID {
+				remaining = append(remaining, id)
+			}
+		}
+		s.rGetter.(*priorityTestGetter).categoryIDs[cat] = remaining
 	}
 }
 
