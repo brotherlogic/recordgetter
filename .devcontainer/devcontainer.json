@@ -9,7 +9,8 @@
 		"ghcr.io/nils-geistmann/devcontainers-features/zsh:0": {},
 		//"ghcr.io/devcontainers/features/docker-in-docker:2": {
 		//    "moby": false
-		//},
+	    //},
+	    		"ghcr.io/devcontainers/features/github-cli:1": {},
 		"ghcr.io/siri404/devcontainer-ai-features/gemini-cli:1": {},
 		"ghcr.io/devcontainers/features/common-utils": "2",
 		"ghcr.io/devcontainers-extra/features/protoc:1": {}
@@ -20,19 +21,22 @@
 	// "forwardPorts": [],
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// Ensure dependencies are installed here
-	"postCreateCommand": "./postCreate.sh",
+    "postCreateCommand": "./postCreate.sh",
+o    "initializeCommand": "cat ~/.seraphine-automation > .devcontainer/.env.auth",
 	// "customizations": {},
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "root"
+    "remoteOTEL.enabled": true,
+    	"runArgs": [
+		"--security-opt",
+	    "label=disable",
+	    "--network=host",
+	    "--env-file",
+		"${localWorkspaceFolder}/.devcontainer/.env.auth"
+	],
 	"containerEnv": {
 		"GH_GIT_PROTOCOL": "ssh"
 	},
-	"remoteOTEL.enabled": true,
-	"forwardPorts": [],
-	"runArgs": [
-		"--security-opt",
-		"label=disable",
-	],
 	"mounts": [
 		{
 			"source": "${localEnv:HOME}/.ssh",
