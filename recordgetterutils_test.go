@@ -231,3 +231,33 @@ func TestValidate(t *testing.T) {
 		t.Errorf("Baseline should be valid")
 	}
 }
+
+func TestValidateOutOfPlay(t *testing.T) {
+	s := InitTestServer()
+
+	outOfPlay := true
+	rec := &pbrc.Record{
+		Release: &pbgd.Release{
+			FolderId: 812802,
+		},
+		Metadata: &pbrc.ReleaseMetadata{
+			DateArrived: 12345,
+			OutOfPlay:   &outOfPlay,
+		},
+	}
+
+	if s.validate(rec, pb.RequestType_DEFAULT) {
+		t.Errorf("Record with OutOfPlay=true should not validate")
+	}
+
+	outOfPlayFalse := false
+	rec.Metadata.OutOfPlay = &outOfPlayFalse
+	if !s.validate(rec, pb.RequestType_DEFAULT) {
+		t.Errorf("Record with OutOfPlay=false should validate")
+	}
+
+	rec.Metadata.OutOfPlay = nil
+	if !s.validate(rec, pb.RequestType_DEFAULT) {
+		t.Errorf("Record with OutOfPlay=nil should validate")
+	}
+}

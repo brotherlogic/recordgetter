@@ -200,6 +200,39 @@ func TestGetFromDigital(t *testing.T) {
 	}
 }
 
+func TestGetFromDigitalSkipsOutOfPlay(t *testing.T) {
+	s := InitTestServer()
+
+	outOfPlay := true
+	recUnlistened := makeDigitalRecord(1, pbrc.ReleaseMetadata_UNLISTENED)
+	recUnlistened.GetMetadata().OutOfPlay = &outOfPlay
+
+	recPreHighSchool := makeDigitalRecord(4, pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL)
+
+	records := map[int64]*pbrc.Record{
+		1: recUnlistened,
+		4: recPreHighSchool,
+	}
+
+	categoryIDs := map[pbrc.ReleaseMetadata_Category][]int64{
+		pbrc.ReleaseMetadata_UNLISTENED:      {1},
+		pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL: {4},
+	}
+
+	s.rGetter = &priorityTestGetter{
+		records:     records,
+		categoryIDs: categoryIDs,
+	}
+
+	rec, err := s.getReleaseFromPile(context.Background(), &pb.State{}, time.Now(), pb.RequestType_DIGITAL)
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	if rec == nil || rec.GetRelease().GetInstanceId() != 4 {
+		t.Errorf("Expected out_of_play record (ID 1) to be skipped and PRE_HIGH_SCHOOL (ID 4) selected, got: %v", rec)
+	}
+}
+
 func TestGetFromDigitalWithCD(t *testing.T) {
 	s := InitTestServer()
 

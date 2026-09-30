@@ -18,6 +18,10 @@ func (s *Server) validate(rec *pbrc.Record, typ pb.RequestType) bool {
 		return false
 	}
 
+	if rec.GetMetadata().GetOutOfPlay() {
+		return false
+	}
+
 	// Wait for pending updates
 	if rec.GetMetadata().GetNeedsGramUpdate() {
 		return false
@@ -123,7 +127,7 @@ func (s *Server) getInFolderWithCategory(ctx context.Context, t time.Time, folde
 			continue
 		}
 		if err == nil {
-			if r.GetMetadata().GetCategory() == cat && r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() && r.GetMetadata().SetRating == 0 {
+			if r.GetMetadata().GetCategory() == cat && r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() && r.GetMetadata().SetRating == 0 && !r.GetMetadata().GetOutOfPlay() {
 				if s.dateFine(r, t, state) && !s.needsRip(r) {
 					if !filable || s.isFilable(r) {
 						return r, nil
@@ -171,7 +175,7 @@ func (s *Server) getInFolders(ctx context.Context, t time.Time, folders []int32,
 	for _, id := range allrecs {
 		r, err := s.rGetter.getRelease(ctx, id)
 		if err == nil && r != nil {
-			if r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() && r.GetMetadata().SetRating == 0 {
+			if r.GetRelease().Rating == 0 && !r.GetMetadata().GetDirty() && r.GetMetadata().SetRating == 0 && !r.GetMetadata().GetOutOfPlay() {
 				if s.dateFine(r, t, state) && !s.needsRip(r) {
 					s.setTime(r, state)
 					return r, nil
