@@ -12,7 +12,7 @@ go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 tic -x ghostty.terminfo
 
 # Install tmux and emacs
-sudo apt-get update && sudo apt-get install -y tmux emacs
+sudo apt-get install -y tmux emacs
 
 # Set git identity
 git config --global user.email "brotherlogicautomation@gmail.com"
