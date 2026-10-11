@@ -12,10 +12,35 @@ import (
 
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pbrg "github.com/brotherlogic/recordgetter/proto"
+	_ "github.com/brotherlogic/recordscores/proto"
 
 	//Needed to pull in gzip encoding init
 	_ "google.golang.org/grpc/encoding/gzip"
 )
+
+func formatRipStatus(metadata *pbrc.ReleaseMetadata) string {
+	if metadata == nil || metadata.GetLastRipDate() <= 0 {
+		return "Ripped: Not ripped"
+	}
+	dateStr := time.Unix(metadata.GetLastRipDate(), 0).UTC().Format("2006-01-02")
+	return fmt.Sprintf("Ripped: %s (Quality: %d/100)", dateStr, metadata.GetRippedQuality())
+}
+
+func formatSalePrice(metadata *pbrc.ReleaseMetadata) string {
+	if metadata == nil {
+		return "Sale Price: Not set"
+	}
+	price := metadata.GetCurrentSalePrice()
+	if price <= 0 {
+		price = metadata.GetSalePrice()
+	}
+	if price <= 0 {
+		return "Sale Price: Not set"
+	}
+	dollars := price / 100
+	cents := price % 100
+	return fmt.Sprintf("Sale Price: $%d.%02d", dollars, cents)
+}
 
 func findServer(name string) (string, int) {
 	ip, port, _ := utils.Resolve(name, "recordgetter-cli")

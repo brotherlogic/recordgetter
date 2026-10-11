@@ -9,6 +9,7 @@ require (
 	github.com/brotherlogic/keystore v0.0.0-20260725015259-879577c52b4d
 	github.com/brotherlogic/recordcollection v0.0.0-20260930180628-5f90c24662c7
 	github.com/brotherlogic/recorder v0.0.0-20260925211214-0c726e4b2e4a
+	github.com/brotherlogic/recordscores v0.0.0-20260909003504-af1ad522f2ad
 	github.com/brotherlogic/recordsorganiser v0.0.0-20260725040955-f8cbf5e52c0d
 	github.com/brotherlogic/recordvalidator v0.0.0-20260319021953-45459241108f
 	github.com/brotherlogic/recordwants v0.0.0-20260319022332-a509f3ad2e29
