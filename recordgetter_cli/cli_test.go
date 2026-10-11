@@ -1,13 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 
 	pbgd "github.com/brotherlogic/godiscogs/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
+	pbrg "github.com/brotherlogic/recordgetter/proto"
 	pbscores "github.com/brotherlogic/recordscores/proto"
 	"google.golang.org/grpc"
 )
@@ -370,5 +373,171 @@ func TestFetchScoreHistoryStatus(t *testing.T) {
 				t.Errorf("fetchScoreHistoryStatus() = %q, want %q", got, tc.expected)
 			}
 		})
+	}
+}
+
+type mockRecordGetterClient struct {
+	resp *pbrg.GetRecordResponse
+	err  error
+}
+
+func (m *mockRecordGetterClient) GetRecord(ctx context.Context, in *pbrg.GetRecordRequest, opts ...grpc.CallOption) (*pbrg.GetRecordResponse, error) {
+	return m.resp, m.err
+}
+
+func TestGet_StagedToSellEnrichment(t *testing.T) {
+	origDialRG := dialRecordGetter
+	origDialRC := dialRecordCollection
+	origDialRS := dialRecordscores
+	origStdout := stdout
+	defer func() {
+		dialRecordGetter = origDialRG
+		dialRecordCollection = origDialRC
+		dialRecordscores = origDialRS
+		stdout = origStdout
+	}()
+
+	mockRG := &mockRecordGetterClient{
+		resp: &pbrg.GetRecordResponse{
+			Record: &pbrc.Record{
+				Release: &pbgd.Release{
+					Id:             12345,
+					InstanceId:     9999,
+					Title:          "Blue Train",
+					FormatQuantity: 1,
+					Artists: []*pbgd.Artist{
+						{Name: "John Coltrane"},
+					},
+					DigitalVersions: []int32{555},
+				},
+				Metadata: &pbrc.ReleaseMetadata{
+					Category:         pbrc.ReleaseMetadata_STAGED_TO_SELL,
+					LastRipDate:      1700000000,
+					RippedQuality:    95,
+					CurrentSalePrice: 1500,
+				},
+			},
+			Disk: 1,
+		},
+	}
+	dialRecordGetter = func(ctx context.Context) (rgClient, func(), error) {
+		return mockRG, func() {}, nil
+	}
+
+	mockRC := &mockRecordCollectionClient{
+		records: map[int32][]int64{
+			555: {8888},
+		},
+	}
+	dialRecordCollection = func(ctx context.Context) (rcClient, func(), error) {
+		return mockRC, func() {}, nil
+	}
+
+	mockRS := &mockRecordScoreServiceClient{
+		resp: &pbscores.GetScoreResponse{
+			Scores: []*pbscores.Score{
+				{Rating: 5, ScoreTime: 100},
+			},
+		},
+	}
+	dialRecordscores = func(ctx context.Context) (pbscores.RecordScoreServiceClient, func(), error) {
+		return mockRS, func() {}, nil
+	}
+
+	var buf bytes.Buffer
+	stdout = &buf
+
+	get(context.Background(), false)
+
+	expectedOutput := strings.Join([]string{
+		"John Coltrane - Blue Train [STAGED_TO_SELL] (1/1) {12345,9999}",
+		"  Ripped: 2023-11-14 (Quality: 95/100)",
+		"  Digital Versions: Owned 1 of 1 (Owned: [555])",
+		"  Score History: 1 listens [Ratings: 5] (Avg: 5.0)",
+		"  Sale Price: $15.00",
+		"",
+	}, "\n")
+
+	if buf.String() != expectedOutput {
+		t.Errorf("get(ctx, false) output = \n%q\nwant:\n%q", buf.String(), expectedOutput)
+	}
+}
+
+func TestGet_CleanTrue(t *testing.T) {
+	origDialRG := dialRecordGetter
+	origStdout := stdout
+	defer func() {
+		dialRecordGetter = origDialRG
+		stdout = origStdout
+	}()
+
+	mockRG := &mockRecordGetterClient{
+		resp: &pbrg.GetRecordResponse{
+			Record: &pbrc.Record{
+				Release: &pbgd.Release{
+					Id:         12345,
+					InstanceId: 9999,
+					Title:      "Blue Train",
+				},
+				Metadata: &pbrc.ReleaseMetadata{
+					Category: pbrc.ReleaseMetadata_STAGED_TO_SELL,
+				},
+			},
+		},
+	}
+	dialRecordGetter = func(ctx context.Context) (rgClient, func(), error) {
+		return mockRG, func() {}, nil
+	}
+
+	var buf bytes.Buffer
+	stdout = &buf
+
+	get(context.Background(), true)
+
+	expectedOutput := "12345\n"
+	if buf.String() != expectedOutput {
+		t.Errorf("get(ctx, true) output = %q, want %q", buf.String(), expectedOutput)
+	}
+}
+
+func TestGet_NonStagedToSell(t *testing.T) {
+	origDialRG := dialRecordGetter
+	origStdout := stdout
+	defer func() {
+		dialRecordGetter = origDialRG
+		stdout = origStdout
+	}()
+
+	mockRG := &mockRecordGetterClient{
+		resp: &pbrg.GetRecordResponse{
+			Record: &pbrc.Record{
+				Release: &pbgd.Release{
+					Id:             12345,
+					InstanceId:     9999,
+					Title:          "Blue Train",
+					FormatQuantity: 1,
+					Artists: []*pbgd.Artist{
+						{Name: "John Coltrane"},
+					},
+				},
+				Metadata: &pbrc.ReleaseMetadata{
+					Category: pbrc.ReleaseMetadata_PRE_HIGH_SCHOOL,
+				},
+			},
+			Disk: 1,
+		},
+	}
+	dialRecordGetter = func(ctx context.Context) (rgClient, func(), error) {
+		return mockRG, func() {}, nil
+	}
+
+	var buf bytes.Buffer
+	stdout = &buf
+
+	get(context.Background(), false)
+
+	expectedOutput := "John Coltrane - Blue Train [PRE_HIGH_SCHOOL] (1/1) {12345,9999}\n"
+	if buf.String() != expectedOutput {
+		t.Errorf("get(ctx, false) for non-staged output = %q, want %q", buf.String(), expectedOutput)
 	}
 }
