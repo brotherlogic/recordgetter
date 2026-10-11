@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"testing"
 
+	pbgd "github.com/brotherlogic/godiscogs/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
+	"google.golang.org/grpc"
 )
 
 func TestFormatRipStatus(t *testing.T) {
@@ -139,6 +143,115 @@ func TestFormatSalePrice(t *testing.T) {
 			got := formatSalePrice(tc.metadata)
 			if got != tc.expected {
 				t.Errorf("formatSalePrice() = %q, want %q", got, tc.expected)
+			}
+		})
+	}
+}
+
+type mockRecordCollectionClient struct {
+	records map[int32][]int64
+	err     error
+}
+
+func (m *mockRecordCollectionClient) QueryRecords(ctx context.Context, in *pbrc.QueryRecordsRequest, opts ...grpc.CallOption) (*pbrc.QueryRecordsResponse, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	relID := in.GetReleaseId()
+	instances := m.records[relID]
+	return &pbrc.QueryRecordsResponse{InstanceIds: instances}, nil
+}
+
+func TestFetchDigitalVersionsStatus(t *testing.T) {
+	tests := []struct {
+		name       string
+		release    *pbgd.Release
+		mockClient *mockRecordCollectionClient
+		dialErr    error
+		expected   string
+	}{
+		{
+			name:     "nil release",
+			release:  nil,
+			expected: "Digital Versions: None available",
+		},
+		{
+			name: "empty digital versions",
+			release: &pbgd.Release{
+				DigitalVersions: []int32{},
+			},
+			expected: "Digital Versions: None available",
+		},
+		{
+			name: "dial error",
+			release: &pbgd.Release{
+				DigitalVersions: []int32{101, 102},
+			},
+			dialErr:  fmt.Errorf("connection refused"),
+			expected: "Digital Versions: [Unavailable - error querying recordcollection]",
+		},
+		{
+			name: "query error",
+			release: &pbgd.Release{
+				DigitalVersions: []int32{101, 102},
+			},
+			mockClient: &mockRecordCollectionClient{
+				err: fmt.Errorf("rpc failure"),
+			},
+			expected: "Digital Versions: [Unavailable - error querying recordcollection]",
+		},
+		{
+			name: "none owned (0 of 2)",
+			release: &pbgd.Release{
+				DigitalVersions: []int32{101, 102},
+			},
+			mockClient: &mockRecordCollectionClient{
+				records: map[int32][]int64{},
+			},
+			expected: "Digital Versions: None owned (0 of 2)",
+		},
+		{
+			name: "partial owned (1 of 2)",
+			release: &pbgd.Release{
+				DigitalVersions: []int32{12345, 67890},
+			},
+			mockClient: &mockRecordCollectionClient{
+				records: map[int32][]int64{
+					12345: {999},
+				},
+			},
+			expected: "Digital Versions: Owned 1 of 2 (Owned: [12345])",
+		},
+		{
+			name: "full owned (2 of 2)",
+			release: &pbgd.Release{
+				DigitalVersions: []int32{12345, 67890},
+			},
+			mockClient: &mockRecordCollectionClient{
+				records: map[int32][]int64{
+					12345: {999},
+					67890: {1000},
+				},
+			},
+			expected: "Digital Versions: Owned 2 of 2 (Owned: [12345, 67890])",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			oldDial := dialRecordCollection
+			defer func() { dialRecordCollection = oldDial }()
+
+			dialRecordCollection = func(ctx context.Context) (rcClient, func(), error) {
+				if tc.dialErr != nil {
+					return nil, nil, tc.dialErr
+				}
+				return tc.mockClient, func() {}, nil
+			}
+
+			got := fetchDigitalVersionsStatus(context.Background(), tc.release)
+			if got != tc.expected {
+				t.Errorf("fetchDigitalVersionsStatus() = %q, want %q", got, tc.expected)
 			}
 		})
 	}
