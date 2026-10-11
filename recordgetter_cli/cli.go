@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/brotherlogic/goserver/utils"
@@ -21,6 +23,20 @@ import (
 	//Needed to pull in gzip encoding init
 	_ "google.golang.org/grpc/encoding/gzip"
 )
+
+var stdout io.Writer = os.Stdout
+
+type rgClient interface {
+	GetRecord(ctx context.Context, in *pbrg.GetRecordRequest, opts ...grpc.CallOption) (*pbrg.GetRecordResponse, error)
+}
+
+var dialRecordGetter = func(ctx context.Context) (rgClient, func(), error) {
+	conn, err := utils.LFDialServer(ctx, "recordgetter")
+	if err != nil {
+		return nil, nil, err
+	}
+	return pbrg.NewRecordGetterClient(conn), func() { conn.Close() }, nil
+}
 
 type rcClient interface {
 	QueryRecords(ctx context.Context, in *pbrc.QueryRecordsRequest, opts ...grpc.CallOption) (*pbrc.QueryRecordsResponse, error)
@@ -276,12 +292,11 @@ func audition(ctx context.Context) {
 }
 
 func get(ctx context.Context, clean bool) {
-	conn, err := utils.LFDialServer(ctx, "recordgetter")
+	client, closer, err := dialRecordGetter(ctx)
 	if err != nil {
 		log.Fatalf("Can't dial getter: %v", err)
 	}
-	defer conn.Close()
-	client := pbrg.NewRecordGetterClient(conn)
+	defer closer()
 
 	r, err := client.GetRecord(ctx, &pbrg.GetRecordRequest{Refresh: true})
 	if err != nil {
@@ -289,12 +304,12 @@ func get(ctx context.Context, clean bool) {
 	}
 
 	if clean {
-		fmt.Printf("%v\n", r.GetRecord().GetRelease().GetId())
+		fmt.Fprintf(stdout, "%v\n", r.GetRecord().GetRelease().GetId())
 		return
 	}
 
 	if len(r.GetRecord().GetRelease().GetArtists()) > 0 {
-		fmt.Printf("%v - %v [%v] (%v/%v) {%v,%v}\n",
+		fmt.Fprintf(stdout, "%v - %v [%v] (%v/%v) {%v,%v}\n",
 			r.GetRecord().GetRelease().GetArtists()[0].GetName(),
 			r.GetRecord().GetRelease().GetTitle(),
 			r.GetRecord().GetMetadata().GetCategory(),
@@ -304,7 +319,7 @@ func get(ctx context.Context, clean bool) {
 			r.GetRecord().GetRelease().GetInstanceId(),
 		)
 	} else {
-		fmt.Printf("UnknownArtist - %v [%v] (%v/%v) {%v,%v}\n",
+		fmt.Fprintf(stdout, "UnknownArtist - %v [%v] (%v/%v) {%v,%v}\n",
 			r.GetRecord().GetRelease().GetTitle(),
 			r.GetRecord().GetMetadata().GetCategory(),
 			r.GetDisk(),
@@ -312,6 +327,31 @@ func get(ctx context.Context, clean bool) {
 			r.GetRecord().GetRelease().GetId(),
 			r.GetRecord().GetRelease().GetInstanceId(),
 		)
+	}
+
+	if r.GetRecord().GetMetadata() != nil && r.GetRecord().GetMetadata().GetCategory() == pbrc.ReleaseMetadata_STAGED_TO_SELL {
+		timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+
+		var wg sync.WaitGroup
+		var digitalStatus string
+		var scoreStatus string
+
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			digitalStatus = fetchDigitalVersionsStatus(timeoutCtx, r.GetRecord().GetRelease())
+		}()
+		go func() {
+			defer wg.Done()
+			scoreStatus = fetchScoreHistoryStatus(timeoutCtx, r.GetRecord().GetRelease().GetInstanceId())
+		}()
+		wg.Wait()
+
+		fmt.Fprintf(stdout, "  %s\n", formatRipStatus(r.GetRecord().GetMetadata()))
+		fmt.Fprintf(stdout, "  %s\n", digitalStatus)
+		fmt.Fprintf(stdout, "  %s\n", scoreStatus)
+		fmt.Fprintf(stdout, "  %s\n", formatSalePrice(r.GetRecord().GetMetadata()))
 	}
 }
 
