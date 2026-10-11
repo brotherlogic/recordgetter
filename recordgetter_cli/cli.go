@@ -5,18 +5,74 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/brotherlogic/goserver/utils"
 
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pbrg "github.com/brotherlogic/recordgetter/proto"
-	_ "github.com/brotherlogic/recordscores/proto"
+	pbscores "github.com/brotherlogic/recordscores/proto"
 
 	//Needed to pull in gzip encoding init
 	_ "google.golang.org/grpc/encoding/gzip"
 )
+
+var dialRecordscores = func(ctx context.Context) (pbscores.RecordScoreServiceClient, func(), error) {
+	conn, err := utils.LFDialServer(ctx, "recordscores")
+	if err != nil {
+		return nil, nil, err
+	}
+	return pbscores.NewRecordScoreServiceClient(conn), func() { conn.Close() }, nil
+}
+
+func fetchScoreHistoryStatus(ctx context.Context, instanceId int64) string {
+	client, closer, err := dialRecordscores(ctx)
+	if err != nil {
+		return "Score History: [Unavailable - error querying recordscores]"
+	}
+	if closer != nil {
+		defer closer()
+	}
+
+	resp, err := client.GetScore(ctx, &pbscores.GetScoreRequest{InstanceId: instanceId})
+	if err != nil {
+		return "Score History: [Unavailable - error querying recordscores]"
+	}
+
+	scores := resp.GetScores()
+	if len(scores) == 0 {
+		return "Score History: No history"
+	}
+
+	sorted := make([]*pbscores.Score, len(scores))
+	copy(sorted, scores)
+	sort.SliceStable(sorted, func(i, j int) bool {
+		return sorted[i].GetScoreTime() < sorted[j].GetScoreTime()
+	})
+
+	var sum float64
+	for _, s := range sorted {
+		sum += float64(s.GetRating())
+	}
+	avg := sum / float64(len(sorted))
+
+	start := 0
+	if len(sorted) > 5 {
+		start = len(sorted) - 5
+	}
+	lastScores := sorted[start:]
+	ratingsStr := make([]string, len(lastScores))
+	for i, s := range lastScores {
+		ratingsStr[i] = fmt.Sprintf("%d", s.GetRating())
+	}
+
+	return fmt.Sprintf("Score History: %d listens [Ratings: %s] (Avg: %.1f)", len(scores), strings.Join(ratingsStr, ", "), avg)
+}
+
+
 
 func formatRipStatus(metadata *pbrc.ReleaseMetadata) string {
 	if metadata == nil || metadata.GetLastRipDate() <= 0 {
