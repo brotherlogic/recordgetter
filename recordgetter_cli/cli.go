@@ -12,13 +12,63 @@ import (
 
 	"github.com/brotherlogic/goserver/utils"
 
+	pbgd "github.com/brotherlogic/godiscogs/proto"
 	pbrc "github.com/brotherlogic/recordcollection/proto"
 	pbrg "github.com/brotherlogic/recordgetter/proto"
 	pbscores "github.com/brotherlogic/recordscores/proto"
+	"google.golang.org/grpc"
 
 	//Needed to pull in gzip encoding init
 	_ "google.golang.org/grpc/encoding/gzip"
 )
+
+type rcClient interface {
+	QueryRecords(ctx context.Context, in *pbrc.QueryRecordsRequest, opts ...grpc.CallOption) (*pbrc.QueryRecordsResponse, error)
+}
+
+var dialRecordCollection = func(ctx context.Context) (rcClient, func(), error) {
+	conn, err := utils.LFDialServer(ctx, "recordcollection")
+	if err != nil {
+		return nil, nil, err
+	}
+	return pbrc.NewRecordCollectionServiceClient(conn), func() { conn.Close() }, nil
+}
+
+func fetchDigitalVersionsStatus(ctx context.Context, release *pbgd.Release) string {
+	if release == nil || len(release.GetDigitalVersions()) == 0 {
+		return "Digital Versions: None available"
+	}
+
+	client, closer, err := dialRecordCollection(ctx)
+	if err != nil {
+		return "Digital Versions: [Unavailable - error querying recordcollection]"
+	}
+	defer closer()
+
+	var owned []int32
+	for _, dv := range release.GetDigitalVersions() {
+		res, err := client.QueryRecords(ctx, &pbrc.QueryRecordsRequest{
+			Query: &pbrc.QueryRecordsRequest_ReleaseId{ReleaseId: dv},
+		})
+		if err != nil {
+			return "Digital Versions: [Unavailable - error querying recordcollection]"
+		}
+		if len(res.GetInstanceIds()) > 0 {
+			owned = append(owned, dv)
+		}
+	}
+
+	total := len(release.GetDigitalVersions())
+	if len(owned) == 0 {
+		return fmt.Sprintf("Digital Versions: None owned (0 of %d)", total)
+	}
+
+	var ownedStrs []string
+	for _, id := range owned {
+		ownedStrs = append(ownedStrs, fmt.Sprintf("%d", id))
+	}
+	return fmt.Sprintf("Digital Versions: Owned %d of %d (Owned: [%s])", len(owned), total, strings.Join(ownedStrs, ", "))
+}
 
 var dialRecordscores = func(ctx context.Context) (pbscores.RecordScoreServiceClient, func(), error) {
 	conn, err := utils.LFDialServer(ctx, "recordscores")
@@ -71,9 +121,6 @@ func fetchScoreHistoryStatus(ctx context.Context, instanceId int64) string {
 
 	return fmt.Sprintf("Score History: %d listens [Ratings: %s] (Avg: %.1f)", len(scores), strings.Join(ratingsStr, ", "), avg)
 }
-
-
-
 func formatRipStatus(metadata *pbrc.ReleaseMetadata) string {
 	if metadata == nil || metadata.GetLastRipDate() <= 0 {
 		return "Ripped: Not ripped"
